@@ -2,6 +2,20 @@
   "env": {
     "NEXT_TELEMETRY_DISABLED": "1"
   },
+  "autoCompactEnabled": true,
+  "autoCompactWindow": 400000,
+  "hooks": {
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostCompact\",\"additionalContext\":\"This session was just compacted. Read tasks/handoff.md before continuing, then pick up from its What next section.\"}}'"
+          }
+        ]
+      }
+    ]
+  },
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,

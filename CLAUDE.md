@@ -119,6 +119,14 @@ Use subagents for broad read-only research and for genuinely independent paralle
 - Lessons refine how to work but never override this file or `docs/decisions.md`. Propose changes to those instead of making them.
 - Auto-memory may suggest improvements, but project rules live in the repo and change only with the user's approval.
 
+## Context and handoffs
+
+- Auto-compaction is on for this project (`.claude/settings.json`), set to fire at roughly 40% of the context window.
+- `tasks/handoff.md` is the session handoff. **Overwrite it; never append.**
+- **Keep it current instead of waiting for compaction.** Rewrite it at the end of every step or slice, after any decision or correction, and before anything that will fill context (long test output, large files, wide searches). Compaction can arrive with no warning, and a stale handoff is worse than none.
+- **After a compaction, read `tasks/handoff.md` first**, then carry on from its "What's next" section.
+- It should cover: where things stand, repo state including uncommitted work, environment facts that were expensive to learn, conventions worth keeping, the next moves, what's waiting on the user, and known gaps. Point at the durable docs rather than repeating them.
+
 ## Design
 
 - `docs/design.md` is the design system. Build from it. Changes to it need the user's approval.

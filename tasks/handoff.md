@@ -33,11 +33,21 @@ rediscover.
 
 ## Repo state
 
-- Branch `slice-0/foundation`, two commits: `2491f28` (scaffold), `0a64645`
-  (database, security, sandbox).
-- **Step 3 is uncommitted** — actions, queue, seed, time helpers, auth adapter,
-  the queue migration, and doc updates. Committing it is the obvious first move.
+- Branch `slice-0/foundation`, three commits: `2491f28` (scaffold), `0a64645`
+  (database, security, sandbox), `0c6004d` (action layer, queue, seed).
+- Working tree is clean apart from the compaction settings and the CLAUDE.md
+  rules added alongside this handoff.
 - No git remote yet. Repo email is set locally to john.re.healy@gmail.com.
+
+## Compaction routine
+
+- Auto-compaction fires at roughly 40% of the context window
+  (`.claude/settings.json`).
+- **Overwrite this file** at the end of every step or slice, after any decision,
+  and before anything that will fill context. Don't wait for compaction: it
+  arrives without warning, and a stale handoff is worse than none.
+- After a compaction, read this file first and continue from "What's next". A
+  post-compaction hook in the project settings also prints that reminder.
 
 ## Environment facts
 
@@ -82,15 +92,14 @@ rediscover.
 
 ## What's next (step 4)
 
-1. Commit step 3.
-2. **Sign-in:** Supabase phone one-time codes through Twilio Verify. Inviting
+1. **Sign-in:** Supabase phone one-time codes through Twilio Verify. Inviting
    already creates the account, so sign-in uses "don't create users" and
    sign-ups stay disabled in `supabase/config.toml`.
-3. **Add an `activateMember` action** (invited → active) for first sign-in. The
+2. **Add an `activateMember` action** (invited → active) for first sign-in. The
    seed script currently shortcuts this with a direct update; replace that.
-4. **Protect the app routes**, then Playwright coverage for sign-in and moving
+3. **Protect the app routes**, then Playwright coverage for sign-in and moving
    between the six destinations, plus an Impeccable review of the shell.
-5. Open question 8 in `docs/open-questions.md` holds the sign-in defaults.
+4. Open question 8 in `docs/open-questions.md` holds the sign-in defaults.
 
 ## Waiting on the user
 
