@@ -11,6 +11,11 @@
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
+    "test:db": "pnpm --filter @housemate/core test:db",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:generate": "pnpm --filter @housemate/core db:generate",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -18,6 +23,7 @@
     "@types/node": "^24",
     "eslint": "^9",
     "prettier": "^3.9.6",
+    "supabase": "2.117.0",
     "typescript": "^5",
     "typescript-eslint": "^8.70.0"
   }

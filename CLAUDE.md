@@ -58,6 +58,9 @@ This section governs how Claude operates on external services, not how the app i
 - **Deploys go through git.** Vercel deploys from GitHub. No CLI deploys.
 - **Uncertain writes.** If an MCP write's result is unclear, inspect the resource through MCP before retrying. If it's still unknown, stop and report it rather than risk a duplicate.
 - **Check connectors first.** Before planning work that depends on an external service, confirm its MCP is available and flag it if not.
+- **Sandbox (D-032).** Shell commands run in Claude Code's sandbox, configured in `.claude/settings.json`.
+  - Add a network domain or write path only when a task needs it, and say so when you do.
+  - Docker and Supabase CLI commands need the Docker socket, so run them outside the sandbox one at a time, each through the permission check.
 
 ## How to work
 

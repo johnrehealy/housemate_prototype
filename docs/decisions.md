@@ -112,6 +112,15 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Status:** Approved · 2026-09-15
 - **Decision:** Build in the vertical slices described in `docs/build-plan.md`. Each slice gets a detailed plan in `tasks/todo.md`, approved before implementation.
 
+### D-032 · Claude Code runs in its built-in sandbox
+- **Status:** Approved · 2026-09-15 (user instruction, option A; a full dev container may follow later)
+- **Decision:** Claude's shell commands run in Claude Code's built-in sandbox, configured in `.claude/settings.json`:
+  - Writes are limited to the project and the pnpm, corepack and npm caches.
+  - SSH, AWS, GitHub CLI and Docker credentials can't be read.
+  - Network access is limited to npm, GitHub, Google Fonts and localhost.
+  - Docker and Supabase CLI commands need the Docker socket, so they run outside the sandbox one at a time, each through the normal permission check.
+- **Reason:** Contain mistaken commands and malicious packages before real credentials exist. Staging and production changes already go through MCP connectors (CLAUDE.md), so their secrets never need to be inside the sandbox.
+
 ---
 
 ## Proposed

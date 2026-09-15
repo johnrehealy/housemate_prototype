@@ -6,4 +6,5 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: false
+  supabase: true
   unrs-resolver: false

@@ -3,18 +3,24 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./db": "./src/db/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "drizzle-orm": "0.45.2",
+    "postgres": "3.4.9",
     "twilio": "6.1.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "drizzle-kit": "0.31.10",
     "vitest": "5.0.0"
   }
 }

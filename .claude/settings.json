@@ -1,0 +1,36 @@
+{
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": [
+        "~/Library/pnpm",
+        "~/Library/Caches/pnpm",
+        "~/.cache/node/corepack",
+        "~/.npm"
+      ],
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.netrc",
+        "~/.config/gh",
+        "~/.docker/config.json"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "registry.npmjs.org",
+        "github.com",
+        "*.githubusercontent.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "localhost",
+        "127.0.0.1"
+      ],
+      "allowLocalBinding": true
+    }
+  }
+}
