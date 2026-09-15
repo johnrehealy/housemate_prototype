@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+/*
+ * Housemate design tokens, from docs/design.md §2 (all 95 tokens).
+ * Tailwind's default scales are cleared so only design-system values exist.
+ * `static` keeps every token available as a CSS variable, used or not.
+ */
+@theme static {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --tracking-*: initial;
+  --leading-*: initial;
+  --breakpoint-*: initial;
+  --container-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+
+  /* Grounds and ink */
+  --color-evergreen: #14342f;
+  --color-nav: #f5f3f1;
+  --color-canvas: #fffbf9;
+  --color-nav-hover: #faf7f5;
+  --color-surface: #ffffff;
+  --color-line: #ece8e5;
+  --color-line-strong: #ddd7d3;
+  --color-body: #49504e;
+  --color-heading: #2a312f;
+  --color-muted: #68706e;
+  --color-on-evergreen: #fffbf9;
+
+  /* Status and agent */
+  --color-status-action-bg: #f6e3de;
+  --color-status-action-fg: #8f3f33;
+  --color-status-blocked-bg: #f5e2de;
+  --color-status-blocked-fg: #7e3a34;
+  --color-status-progress-bg: #e7efe6;
+  --color-status-progress-fg: #42624a;
+  --color-status-done-bg: #e4eaee;
+  --color-status-done-fg: #4f6470;
+  --color-status-idle-bg: #f0edeb;
+  --color-status-idle-fg: #5f6664;
+  --color-agent-from: #14342f;
+  --color-agent-to: #357f6b;
+  --color-recurring: var(--color-evergreen);
+
+  /* Files */
+  --color-file-pdf: #a8322a;
+  --color-file-doc: #2c5f91;
+  --color-file-xls: #2e6b47;
+  --color-file-ppt: #9c5518;
+
+  /* Calendar events */
+  --color-event-services-bg: var(--color-status-progress-bg);
+  --color-event-services-fg: var(--color-status-progress-fg);
+  --color-event-actions-bg: var(--color-status-action-bg);
+  --color-event-actions-fg: var(--color-status-action-fg);
+  --color-event-reminders-bg: #f4e8d9;
+  --color-event-reminders-fg: #7e5219;
+  --color-event-personal-bg: var(--color-status-idle-bg);
+  --color-event-personal-fg: var(--color-status-idle-fg);
+  --color-event-services-line: #b6c5b7;
+  --color-event-actions-line: #d7b2ab;
+  --color-event-reminders-line: #d1bb9f;
+  --color-event-personal-line: #c4c4c2;
+
+  /* Errand types */
+  --color-type-pickup-fg: #7a5316;
+  --color-type-pickup-line: #c3af93;
+  --color-type-delivery-fg: #2e5c58;
+  --color-type-delivery-line: #a1b3b1;
+  --color-type-activity-fg: #6b5346;
+  --color-type-activity-line: #bcafa8;
+
+  /* Typography. --font-sans is wired to the loaded Lato face below. */
+  --text-display: 32px;
+  --text-lead: 17px;
+  --text-base: 16px;
+  --text-label: 15px;
+  --text-sm: 14px;
+  --text-xs: 13px;
+  --text-2xs: 12px;
+  --text-metric: 36px;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --tracking-display: -0.022em;
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+  --leading-display: 52px;
+  --leading-lead: 26px;
+  --leading-body: 24px;
+  --leading-snug: 19px;
+  --leading-flat: 16px;
+
+  /*
+   * Full type-scale roles from docs/design.md §1, so `text-sm` applies
+   * 14px / 700 / 20px / -0.005em in one class. 20px line height and
+   * -0.005em tracking have no token in the register.
+   */
+  --text-display--line-height: 52px;
+  --text-display--letter-spacing: -0.022em;
+  --text-display--font-weight: 400;
+  --text-lead--line-height: 26px;
+  --text-lead--letter-spacing: -0.01em;
+  --text-lead--font-weight: 400;
+  --text-base--line-height: 24px;
+  --text-base--letter-spacing: -0.01em;
+  --text-base--font-weight: 400;
+  --text-label--line-height: 20px;
+  --text-label--letter-spacing: -0.01em;
+  --text-label--font-weight: 400;
+  --text-sm--line-height: 20px;
+  --text-sm--letter-spacing: -0.005em;
+  --text-sm--font-weight: 700;
+  --text-xs--line-height: 19px;
+  --text-xs--letter-spacing: 0em;
+  --text-xs--font-weight: 400;
+  --text-2xs--line-height: 16px;
+  --text-2xs--letter-spacing: 0em;
+  --text-2xs--font-weight: 400;
+  --text-metric--line-height: 44px;
+  --text-metric--letter-spacing: -0.022em;
+  --text-metric--font-weight: 300;
+
+  /* Breakpoints and containers */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --container-sidebar: 260px;
+  --container-thread: 660px;
+  --container-shell: 1440px;
+
+  /* Spacing and dimensions */
+  --spacing-icon: 20px;
+  --spacing-hit: 36px;
+  --spacing-nav-h: 40px;
+  --spacing-bar: 64px;
+  --spacing-row: 52px;
+  --spacing-fab: 56px;
+  --spacing-icon-lg: 28px;
+  --spacing-tile: 150px;
+  --spacing-tabbar: 48px;
+  --spacing-toolbar: 76px;
+  --spacing-file-card: 166px;
+  --spacing-file-panel: 168px;
+  --spacing-hour: 60px;
+  --spacing-gutter: 64px;
+  --spacing-dayhdr: 48px;
+  --spacing-legend: 64px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-full: 9999px;
+
+  /* Elevation, from docs/design.md §1 Metrics (not in the token register) */
+  --shadow-selected: 0 1px 2px rgba(20, 52, 47, 0.05);
+  --shadow-composer: 0 1px 3px rgba(20, 52, 47, 0.05);
+}
+
+@theme inline {
+  --font-sans: var(--font-lato), ui-sans-serif, system-ui, sans-serif;
+}

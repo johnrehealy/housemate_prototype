@@ -1,0 +1,24 @@
+# Dependencies and builds
+node_modules/
+.next/
+dist/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+
+# Environment files: never commit secrets
+.env*
+!.env.example
+
+# Tooling
+.vercel/
+supabase/.temp/
+supabase/.branches/
+
+# OS
+.DS_Store
