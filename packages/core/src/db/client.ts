@@ -14,3 +14,6 @@ export function createDb(databaseUrl: string) {
 }
 
 export type Db = ReturnType<typeof createDb>;
+
+/** A transaction handle, as passed to `db.transaction(...)`. */
+export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];

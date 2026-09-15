@@ -44,6 +44,9 @@ export const serverEnvSchema = z
     TWILIO_AUTH_TOKEN: optionalString,
     TWILIO_MESSAGING_SERVICE_SID: optionalString,
     TWILIO_PHONE_NUMBER: optionalString.pipe(e164Phone.optional()),
+    /** Supabase project URL and secret key, used to create sign-in accounts. */
+    SUPABASE_URL: optionalString.pipe(z.url().optional()),
+    SUPABASE_SECRET_KEY: optionalString,
     ACK_REPLY_ENABLED: booleanString.default(false),
     TEAM_ALERT_PHONES: phoneList,
   })
@@ -61,6 +64,17 @@ export const serverEnvSchema = z
         message: "The simulator can't be used in production",
         path: ["SMS_PROVIDER"],
       });
+    }
+    if (env.APP_ENV !== "local") {
+      for (const key of ["SUPABASE_URL", "SUPABASE_SECRET_KEY"] as const) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Required outside local development",
+            path: [key],
+          });
+        }
+      }
     }
     if (env.SMS_PROVIDER === "twilio") {
       for (const key of TWILIO_KEYS) {

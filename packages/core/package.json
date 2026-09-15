@@ -4,16 +4,23 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./db": "./src/db/index.ts"
+    "./actions": "./src/actions/index.ts",
+    "./auth": "./src/auth/index.ts",
+    "./config": "./src/config.ts",
+    "./db": "./src/db/index.ts",
+    "./queue": "./src/queue/jobs.ts",
+    "./time": "./src/time/timezone.ts"
   },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:db": "vitest run --config vitest.db.config.ts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "seed": "node --import tsx/esm scripts/seed-local.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.116.0",
     "drizzle-orm": "0.45.2",
     "postgres": "3.4.9",
     "twilio": "6.1.1",
@@ -21,6 +28,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "0.31.10",
+    "tsx": "4.23.13",
     "vitest": "5.0.0"
   }
 }

@@ -70,6 +70,33 @@ describe("loadServerEnv", () => {
     expect(env.SMS_PROVIDER).toBe("twilio");
   });
 
+  it("requires Supabase credentials outside local development", () => {
+    expect(() =>
+      loadServerEnv({
+        ...localEnv,
+        APP_ENV: "staging",
+        SMS_PROVIDER: "twilio",
+        TWILIO_ACCOUNT_SID: "AC123",
+        TWILIO_AUTH_TOKEN: "secret",
+        TWILIO_MESSAGING_SERVICE_SID: "MG123",
+      }),
+    ).toThrow(/SUPABASE_SECRET_KEY/);
+  });
+
+  it("accepts staging when Supabase credentials are set", () => {
+    const env = loadServerEnv({
+      ...localEnv,
+      APP_ENV: "staging",
+      SMS_PROVIDER: "twilio",
+      TWILIO_ACCOUNT_SID: "AC123",
+      TWILIO_AUTH_TOKEN: "secret",
+      TWILIO_MESSAGING_SERVICE_SID: "MG123",
+      SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_SECRET_KEY: "sb_secret_example",
+    });
+    expect(env.SUPABASE_URL).toBe("https://project.supabase.co");
+  });
+
   it("rejects the SMS simulator in production", () => {
     expect(() => loadServerEnv({ ...localEnv, APP_ENV: "production" })).toThrow(
       /SMS_PROVIDER/,

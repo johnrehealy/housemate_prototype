@@ -100,7 +100,7 @@ Each step ends with its check.
   *Check:* `pnpm lint`, `pnpm typecheck` and `pnpm test` pass.
 - [x] **2. Local database, schema and security.** (Seed script moved to step 3.) Supabase init, Drizzle schema, migrations. A seed script that generates fake data and refuses to run against anything but the local database.
   *Check:* `supabase db reset` applies cleanly. Security tests prove that member A can't read member B's home, browsers can't write, and activity events can't be edited or deleted.
-- [ ] **3. Action layer.** `defineAction`, the Slice 0 actions, and the SMS provider interface.
+- [x] **3. Action layer.** (Includes the seed script moved from step 2.) `defineAction`, the Slice 0 actions, and the SMS provider interface.
   *Check:* integration tests against the local database prove that:
   - each action writes exactly one activity event;
   - a failure rolls back both the record and the event;
@@ -178,6 +178,29 @@ These come from `docs/open-questions.md`; say if any should change.
 - **Local guard:** `assertLocalDatabase` refuses any non-local connection without echoing the URL. Test helpers use it. 3 unit tests, 25 unit tests in total.
 - **Moved to step 3:** the local seed script, so it creates data through `inviteMember` rather than direct inserts.
 - **Open (Slice 7):** the append-only activity log will need a controlled, audited path for deleting a member's data on request.
+
+**Step 3 (done, 2026-09-15).**
+- **`defineAction`:** validates input, runs the handler in a transaction, and writes activity events in that same transaction, stamped with who acted and which channel it came from.
+- **Actions:** `inviteMember`, `recordInboundMessage`, `sendMessage`, `updateMessageStatus`, `recordUsageCost`.
+- **Queue:** jobs go in Postgres (`pgmq`), added inside the caller's transaction, so nothing is queued unless the change that caused it is saved.
+- **Seed script:** creates fake data through the real actions, refuses any non-local database, and is a no-op on a second run.
+- **Tests:** 40 unit and 27 database tests. The database ones prove:
+  - an invite creates the home, member and their events;
+  - the pilot cap is refused and the sign-in account is removed again;
+  - a duplicate phone saves nothing at all;
+  - repeated inbound webhooks are ignored, and queue no second job;
+  - texts from unknown numbers are stored without a home and never queued;
+  - Housemate won't text first during quiet hours but still replies;
+  - a provider failure marks the text failed;
+  - costs record once, and crossing the budget raises exactly one alert per member per month, counted in the home's timezone.
+
+**Deviations from the step's plan, all deliberate:**
+- **An invite writes two events,** not one: the home created and the member invited.
+- **`updateMessageStatus` writes no event.** Delivery updates arrive several per text, and the message row carries its own delivery state.
+- **Sending media is not supported yet.** Outbound texts are text-only until Slice 2 needs photos.
+- **The sign-in account is created before the transaction,** since it's a network call, and is deleted again if saving the member fails.
+
+**Environment lessons (recorded in `tasks/lessons.md`):** run TypeScript with `node --import tsx/esm`, not the `tsx` command, which the sandbox blocks; package installs run outside the sandbox. Also: seed rows are committed, so test phone numbers must stay clear of the seed's.
 
 **Step 4 (shell done; sign-in, Playwright and Impeccable review wait on the database).**
 - **Build:** `next build` passes. All 95 tokens are emitted as CSS variables (`@theme static`), and Tailwind's default scales are cleared, so no non-design colors exist.

@@ -47,7 +47,21 @@ TypeScript throughout (D-026): Next.js (App Router) on Vercel for the web app an
 
 ## Commands
 
-Fill in when the app is scaffolded: install, dev server, local Supabase, SMS simulator, tests, lint, typecheck.
+| Command | What it does |
+|---|---|
+| `pnpm install` | Install dependencies. Runs outside the sandbox; see `tasks/lessons.md`. |
+| `pnpm dev` | Run the web app and worker together |
+| `pnpm build` | Production build |
+| `pnpm lint` · `pnpm typecheck` | Static checks across every package |
+| `pnpm test` | Unit tests |
+| `pnpm test:db` | Database tests; needs local Supabase running |
+| `pnpm format` · `pnpm format:check` | Prettier |
+| `pnpm db:start` · `pnpm db:stop` | Local Supabase. Runs outside the sandbox (Docker). |
+| `pnpm db:reset` | Rebuild the local database from migrations. Outside the sandbox. |
+| `pnpm db:generate` | Generate a migration from the Drizzle schema |
+| `pnpm db:seed` | Fill the local database with obviously fake data |
+
+Run TypeScript entry points with `node --import tsx/esm <file>`, not the `tsx` command; see `tasks/lessons.md`.
 
 ## External services
 

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { expect } from "vitest";
-import { createDb, type Db } from "./client";
+import { createDb, type Db, type Tx } from "./client";
 import { assertLocalDatabase } from "./local-guard";
 import { homes, members } from "./schema";
 
@@ -9,7 +9,7 @@ import { homes, members } from "./schema";
 export const LOCAL_DATABASE_URL =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
-export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+export type { Tx };
 
 export function testDb(): Db {
   const url = process.env.DATABASE_URL ?? LOCAL_DATABASE_URL;
