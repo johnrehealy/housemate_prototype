@@ -7,11 +7,13 @@ rediscover.
 ## Read these first
 
 1. `CLAUDE.md` — rules, stack, commands, sandbox notes.
-2. **Linear, project "Waiting on you"** (team Housemate, keys `HOU-`). Check it
+2. **Linear, project "Checklist"** (team Housemate, keys `HOU-`). Check it
    at session start (D-035). Answers the user left there are recorded in the
    docs, then the issue is closed.
+   **Also check project "Key Docs"** for docs the user edited in Linear
+   (D-038, "Docs in Linear" in `CLAUDE.md`).
 3. `docs/build-plan.md` — architecture and slices 0–7 (approved, D-031).
-4. `docs/decisions.md` — D-001 to D-037. Binding.
+4. `docs/decisions.md` — D-001 to D-042. Binding.
 5. `docs/open-questions.md` — unanswered questions and the defaults in effect.
 6. `tasks/todo.md` — the Slice 0 plan with per-step results.
 7. `tasks/lessons.md` — lessons already paid for.
@@ -39,7 +41,7 @@ typecheck clean.
 
 **Done on 2026-09-17, after the sign-in approval:**
 - **Linear set up (D-035).**
-  - Project "Waiting on you", with the labels Action, Decision and Review.
+  - Project "Checklist", with the labels Action, Decision and Review.
   - 25 issues, HOU-5 to HOU-29: 2 Urgent, 6 High, 8 Medium, 9 Low.
   - Backlog: HOU-20, HOU-22, HOU-29. Everything else is Todo.
   - HOU-1 to HOU-4 are Linear's own onboarding issues; leave them alone.
@@ -49,7 +51,36 @@ typecheck clean.
     hand, Product principles, and Accessibility.
   - The user confirmed Users, Positioning and Accessibility.
   - D-037 records that the web app meets WCAG 2.2 AA.
-- **Everything above was committed at the user's request.**
+- **Everything above is committed** (`92939d6`).
+- **Docs mirrored in Linear (D-038), not committed yet.**
+  - The nine project docs are documents in the Linear project "Key Docs".
+    `docs/linear-docs.json` maps each file to its document.
+  - `scripts/linear-docs.sh check` lists stale copies; `mark` records a copy.
+  - The rule is under "Docs in Linear" in `CLAUDE.md`.
+  - **Every edit to a mirrored file needs a Linear update in the same turn,**
+    this file included.
+
+**The user answered questions in Linear, 2026-09-17 evening.** Found by
+comparing each document's `updatedAt` with the manifest, then reading the copy.
+
+- **They renamed both projects:** "Waiting on you" → **Checklist**, "Prototype
+  docs" → **Key Docs**. The docs and `docs/linear-docs.json` now use the new
+  names.
+- **`docs/open-questions.md`:** they marked most defaults approved in place, and
+  answered Q1, Q2, Q6, Q7, Q15, Q16 and Q19. Copied back into the repo verbatim.
+- **`docs/decisions.md`:** D-006, D-007 and D-009 approved; **D-008 is "I want to
+  discuss this one further"** (HOU-23, retitled).
+- **`docs/product.md`:** connectors to inbox, email and calendars are part of the
+  product, not only the eventual one.
+- **New decisions from those answers:** D-039 build work is tracked in Linear
+  too, D-040 quiet hours are 9 PM–7:30 AM, D-041 Lucid for architecture
+  diagrams, D-042 team alerts move to Slack later.
+- **New issues:** HOU-30 (connect Lucid, Checklist) and HOU-31 (build work:
+  change the quiet-hours window in `sendMessage`, which still enforces
+  10 PM–8 AM and has tests asserting it).
+- **Check the Key Docs project this way at every session start:** `updatedAt`
+  more than a minute past the manifest's `linearUpdatedAt` means the copy may
+  have been edited. A bump alone isn't an edit — read the copy and compare.
 
 ## What's next (only once the user says go, HOU-7)
 
@@ -74,7 +105,18 @@ typecheck clean.
 
 ## Waiting on the user
 
-All of it is in Linear. **Most urgent:**
+- **Allowing the docs Stop hook, asked in chat, not in Linear.**
+  - Claude Code's auto-mode check refused Claude's edit to
+    `.claude/settings.json` as self-modification. A Linear issue for it
+    wasn't created: the attempt failed, and the follow-up lookup was
+    refused by the same check.
+  - The hook runs `"$CLAUDE_PROJECT_DIR/scripts/linear-docs.sh" stop-hook` as
+    a `Stop` hook with a 10-second timeout.
+  - It has been tested by piping hook input in by hand.
+  - **Until it's allowed,** run `scripts/linear-docs.sh check` by hand before
+    ending any turn that touched docs.
+
+Everything else is in Linear. **Most urgent:**
 - **HOU-5:** Twilio and 10DLC registration, which takes weeks.
 - **HOU-6:** GitHub. There is no remote backup yet.
 - **HOU-7:** the go-ahead to continue.
@@ -124,6 +166,10 @@ chat.
   is set locally to john.re.healy@gmail.com.
 - **Gitignored:** `.env*` and `apps/web/e2e/.auth/` (a real session token).
 - **Tracked:** `apps/web/.impeccable/` (the sign-in surface brief).
+- **Uncommitted:** the docs mirror and the answers copied back from Linear.
+  - Changed: `CLAUDE.md`, `docs/decisions.md`, `docs/open-questions.md`,
+    `docs/product.md` and this file.
+  - New: `scripts/linear-docs.sh` and `docs/linear-docs.json`.
 
 ## Compaction routine
 

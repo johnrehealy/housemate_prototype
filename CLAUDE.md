@@ -41,7 +41,7 @@ These hold regardless of channel or provider. Changing one requires an approved 
 | High-fidelity design | Paper desktop, through its MCP. Mockups are built and approved there (D-034); written specs live in `docs/design.md` |
 | Pattern research | Mobbin |
 | UI build review | Impeccable skill |
-| Architecture diagrams | Unresolved — see open questions |
+| Architecture diagrams | Lucid (D-041). Its MCP isn't connected yet, so no diagrams are made until it is |
 
 TypeScript throughout (D-026): Next.js (App Router) on Vercel for the web app and webhooks; a TypeScript worker on a container host for agent runs, scheduling, and the browser sandbox; Tailwind themed from the `docs/design.md` tokens; Vitest and Playwright.
 
@@ -109,8 +109,17 @@ In plans and summaries, label what is **evidence** (observed or tested), **assum
 
 ### Don't make the user a bottleneck
 
-- Log every action or question you need from the user as a Linear issue (D-035) in the "Waiting on you" project, with priority set by urgency. Don't leave a request only in chat.
+- Log every action or question you need from the user as a Linear issue (D-035) in the "Checklist" project, with priority set by urgency. Don't leave a request only in chat.
+- Track build work in Linear too (D-039). `tasks/todo.md` stays the approved slice plan and holds the per-step results.
 - Check those issues at the start of each session, and close them once they're resolved.
+
+### Docs in Linear
+
+- **The project docs are mirrored in Linear (D-038)**, as documents in the Linear project "Key Docs". `docs/linear-docs.json` lists each mirrored file, its Linear document, and the version last copied. The repo file is the source of truth.
+- **Copy every change in the same turn.** When a mirrored file changes, however it changed, save the whole file to its document with the Linear MCP's `save_document`, under a first line saying which repo file it mirrors. Then run `scripts/linear-docs.sh mark <path> <id> <url> <updatedAt>`.
+- **Before finishing a turn that touched docs,** run `scripts/linear-docs.sh check`. It lists every copy that's out of date.
+- **Don't overwrite the user's edits.** Before saving, compare the document's `updatedAt` with the manifest's `linearUpdatedAt`. Linear bumps `updatedAt` a few seconds after each save, so record the value from a `get_document` after saving. If Linear's is more than a minute newer, read the copy and compare it with the repo file: the user may have edited it there, and opening a document can also bump the timestamp on its own. Copy any real edit into the repo file first. Linear rewrites some markdown (`*` bullets, extra blank lines), so carry the edit over by hand rather than replacing the file. Check the whole project for such edits at the start of each session too.
+- **To mirror a new file,** add it to `docs/linear-docs.json` with a title.
 
 ### Subagents
 

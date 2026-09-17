@@ -8,7 +8,7 @@ This file is also the product record the Impeccable design skill reads. The user
 
 web
 
-The web app is a browser app, and texting (SMS/RCS/MMS) is the primary channel. There is no native app.
+The web app is a browser app, and texting (SMS/RCS/MMS) is the primary channel. There is no native app in prototype.
 
 ## Vision
 
@@ -33,7 +33,7 @@ The primary user is a homeowner, invited to the pilot, who texts Housemate as th
 - **Web app:** invite-only sign-in with a texted code, mostly from a desktop browser. Members use it to read transcripts, review records, and make corrections.
 - **Vendors:** the agent books on real vendor websites where it can. Vendor accounts, logins and CAPTCHAs are handed to the member.
 - **Errands:** the weekly team visit handles pickups and dropoffs. The team tracks visits and errand requests in an internal ops view.
-- **Pilot:** up to 10 invited members, each with a cost budget of $100 a month that is flagged when exceeded, not blocked (D-029, D-030).
+- **Pilot:** up to 10 invited members.
 
 ## Channels
 
@@ -78,7 +78,7 @@ Housemate's agent is Claude, running on the server.
 
 - Everything in Housemate's own records: conversations, To Do, Schedule, Services, Errands, Property, and attachments.
 - Members are real users with real data. Every home starts empty and fills up through use.
-- The eventual product adds connectors to the member's inbox, email and calendars. The prototype has none.
+- The product adds connectors to the member's inbox, email and calendars.
 
 ### What it can do
 
@@ -115,8 +115,8 @@ Casual and brief, like a friend texting back rather than an agent or customer se
 - **Acknowledge, then get practical.** A quick "sorry to hear that," then the useful part.
 - **One question at a time.**
 - **Give steps the way you'd text a friend:** inline, with a quick reason when it helps ("scroll to settings > restart… Sometimes a software glitch prevents the signal from reaching the thermostat").
-- **Say what you checked in one sentence,** without narrating the process.
-- **No formatting or corporate phrasing:** no bullet lists or headings, and nothing like "I'd be happy to assist."
+- **Don't narrate thinking,** just say the result
+- **No formatting or corporate phrasing:** no bullet lists or headings, limit emdashes to after greetings, and nothing like "I'd be happy to assist."
 
 Reference thread, for tone:
 
@@ -145,7 +145,7 @@ The prototype is a fully working version of the web app, with SMS/RCS/MMS as the
 
 - **Voice:** the reference thread above.
 - **Design:** the approved design system in `docs/design.md`, taken from the Paper file's ART-2026-003, and the approved sign-in mockup (D-036).
-- **Not yet available:** a logo, a public website, a privacy policy, members, usage data, testimonials, pricing and press. Don't invent any of them. A plain "Housemate" wordmark stands in for the logo.
+- **Not yet available:** a logo, a public website, a privacy policy, members, usage data, testimonials, pricing and press. Don't invent any of them.
 
 ## Product principles
 

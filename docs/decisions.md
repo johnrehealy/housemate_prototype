@@ -149,7 +149,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
   - **State is readiness:** Todo when the user can act now, Backlog while it waits on Claude (for example, a mockup not yet built).
   - Each issue says what's needed, why, what it blocks, and the default in effect if there is one.
   - Claude checks these issues at the start of each session, records answers in the docs as usual, and closes issues once they're resolved. All changes go through the Linear MCP.
-  - **Where:** the Linear project "Waiting on you" in the Housemate team (issue keys `HOU-`), with the labels Action, Decision and Review. Set up on 2026-09-17 with HOU-5 to HOU-29.
+  - **Where:** the Linear project "Checklist" in the Housemate team (issue keys `HOU-`), with the labels Action, Decision and Review. Set up on 2026-09-17 with HOU-5 to HOU-29.
 - **Reason:** The user wants to see at a glance what's waiting on them and how urgent it is, so they aren't a bottleneck.
 
 ### D-036 · The sign-in page design is approved
@@ -168,25 +168,57 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Reason:** The design system already checks colors against AA. This makes AA the standard for everything, not just the colors.
 - **Also recorded:** the product record in `docs/product.md` gained Platform, Users, Positioning ("We own the mundane"), Operating context, Evidence on hand, Product principles and Accessibility sections.
 
+### D-038 · The project docs are mirrored in Linear
+- **Status:** Approved · 2026-09-17 (user instruction: "I want all of these docs to live in Linear as well. Anytime a markdown gets updated it should then get updated in Linear.")
+- **Decision:**
+  - **What's mirrored:** the nine project docs. They are `CLAUDE.md`, the five files in `docs/`, and `tasks/todo.md`, `tasks/lessons.md` and `tasks/handoff.md`.
+  - **Where:** each is a document in the Linear project "Key Docs". `docs/linear-docs.json` records each file's document and the version last copied.
+  - **Not mirrored:** tool-generated files (`apps/web/AGENTS.md`, `apps/web/CLAUDE.md`, Impeccable's surface briefs).
+  - **The repo stays the source of truth,** because the docs are versioned with the code. Linear holds copies.
+  - **Copies stay current.** Claude updates the Linear copy in the same turn a file changes.
+  - **Edits made in Linear are kept.** Claude copies them into the repo before its next update, so they are never overwritten.
+  - **How:** through the Linear MCP, with `scripts/linear-docs.sh` tracking which copies are stale.
+- **Reason:** The user wants to read and follow the docs in Linear, next to the issues waiting on them (D-035).
+
+### D-039 · Build work is tracked in Linear too
+- **Status:** Approved · 2026-09-17 (user answer to open question 16, left in the Linear copy of `docs/open-questions.md`)
+- **Decision:** Claude's own build work is tracked as Linear issues in the Housemate team, alongside the issues waiting on the user (D-035). `tasks/todo.md` stays the approved slice plan and the place where per-step results are written; Linear carries the issue-level view.
+- **Reason:** The user wants one place to see what is being worked on, not only what is waiting on them.
+
+### D-040 · Quiet hours are 9 PM to 7:30 AM
+- **Status:** Approved · 2026-09-17 (user answer to open question 2, left in the Linear copy of `docs/open-questions.md`)
+- **Decision:** The agent sends no unprompted text between 9 PM and 7:30 AM in the member's timezone. Replies are unaffected. Each unprompted text is logged with what triggered it.
+- **Note:** `sendMessage` in `packages/core` still enforces the earlier 10 PM to 8 AM window, and its tests assert it. Changing it is messaging behavior, so it is planned before it is built (HOU-31).
+
+### D-041 · Lucid is the architecture-diagram tool
+- **Status:** Approved · 2026-09-17 (user answer to open question 15, left in the Linear copy of `docs/open-questions.md`)
+- **Decision:** Architecture diagrams are made in Lucid. Lucid's MCP isn't connected yet, so no diagrams are made until it is (HOU-30).
+
+### D-042 · Team alerts move to Slack eventually
+- **Status:** Approved · 2026-09-17 (user answer to open question 19, left in the Linear copy of `docs/open-questions.md`)
+- **Decision:** Team alerts start as a text to the team numbers plus the internal monitoring view, and move to Slack later.
+
 ---
 
 ## Proposed
 
 ### D-006 · Every record is traceable to its source
-- **Status:** Proposed · 2026-09-15
+- **Status:** Approved · 2026-09-17
 - **Decision:** Each record stores the message, user, or agent action that created or last changed it.
 - **Reason:** Users can't understand or correct what the agent did without knowing where a record came from.
+
 ### D-007 · Corrections are kept as history
-- **Status:** Proposed · 2026-09-15
+- **Status:** Approved · 2026-09-17
 - **Decision:** Changes to agent-created records are recorded as history rather than silent overwrites.
 - **Reason:** Lets the user see what the agent did versus what they changed, and gives the agent feedback to learn from.
+
 ### D-008 · Sensitive home data stays out of logs, fixtures, and commits
-- **Status:** Proposed · 2026-09-15
+- **Status:** **I want to discuss this one further** · 2026-09-15
 - **Decision:** Access codes, alarm codes, addresses, and interior photos never appear in logs, seed data, test fixtures, or commits. Secrets live in environment variables.
 - **Reason:** A home-management product holds data that gives physical access to someone's home.
 
 ### D-009 · SMS flows are verified with a local simulator
-- **Status:** Proposed · 2026-09-15
+- **Status:** Approved · 2026-09-17
 - **Decision:** A local simulator sends messages through the same handler as the Twilio webhook, so text flows can be tested end to end without a phone. Real-device testing is a separate manual step.
 - **Reason:** Claude can't send or receive real texts, and "verify before done" needs to be achievable.
 

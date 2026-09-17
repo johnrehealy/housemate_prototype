@@ -1,0 +1,77 @@
+{
+  "linearProject": "Key Docs",
+  "docs": [
+    {
+      "path": "CLAUDE.md",
+      "title": "Project instructions (CLAUDE.md)",
+      "id": "d7d3d4c7-affe-45ff-82f3-46c7999bd02d",
+      "url": "https://linear.app/housemate/document/project-instructions-claudemd-90b0f5a7a25f",
+      "sha256": "37fcc3c585f7489fe94fcaecdd1b9248f267c83637cbbed73a9147b5cdbe38bf",
+      "linearUpdatedAt": "2026-09-17T20:25:36.107Z"
+    },
+    {
+      "path": "docs/product.md",
+      "title": "Product (docs/product.md)",
+      "id": "ca9e42ce-0aae-4710-814b-5d44f9ce2a2f",
+      "url": "https://linear.app/housemate/document/product-docsproductmd-b6459c8e1827",
+      "sha256": "464b10b14cdc5fd12b20c48c36319ae5da992b6cd10ffa7c5a19afcc9469d6c8",
+      "linearUpdatedAt": "2026-09-17T17:30:10.340Z"
+    },
+    {
+      "path": "docs/design.md",
+      "title": "Design system (docs/design.md)",
+      "id": "45e84f8f-3d10-4902-83b6-6fa34a94088e",
+      "url": "https://linear.app/housemate/document/design-system-docsdesignmd-aa2f1e595a1f",
+      "sha256": "b407bd0c999504e3f6d47a8fea5de0238aea6f5f4180e15a891eb1f9376ed5ca",
+      "linearUpdatedAt": "2026-09-17T17:44:12.944Z"
+    },
+    {
+      "path": "docs/decisions.md",
+      "title": "Decisions (docs/decisions.md)",
+      "id": "253be20b-27b5-4f96-82ec-268f280f0fb3",
+      "url": "https://linear.app/housemate/document/decisions-docsdecisionsmd-09090248dfc7",
+      "sha256": "bcbb619c8ebb4db6e02fb167703283115e2628e743837ec62bc41d919655b115",
+      "linearUpdatedAt": "2026-09-17T20:24:19.170Z"
+    },
+    {
+      "path": "docs/open-questions.md",
+      "title": "Open questions (docs/open-questions.md)",
+      "id": "1d899be0-60c6-429a-b64b-f77541445c90",
+      "url": "https://linear.app/housemate/document/open-questions-docsopen-questionsmd-0108e59be392",
+      "sha256": "cdd3cd29cf699ad0d26fba740d3e56797ec0fe396ace17fe89e6d303c0888ee6",
+      "linearUpdatedAt": "2026-09-17T20:22:32.326Z"
+    },
+    {
+      "path": "docs/build-plan.md",
+      "title": "Build plan (docs/build-plan.md)",
+      "id": "2af81f70-4876-4185-ba18-3b6ebb653815",
+      "url": "https://linear.app/housemate/document/build-plan-docsbuild-planmd-f9371186c212",
+      "sha256": "754f08276c05e23279ef9f391d9cba36e3c68eb2da521fe60b4469f9864c298d",
+      "linearUpdatedAt": "2026-09-17T16:57:04.351Z"
+    },
+    {
+      "path": "tasks/todo.md",
+      "title": "Current slice plan (tasks/todo.md)",
+      "id": "87c7fcbe-f90d-49b1-b653-899be8578105",
+      "url": "https://linear.app/housemate/document/current-slice-plan-taskstodomd-9e762e79220d",
+      "sha256": "a81c5c8f06c3bb1ad6ab878deaf03548bd1ff911a01387d824333f99171d3fed",
+      "linearUpdatedAt": "2026-09-17T18:04:37.239Z"
+    },
+    {
+      "path": "tasks/lessons.md",
+      "title": "Lessons (tasks/lessons.md)",
+      "id": "b1d739e1-01fb-4d68-9deb-6262dd77f521",
+      "url": "https://linear.app/housemate/document/lessons-taskslessonsmd-8b3d6f340833",
+      "sha256": "48b505aac5b6a6b4523387677f189a8fe3064f22cd328c35676b06ff944ac054",
+      "linearUpdatedAt": "2026-09-17T16:55:07.062Z"
+    },
+    {
+      "path": "tasks/handoff.md",
+      "title": "Session handoff (tasks/handoff.md)",
+      "id": "89caf58e-dfbb-47c4-b132-e64456d716fd",
+      "url": "https://linear.app/housemate/document/session-handoff-taskshandoffmd-f7f60f9b71b5",
+      "sha256": "f2e3278eaa395d7ccd62b5ffad66423419d4d7a563e87b517025ed625b751568",
+      "linearUpdatedAt": "2026-09-17T20:26:31.647Z"
+    }
+  ]
+}
