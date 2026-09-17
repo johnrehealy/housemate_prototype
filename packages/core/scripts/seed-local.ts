@@ -85,12 +85,8 @@ try {
     });
     if (!homeId) throw new Error("Expected the invite to create a home.");
 
-    // Signing in is what activates a member; the seed shortcuts it so local
-    // development has a member who can read their own home.
-    await db
-      .update(members)
-      .set({ status: "active" })
-      .where(eq(members.id, memberId));
+    // The member stays invited on purpose. Signing in is what activates them,
+    // so local development exercises the same path a real member takes.
 
     await recordInboundMessage(ctx, {
       providerSid: `SIMSEED${randomUUID().replaceAll("-", "")}`,

@@ -202,7 +202,19 @@ These come from `docs/open-questions.md`; say if any should change.
 
 **Environment lessons (recorded in `tasks/lessons.md`):** run TypeScript with `node --import tsx/esm`, not the `tsx` command, which the sandbox blocks; package installs run outside the sandbox. Also: seed rows are committed, so test phone numbers must stay clear of the seed's.
 
-**Step 4 (shell done; sign-in, Playwright and Impeccable review wait on the database).**
+**Step 4 (done except the Impeccable review, 2026-09-15).**
+
+- **Sign-in:** `/sign-in` takes a phone number, texts a code, and verifies it, both steps as server actions through `@supabase/ssr` so the session cookie is set server-side. An uninvited number gets the same answer as an invited one, so the page can't be used to learn who is in the pilot.
+- **`activateMember`:** invited → active on first sign-in, with one activity event. It runs on every sign-in, so an already-active member is left alone and writes nothing. A removed member is refused. The seed no longer shortcuts this: seeded members stay invited and activate by signing in.
+- **Protection, two layers:** `apps/web/src/proxy.ts` does the cheap cookie check and redirect, and `requireMember()` runs next to the data in the layout and all six pages, because a layout can't stop nested segments from rendering.
+- **Local codes:** `[auth.sms.test_otp]` in `supabase/config.toml` answers a fixed code without calling a provider, so development and tests never send a text. Phone auth only turns on when an SMS provider is enabled, so Twilio is enabled there with obviously fake credentials. Proven: an uninvited number asking to create an account is still refused (`signup_disabled`), and no stray account appears.
+- **Verified:** lint, typecheck, 43 unit tests, 31 database tests, and 8 Playwright tests all pass. The browser tests sign in, move between all six destinations, and assert sidebar width, bar height, nav item size, colors, selected state and shadow against `docs/design.md`.
+- **Design:** the system has no sign-in page, field or button, and Mobbin's MCP isn't connected, so it's built only from existing tokens, with the choices recorded as **Q13** in `docs/design.md` for approval.
+- **Sign-out is local-scoped**, so signing out of one browser doesn't end the member's sessions everywhere.
+- **Still to do:** a Paper mockup of the sign-in page for approval (D-034), then the Impeccable review of the shell. The design values below are built but **not approved**: they were proposed as prose and refused.
+- **Note for a new machine:** `apps/web/.env.local` is a symlink to the repo-root `.env.local`, because Next reads env files from the app directory.
+
+**Step 4, earlier (shell only).**
 - **Build:** `next build` passes. All 95 tokens are emitted as CSS variables (`@theme static`), and Tailwind's default scales are cleared, so no non-design colors exist.
 - **Browser check at 1440×900:**
   - Sidebar 260px `#F5F3F1`; utility bar 64px; canvas `#FFFBF9`.

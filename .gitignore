@@ -10,6 +10,8 @@ next-env.d.ts
 coverage/
 playwright-report/
 test-results/
+# A saved sign-in session: a real token, never committed
+apps/web/e2e/.auth/
 
 # Environment files: never commit secrets
 .env*
@@ -19,6 +21,13 @@ test-results/
 .vercel/
 supabase/.temp/
 supabase/.branches/
+
+# Impeccable, installed by `npx impeccable install`. Reinstallable, and the
+# skill carries a 14MB platform-specific binary that doesn't belong in git.
+.claude/skills/impeccable/
+.claude/agents/impeccable-*.md
+# Machine-local Claude Code settings; Impeccable's hooks live here
+.claude/settings.local.json
 
 # OS
 .DS_Store

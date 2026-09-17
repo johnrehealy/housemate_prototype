@@ -257,18 +257,32 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# Supabase turns phone auth on only when phone signups are allowed, so this has
+# to be true for an invited member to receive a code at all. It doesn't let
+# anyone in: [auth] enable_signup above is false, and the app always asks for a
+# code with "don't create users", so an unknown number is refused. There's a
+# test for exactly that in apps/web/e2e.
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
 template = "Your code is {{ .Code }}"
 # Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
+# Housemate: one second locally, so browser tests can sign in repeatedly without
+# waiting out a timer. Don't set "0s": Supabase reads a zero duration as unset
+# and falls back to a 60-second default, making the wait longer rather than
+# shorter. Like [auth.sms.test_otp] and the placeholder Twilio credentials
+# below, this is local-only: staging and production keep a real throttle, set on
+# those projects rather than from this file.
+max_frequency = "1s"
 
 # Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# Housemate: local sign-in uses fixed codes, so development and tests never send
+# a real text. The number is the seed member's, without the leading "+"
+# (packages/core/scripts/seed-local.ts). Staging and production use Twilio
+# Verify instead, configured in [auth.sms.twilio_verify].
+[auth.sms.test_otp]
+15550190001 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -288,12 +302,19 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# Housemate: phone sign-in is the only way into the web app, and Supabase only
+# turns phone auth on when an SMS provider is enabled. These credentials are
+# deliberate nonsense: every number that may sign in locally is listed in
+# [auth.sms.test_otp] above, and Supabase answers those from the map without
+# calling the provider, so local development and tests never send a text. A
+# number that isn't in the map fails here instead of reaching a real phone.
+# Staging and production use [auth.sms.twilio_verify] with real credentials.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+enabled = true
+account_sid = "local-no-texts-are-sent"
+message_service_sid = "local-no-texts-are-sent"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+auth_token = "local-no-texts-are-sent"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]

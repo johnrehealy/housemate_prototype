@@ -608,5 +608,12 @@ From ART-2026-003. None has a recorded answer.
 - **Q10 · Favorite and model precision.** `--color-favourite` is referenced but doesn't exist. The prose favorites vendors, but the field is `category.favourite`. Does waking a snoozed task change its owner or status, or only clear `wake_at`?
 - **Q11 · Calendar edge cases.** How are six-week months, overlapping events, all-day events, very short events and "+N more" overflow handled? Is the toolbar filter shown in the example supported?
 - **Q12 · Missing states.** Nothing yet covers narrow layouts, long or translated text, loading and retry, empty filters, absent visits, keyboard focus, screen-reader names, error recovery or cross-channel updates. Which should be designed next?
+- **Q13 · Sign-in, text fields and buttons** (raised while building, not from ART-2026-003). The system has no sign-in page, no text field outside the composer and search bar, no button, and no focus treatment. Slice 0 needed all four, so it built them from existing tokens rather than inventing colors:
+  - **Field:** follows the search bar — 36px, `--color-surface`, 1px `--color-line`, `radius-md`, `--text-base`, placeholder in `--color-muted`.
+  - **Primary button:** `--color-evergreen` fill, `--color-on-evergreen` label in `--text-label`, 40px tall (the nav item height), `radius-md`.
+  - **Focus:** 2px `--color-evergreen` outline, offset 2px.
+  - **Button hover:** opacity to 90%, so no second green enters the palette. Disabled is 60%.
 
-**Not represented anywhere yet:** activation eligibility and pricing, the errand request form, edit/remove/reminder outcomes, skip confirmation, empty filters, loading and errors, narrow layouts, keyboard and focus, long content, receipt and cash handling, timezone/cutoff/access rules, and cross-channel sync.
+  Are these right, and should they become named components with their own tokens?
+
+**Not represented anywhere yet:** sign-in and the authenticated shell's utility bar, activation eligibility and pricing, the errand request form, edit/remove/reminder outcomes, skip confirmation, empty filters, loading and errors, narrow layouts, keyboard and focus, long content, receipt and cash handling, timezone/cutoff/access rules, and cross-channel sync.

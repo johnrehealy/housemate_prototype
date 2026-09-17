@@ -4,7 +4,7 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@housemate/web", "dev"],
+      "runtimeArgs": ["--filter", "@housemate/web", "start"],
       "port": 3000
     }
   ]

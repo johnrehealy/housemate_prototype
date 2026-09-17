@@ -31,8 +31,8 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Status:** Approved · 2026-09-15 (original CLAUDE.md draft)
 - **Decision:** These are the current providers. They may change, so they sit behind our own interfaces.
 
-### D-010 · The design system lives in the repo; Claude doesn't use Paper
-- **Status:** Approved · 2026-09-15 (user instruction)
+### D-010 · The design system lives in the repo; Claude doesn't take specs from Paper
+- **Status:** Approved · 2026-09-15 (user instruction). **Clarified by D-034:** "doesn't use Paper" means Claude doesn't read other Paper boards and infer the design system from them. Creating mockups in Paper is expected.
 - **Decision:** `docs/design.md`, exported from the "Housemate Design System" page, is the design system. Claude disregards everything else in Paper and doesn't consult Paper again. Paper visuals are for the user's review only.
 - **Reason:** Specs must be readable and versioned alongside the code.
 
@@ -120,6 +120,22 @@ To add a decision, append an entry with the next number. To reverse one, add a n
   - Network access is limited to npm, GitHub, Google Fonts and localhost.
   - Docker and Supabase CLI commands need the Docker socket, so they run outside the sandbox one at a time, each through the normal permission check.
 - **Reason:** Contain mistaken commands and malicious packages before real credentials exist. Staging and production changes already go through MCP connectors (CLAUDE.md), so their secrets never need to be inside the sandbox.
+
+### D-033 · Sign-in is built from existing design tokens
+- **Status:** Approved · 2026-09-15 (user instruction, answering a question raised while building Slice 0 step 4)
+- **Decision:** The design system covers no sign-in page, text field, button or focus treatment, and Mobbin's MCP isn't connected for pattern research. Sign-in is built from existing tokens rather than left unstyled or deferred: the field follows the search bar, the primary button is an evergreen fill at nav-item height, focus is an evergreen outline, and hover changes opacity so no second green enters the palette. The specific values are recorded as **Q13** in `docs/design.md` for approval, and may become named components later.
+- **Reason:** Real pilot members sign in before any of these get designed, and inventing colors would be harder to undo than reusing tokens.
+- **Note:** The specific values are **not approved**. Under D-034 they need a Paper mockup first.
+
+### D-034 · Visual design is done in Paper; `docs/design.md` stays the written source of truth
+- **Status:** Approved · 2026-09-17 (user instruction). Clarifies D-010.
+- **Decision:**
+  - **Every visual design goes in Paper for approval.** Anything the design system doesn't already cover — a page, component, field, button or state — is mocked up in Paper through the Paper MCP and approved there before it's built. A description in markdown is not a design proposal and won't be approved.
+  - **Claude creates mockups in Paper and reads back its own work**, including screenshots and computed values, to iterate and to carry exact values into code.
+  - **Claude still doesn't take specs from the rest of the Paper file.** That is all D-010's "disregard Paper" meant: other boards must not be read and turned into assumptions about the design system.
+  - **`docs/design.md` remains the written source of truth** for tokens, components and patterns. Changes to it still need approval, and an approved mockup is recorded there.
+  - **Design work uses the `/impeccable` command.** The user invokes it; Claude carries out the work it directs.
+- **Reason:** The user reviews design visually, not as prose. The original rule was written to stop Claude inferring a design system from unrelated Paper boards, not to keep design work out of Paper.
 
 ---
 

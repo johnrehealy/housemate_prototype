@@ -8,6 +8,8 @@ export type {
 export { defineAction, type RecordEvent } from "./define-action";
 export { ActionError, type ActionErrorCode } from "./errors";
 export { mapDbError } from "./db-errors";
+export { activateMember, activateMemberInput } from "./activate-member";
+export type { ActivateMemberInput } from "./activate-member";
 export { inviteMember, inviteMemberInput } from "./invite-member";
 export type { InviteMemberInput } from "./invite-member";
 export {

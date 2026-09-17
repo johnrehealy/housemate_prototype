@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostCompact\",\"additionalContext\":\"This session was just compacted. Read tasks/handoff.md before continuing, then pick up from its What next section.\"}}'"
+            "command": "printf '{\"systemMessage\":\"This session was just compacted. Read tasks/handoff.md before continuing, then pick up from its What next section.\"}'"
           }
         ]
       }

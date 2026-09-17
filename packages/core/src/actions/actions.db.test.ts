@@ -19,6 +19,7 @@ import {
 } from "../db/testing";
 import { createSimulatorProvider } from "../sms/simulator-provider";
 import type { SmsProvider } from "../sms/types";
+import { activateMember } from "./activate-member";
 import type { ActionContext, AuthAdmin } from "./context";
 import { ActionError } from "./errors";
 import { inviteMember } from "./invite-member";
@@ -250,6 +251,93 @@ describe("inviteMember", () => {
 
       await expect(attempt).rejects.toBeInstanceOf(ActionError);
       expect(ctx.auth.created).toEqual([]);
+    });
+  });
+});
+
+describe("activateMember", () => {
+  async function invited(tx: Tx, homeName: string) {
+    const home = await createHome(tx, homeName);
+    const member = await createMember(tx, {
+      homeId: home.id,
+      phone: nextPhone(),
+      status: "invited",
+    });
+    const ctx = context(tx, {
+      actor: { type: "member", id: member.id },
+      source: { type: "web" },
+    });
+    return { home, member, ctx };
+  }
+
+  it("activates an invited member and records who did it", async () => {
+    await withRollback(db, async (tx) => {
+      const { home, member, ctx } = await invited(tx, "Activation home");
+
+      const result = await activateMember(ctx, { memberId: member.id });
+
+      expect(result).toMatchObject({
+        memberId: member.id,
+        homeId: home.id,
+        activated: true,
+      });
+      const stored = one(
+        await tx.select().from(members).where(eq(members.id, member.id)),
+      );
+      expect(stored.status).toBe("active");
+      expect(await eventsFor(tx, "member", member.id)).toEqual([
+        {
+          action: "activated",
+          actorType: "member",
+          sourceType: "web",
+          homeId: home.id,
+        },
+      ]);
+    });
+  });
+
+  it("does nothing when they sign in again", async () => {
+    // This runs on every sign-in, so the activity log must not grow an entry
+    // each time.
+    await withRollback(db, async (tx) => {
+      const { member, ctx } = await invited(tx, "Repeat home");
+
+      await activateMember(ctx, { memberId: member.id });
+      const again = await activateMember(ctx, { memberId: member.id });
+
+      expect(again.activated).toBe(false);
+      expect(await eventsFor(tx, "member", member.id)).toHaveLength(1);
+    });
+  });
+
+  it("refuses a removed member and leaves them removed", async () => {
+    await withRollback(db, async (tx) => {
+      const home = await createHome(tx, "Removed home");
+      const member = await createMember(tx, {
+        homeId: home.id,
+        phone: nextPhone(),
+        status: "removed",
+      });
+      const ctx = context(tx, {
+        actor: { type: "member", id: member.id },
+        source: { type: "web" },
+      });
+
+      const attempt = activateMember(ctx, { memberId: member.id });
+
+      await expect(attempt).rejects.toMatchObject({ code: "conflict" });
+      const stored = one(
+        await tx.select().from(members).where(eq(members.id, member.id)),
+      );
+      expect(stored.status).toBe("removed");
+      expect(await eventsFor(tx, "member", member.id)).toEqual([]);
+    });
+  });
+
+  it("refuses an account with no member record", async () => {
+    await withRollback(db, async (tx) => {
+      const attempt = activateMember(context(tx), { memberId: randomUUID() });
+      await expect(attempt).rejects.toMatchObject({ code: "not_found" });
     });
   });
 });

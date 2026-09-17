@@ -38,7 +38,7 @@ These hold regardless of channel or provider. Changing one requires an approved 
 | Agent worker hosting | Container host (proposed: Fly.io) |
 | Code | GitHub |
 | Backlog | Linear |
-| High-fidelity design | Paper, for the user's visual review only. Claude doesn't use it; specs live in `docs/design.md` |
+| High-fidelity design | Paper desktop, through its MCP. Mockups are built and approved there (D-034); written specs live in `docs/design.md` |
 | Pattern research | Mobbin |
 | UI build review | Impeccable skill |
 | Architecture diagrams | Unresolved — see open questions |
@@ -130,9 +130,11 @@ Use subagents for broad read-only research and for genuinely independent paralle
 ## Design
 
 - `docs/design.md` is the design system. Build from it. Changes to it need the user's approval.
-- Don't read or build from the Paper file. It's only for the user's visual review.
+- **Visual design happens in Paper (D-034).** Anything the design system doesn't cover is mocked up in Paper, through the Paper MCP, and approved there before it's built. A description in markdown is not a design proposal.
+- **Use the `/impeccable` command for design work.** The user invokes it; carry out the work it directs.
+- Create mockups in Paper and read back your own work to iterate and to carry exact values into code. **Don't take specs from the rest of the Paper file** — other boards aren't a source of truth, and that is all the earlier "disregard Paper" rule meant.
 - Items marked **Open** in `docs/design.md` are unresolved. Raise them in the plan and propose an option rather than choosing silently.
-- For anything the design doesn't cover, research patterns in Mobbin, propose the approach, and review the build with Impeccable before presenting it.
+- For anything the design doesn't cover, research patterns in Mobbin where it's connected, propose the approach, and review the build with Impeccable before presenting it.
 
 ## Git
 
