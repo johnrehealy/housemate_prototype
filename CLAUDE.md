@@ -67,7 +67,7 @@ Run TypeScript entry points with `node --import tsx/esm <file>`, not the `tsx` c
 
 This section governs how Claude operates on external services, not how the app integrates with them. App code calls provider APIs through their SDKs as normal.
 
-- **Remote changes go through MCP.** Create, update, or delete resources in Twilio, remote Supabase projects, Vercel, Stripe, Linear, or GitHub only through that service's MCP. If the MCP is missing or lacks the operation, stop and ask. Don't fall back to the browser, a CLI, or direct API calls.
+- **Remote changes go through MCP.** Create, update, or delete resources in Twilio, remote Supabase projects, Vercel, Stripe, Linear, or GitHub only through that service's MCP. If the MCP is missing or lacks the operation, try the CLI or direct API call, if that fails stop and ask. Don't fall back to the browser.
 - **Local work uses native tools.** Editing files, running tests, the local Supabase stack, local dev servers, and local git are all fine.
 - **Deploys go through git.** Vercel deploys from GitHub. No CLI deploys.
 - **Uncertain writes.** If an MCP write's result is unclear, inspect the resource through MCP before retrying. If it's still unknown, stop and report it rather than risk a duplicate.
