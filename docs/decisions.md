@@ -125,7 +125,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Status:** Approved · 2026-09-15 (user instruction, answering a question raised while building Slice 0 step 4)
 - **Decision:** The design system covers no sign-in page, text field, button or focus treatment, and Mobbin's MCP isn't connected for pattern research. Sign-in is built from existing tokens rather than left unstyled or deferred: the field follows the search bar, the primary button is an evergreen fill at nav-item height, focus is an evergreen outline, and hover changes opacity so no second green enters the palette. The specific values are recorded as **Q13** in `docs/design.md` for approval, and may become named components later.
 - **Reason:** Real pilot members sign in before any of these get designed, and inventing colors would be harder to undo than reusing tokens.
-- **Note:** The specific values are **not approved**. Under D-034 they need a Paper mockup first.
+- **Note:** Superseded by D-036. The values first built were never approved; the approved design came from a Paper mockup.
 
 ### D-034 · Visual design is done in Paper; `docs/design.md` stays the written source of truth
 - **Status:** Approved · 2026-09-17 (user instruction). Clarifies D-010.
@@ -136,6 +136,37 @@ To add a decision, append an entry with the next number. To reverse one, add a n
   - **`docs/design.md` remains the written source of truth** for tokens, components and patterns. Changes to it still need approval, and an approved mockup is recorded there.
   - **Design work uses the `/impeccable` command.** The user invokes it; Claude carries out the work it directs.
 - **Reason:** The user reviews design visually, not as prose. The original rule was written to stop Claude inferring a design system from unrelated Paper boards, not to keep design work out of Paper.
+
+### D-035 · Everything waiting on the user is tracked in Linear
+- **Status:** Approved · 2026-09-17 (user instruction). Partly answers open question 16.
+- **Decision:**
+  - **Every action or question Claude needs from the user is a Linear issue** assigned to the user, not only a line in chat or in the docs.
+  - **Priority is urgency:**
+    - **Urgent:** blocks work now, or has a long lead time.
+    - **High:** needed for the current slice.
+    - **Medium:** needed for the next slice.
+    - **Low:** a default is in effect, so answer anytime.
+  - **State is readiness:** Todo when the user can act now, Backlog while it waits on Claude (for example, a mockup not yet built).
+  - Each issue says what's needed, why, what it blocks, and the default in effect if there is one.
+  - Claude checks these issues at the start of each session, records answers in the docs as usual, and closes issues once they're resolved. All changes go through the Linear MCP.
+  - **Where:** the Linear project "Waiting on you" in the Housemate team (issue keys `HOU-`), with the labels Action, Decision and Review. Set up on 2026-09-17 with HOU-5 to HOU-29.
+- **Reason:** The user wants to see at a glance what's waiting on them and how urgent it is, so they aren't a bottleneck.
+
+### D-036 · The sign-in page design is approved
+- **Status:** Approved · 2026-09-17 (user approval in chat, of the Paper boards "Sign-in · A1–A6 · Approved r1"). Answers design Q13 and supersedes D-033's values.
+- **Decision:**
+  - **Layout:** a 600px evergreen story panel explains Housemate (texting needs no sign-in, Housemate handles things, the web app shows everything), beside the sign-in form on the canvas. Chosen over a three-step layout and an example-conversation layout.
+  - **Code step:** it signs in automatically when the sixth digit is entered. There's no submit button and no "Resend code". "Use a different number" stays.
+  - **Controls:** the text field, primary button and text button are the first shared form controls, specified in `docs/design.md` §4. The field's resting border is `--color-muted` (4.9:1), chosen over line-strong (1.4:1) for visibility.
+  - **Context from the user:** members text Housemate without ever signing in, because their number identifies them. The web sign-in is mostly used on desktop.
+- **Reason:** The user reviewed and approved the mockups in Paper, as D-034 requires.
+- **Still to do:** the build doesn't match yet. Automatic sign-in is a behavior change, so it's planned before it's built.
+
+### D-037 · The web app meets WCAG 2.2 AA
+- **Status:** Approved · 2026-09-17 (user answer during `/impeccable init`)
+- **Decision:** Every web app screen meets WCAG 2.2 AA. That includes 4.5:1 contrast for text, 3:1 for controls and focus indicators, full keyboard use, and labelled form fields.
+- **Reason:** The design system already checks colors against AA. This makes AA the standard for everything, not just the colors.
+- **Also recorded:** the product record in `docs/product.md` gained Platform, Users, Positioning ("We own the mundane"), Operating context, Evidence on hand, Product principles and Accessibility sections.
 
 ---
 

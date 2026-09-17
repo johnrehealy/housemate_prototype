@@ -66,8 +66,8 @@ Design-specific questions (typography, surfaces, toolbars, calendar edge cases, 
 
 **15. Lucid or Miro for architecture diagrams?** Lucid is listed but not connected; Miro is connected.
 
-**16. Should Claude create and update Linear issues, or only read them?**
-*Default:* Read only. Claude proposes issues in chat.
+**16. Should Claude track its own build work in Linear too?** Claude already creates issues for everything waiting on the user (D-035).
+*Default:* No. Build work is tracked in the slice plan in `tasks/todo.md`.
 
 **17. Git setup:** repository name and GitHub org, and how much commit and push autonomy Claude has.
 *Default:* A private `housemate-prototype` repo on your GitHub account; a branch per change; commit and push only when asked.
@@ -78,4 +78,4 @@ Design-specific questions (typography, surfaces, toolbars, calendar edge cases, 
 **19. Where should team alerts go** (a member over budget, worker errors, a failed payment)?
 *Default:* A text to team phone numbers listed in configuration, plus an entry in the internal monitoring view.
 
-**20. Missing connectors.** As of 2026-09-15 only Miro, Google Drive and Chrome are connected. Twilio, Supabase, Vercel, Stripe, Linear, GitHub and Mobbin MCPs are still needed, plus access to the worker host. Remote actions that depend on them are blocked until then.
+**20. Missing connectors.** As of 2026-09-17, Linear, Paper, Miro, Google Drive and Chrome are connected. Twilio, Supabase, Vercel, Stripe, GitHub and Mobbin MCPs are still needed, plus access to the worker host, and each is a Linear issue (HOU-6, HOU-8 to HOU-10, HOU-14, HOU-26). Remote actions that depend on them are blocked until then.

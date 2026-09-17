@@ -1,8 +1,39 @@
 # Housemate Product
 
+<!-- impeccable:product-schema 1 -->
+
+This file is also the product record the Impeccable design skill reads. The user confirmed the Users, Positioning and Accessibility sections on 2026-09-17. Operating context, Evidence on hand and Product principles come from approved decisions and product invariants.
+
+## Platform
+
+web
+
+The web app is a browser app, and texting (SMS/RCS/MMS) is the primary channel. There is no native app.
+
 ## Vision
 
 Housemate is a home-management product. A homeowner delegates repairs, services, errands, scheduling, and follow-up to an agent, and can see, understand, and correct what the agent did. Housemate owns orchestration, organization, and the home's memory and context. The goal is seamless collaboration between agent and human.
+
+## Users
+
+The primary user is a homeowner, invited to the pilot, who texts Housemate as things come up during the day. They open the web app, usually on a desktop, to check or correct what was done.
+
+## Positioning
+
+**We own the mundane.** The member hands off the chore and Housemate carries it to done.
+
+- **It does the work.** It books, follows up, and pays once the member says yes, instead of only reminding them. Everything it did is visible and correctable on the web.
+- **It remembers the home.** Equipment, vendors and service history are kept in one record, so every fix starts from what's already known.
+- **Nothing new to learn.** The member just texts a number. The web app is for checking and correcting.
+- **A real team visits.** A Housemate team member comes by each home weekly to handle errands in person.
+
+## Operating context
+
+- **Texting:** each member texts one Housemate number from their own phone, with no sign-in. It's one continuous thread, which the agent sorts into conversations by topic.
+- **Web app:** invite-only sign-in with a texted code, mostly from a desktop browser. Members use it to read transcripts, review records, and make corrections.
+- **Vendors:** the agent books on real vendor websites where it can. Vendor accounts, logins and CAPTCHAs are handed to the member.
+- **Errands:** the weekly team visit handles pickups and dropoffs. The team tracks visits and errand requests in an internal ops view.
+- **Pilot:** up to 10 invited members, each with a cost budget of $100 a month that is flagged when exceeded, not blocked (D-029, D-030).
 
 ## Channels
 
@@ -109,3 +140,21 @@ The prototype is a fully working version of the web app, with SMS/RCS/MMS as the
 2. **AC repair.** A member reports the AC isn't working. Housemate checks the home's records, troubleshoots with the member, books a technician, and follows up afterward.
 3. **Errand by text.** A member requests a pickup or dropoff by text, and it appears in Errands.
 4. **Property item from a photo.** A member texts a photo, and Housemate adds the item to Property.
+
+## Evidence on hand
+
+- **Voice:** the reference thread above.
+- **Design:** the approved design system in `docs/design.md`, taken from the Paper file's ART-2026-003, and the approved sign-in mockup (D-036).
+- **Not yet available:** a logo, a public website, a privacy policy, members, usage data, testimonials, pricing and press. Don't invent any of them. A plain "Housemate" wordmark stands in for the logo.
+
+## Product principles
+
+1. **We own the mundane.** Carry each chore to done: book it, follow up, and pay after a yes. Don't stop at a reminder.
+2. **Nothing is hidden or erased.** Every record shows where it came from, and corrections are kept as history, so the member can see what the agent did and what they changed.
+3. **Texting asks nothing new of the member.** Everything starts in a text. The web app is where the member checks and corrects.
+4. **Money waits for a yes.** Anything that involves or could involve a payment or fee waits for the member's explicit confirmation.
+5. **The home is private and starts empty.** Access codes, alarm codes, addresses and interior photos stay out of logs and fixtures. Never fill a home with made-up data.
+
+## Accessibility & inclusion
+
+The web app meets **WCAG 2.2 AA** (D-037). That includes 4.5:1 contrast for text, 3:1 for controls and focus indicators, full keyboard use, and labelled form fields.

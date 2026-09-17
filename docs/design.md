@@ -2,8 +2,8 @@
 
 ## About this file
 
-- **This file is the design source of truth for building.** Paper is for the user's visual review only.
-- **Source:** the "Housemate Design System" page of the Paper file, **ART-2026-003 · Proposed r1 · 11 September 2026**, exported 15 September 2026. Nothing else in the Paper file is a source, and Paper isn't consulted again. The design system is maintained in this file from here on.
+- **This file is the design source of truth for building.** New designs are mocked up in Paper and approved there first (D-034). Once approved, their values are recorded here.
+- **Source:** the "Housemate Design System" page of the Paper file, **ART-2026-003 · Proposed r1 · 11 September 2026**, exported 15 September 2026. The only other source is mockups Claude made and the user approved, recorded below with their Paper artboard names. Other boards in the Paper file are not a source. The design system is maintained in this file from here on.
 - **Labels used below:**
   - **Rule:** stated as a rule in the spec.
   - **Observed:** measured from a mockup; the behavior isn't established.
@@ -455,6 +455,76 @@ Whether segments act as filters, and what counts as Requested, is **Open Q8**.
 - A 48px spacer separates the block from the list toolbar.
 - The "no upcoming visit" and "visit with no errands" states aren't shown.
 
+### Form controls
+
+**Approved 2026-09-17** (D-036) from the Paper board "Sign-in · A6 · Field and button states · Approved r1". These are the first shared form controls. They use existing tokens only.
+
+**Text field**
+
+| State | Ground | Border | Text |
+|---|---|---|---|
+| Resting | `--color-surface` | 1px `--color-muted` | Placeholder `--color-muted` |
+| Hover | `--color-surface` | 1px `--color-body` | |
+| Focused | `--color-surface` | 1px `--color-evergreen` plus a 1px inset evergreen ring (2px total, no layout shift) | Caret evergreen |
+| Filled | `--color-surface` | 1px `--color-muted` | `--color-heading` |
+| Error | `--color-surface` | 1px `--color-status-blocked-fg` plus a 1px inset ring | Message below |
+| Disabled | `--color-nav` | 1px `--color-line` | `--color-muted` |
+
+- **Anatomy:** 40px tall (`--spacing-nav-h`), `radius-md`, 12px side padding, `--text-base`. The visible label sits 6px above in 13/19 `--color-body`.
+- **Resting border:** muted rather than line-strong, because muted meets the 3:1 contrast needed to find a field (4.9:1). Line-strong is 1.4:1.
+- **Message line:** 6px below the field, 13/19. A 20px Phosphor glyph sits 8px before the text.
+  - **Error:** `warning-circle` and text, both `--color-status-blocked-fg`.
+  - **Working:** `circle-notch` in evergreen, with the text in `--color-body`.
+  - **Hint:** text only, in `--color-muted`.
+- **Code value:** digits use `--tracking-wide`. After a wrong code, the digits stay selected so typing replaces them. The selection is evergreen at 12%.
+
+**Primary button**
+
+| State | Treatment |
+|---|---|
+| Resting | `--color-evergreen` fill, `--color-on-evergreen` label in `--text-label` |
+| Hover | 90% opacity, so no second green enters the palette |
+| Focused | 2px evergreen ring, 2px outside, with a canvas-colored gap |
+| Working | 20px `circle-notch` before the label, 8px apart; the label changes, e.g. "Sending…" |
+| Disabled | 60% opacity |
+
+- **Anatomy:** 40px tall, `radius-md`, full width in a form column, or 20px side padding inline.
+
+**Text button**
+
+- A 36px target: a 20px glyph, an 8px gap, then the label in `--text-label`.
+- **Resting:** `--color-muted`, glyph included.
+- **Hover:** `--color-body` with an underline 3px below the text.
+- **Focused:** a 2px evergreen ring with 6px side padding and `radius-md`.
+- **Disabled:** 60% opacity, used while signing in so the layout doesn't shift.
+
+### Sign-in page
+
+**Approved 2026-09-17** (D-036) from the Paper boards "Sign-in · A1–A5 · Approved r1".
+
+- **Layout:** two columns at 1440 × 900.
+  - **Story panel:** 600px, filled `--color-evergreen`, 64px side padding. The wordmark sits at the top, centered in the 64px bar height, and the invite note is 56px from the bottom.
+  - **Form column:** 360px wide, centered on the canvas, with 32px between the heading group and the form.
+- **Story panel content:**
+  - **Headline:** `--text-display` in `--color-on-evergreen`: "Your home, taken care of by text."
+  - **Lead:** `--text-lead` in on-evergreen at 74%.
+  - **Rows:** three, 40px below the lead, each 18px vertical padding between 1px hairlines of on-evergreen at 16%.
+    - Each row has a 20px glyph in on-evergreen at 74% (`device-mobile`, `wrench`, `check-circle`) and a 16px gap.
+    - The title is 14/700 in on-evergreen. The body is 14/400/20 at 74%.
+  - **Invite note:** 13/19 in on-evergreen at 62%.
+- **Phone step (A1):**
+  - The heading "Sign in" in `--text-display` `--color-heading`, with the helper in `--text-label` `--color-muted`.
+  - Then the mobile field, and a full-width "Send code" button 16px below.
+  - The field is focused on load.
+- **Phone error (A2):** the field's error state with the message "Enter a 10-digit mobile number."
+- **Code step (A3):**
+  - The heading "Enter your code".
+  - The helper "If (number) is on the invite list, a code is on its way." It never confirms that the number is invited.
+  - The "Six-digit code" field, focused, with the hint "You'll be signed in as soon as all six digits are in."
+  - There is no submit button. A "Use a different number" text button with `arrow-left` sits below.
+- **Signing in (A4):** the sixth digit submits on its own. The field turns disabled, the hint becomes the working line "Signing you in…", and the text button is disabled in place.
+- **Wrong code (A5):** the field's error state, with the digits selected and the message "That code didn't work. Check it and try again." The text button is active.
+
 ---
 
 ## 5. Patterns
@@ -608,12 +678,6 @@ From ART-2026-003. None has a recorded answer.
 - **Q10 · Favorite and model precision.** `--color-favourite` is referenced but doesn't exist. The prose favorites vendors, but the field is `category.favourite`. Does waking a snoozed task change its owner or status, or only clear `wake_at`?
 - **Q11 · Calendar edge cases.** How are six-week months, overlapping events, all-day events, very short events and "+N more" overflow handled? Is the toolbar filter shown in the example supported?
 - **Q12 · Missing states.** Nothing yet covers narrow layouts, long or translated text, loading and retry, empty filters, absent visits, keyboard focus, screen-reader names, error recovery or cross-channel updates. Which should be designed next?
-- **Q13 · Sign-in, text fields and buttons** (raised while building, not from ART-2026-003). The system has no sign-in page, no text field outside the composer and search bar, no button, and no focus treatment. Slice 0 needed all four, so it built them from existing tokens rather than inventing colors:
-  - **Field:** follows the search bar — 36px, `--color-surface`, 1px `--color-line`, `radius-md`, `--text-base`, placeholder in `--color-muted`.
-  - **Primary button:** `--color-evergreen` fill, `--color-on-evergreen` label in `--text-label`, 40px tall (the nav item height), `radius-md`.
-  - **Focus:** 2px `--color-evergreen` outline, offset 2px.
-  - **Button hover:** opacity to 90%, so no second green enters the palette. Disabled is 60%.
+- **Q13 · Sign-in, text fields and buttons.** *Answered 2026-09-17 (D-036).* Approved in Paper and recorded under [Form controls](#form-controls) and [Sign-in page](#sign-in-page). Still open: whether these controls get their own named tokens. Until then they reuse the existing ones.
 
-  Are these right, and should they become named components with their own tokens?
-
-**Not represented anywhere yet:** sign-in and the authenticated shell's utility bar, activation eligibility and pricing, the errand request form, edit/remove/reminder outcomes, skip confirmation, empty filters, loading and errors, narrow layouts, keyboard and focus, long content, receipt and cash handling, timezone/cutoff/access rules, and cross-channel sync.
+**Not represented anywhere yet:** the authenticated shell's utility bar, activation eligibility and pricing, the errand request form, edit/remove/reminder outcomes, skip confirmation, empty filters, loading and errors outside sign-in, narrow layouts, keyboard and focus outside form controls, long content, receipt and cash handling, timezone/cutoff/access rules, and cross-channel sync.

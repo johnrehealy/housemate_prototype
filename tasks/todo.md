@@ -211,7 +211,12 @@ These come from `docs/open-questions.md`; say if any should change.
 - **Verified:** lint, typecheck, 43 unit tests, 31 database tests, and 8 Playwright tests all pass. The browser tests sign in, move between all six destinations, and assert sidebar width, bar height, nav item size, colors, selected state and shadow against `docs/design.md`.
 - **Design:** the system has no sign-in page, field or button, and Mobbin's MCP isn't connected, so it's built only from existing tokens, with the choices recorded as **Q13** in `docs/design.md` for approval.
 - **Sign-out is local-scoped**, so signing out of one browser doesn't end the member's sessions everywhere.
-- **Still to do:** a Paper mockup of the sign-in page for approval (D-034), then the Impeccable review of the shell. The design values below are built but **not approved**: they were proposed as prose and refused.
+- **Sign-in design approved in Paper, 2026-09-17 (D-036).** Recorded in `docs/design.md` §4 under Form controls and Sign-in page. The current build does **not** match it yet.
+- **Still to do:**
+  1. Plan and build the approved design. That covers the story panel, the visible labels, the muted field border, the inline error and working lines, and automatic sign-in on the sixth digit, which is a behavior change and gets planned first.
+  2. Update the browser tests to match.
+  3. Run `impeccable detect`, then the Impeccable finish review and documenter.
+  4. Run the Impeccable review of the shell.
 - **Note for a new machine:** `apps/web/.env.local` is a symlink to the repo-root `.env.local`, because Next reads env files from the app directory.
 
 **Step 4, earlier (shell only).**

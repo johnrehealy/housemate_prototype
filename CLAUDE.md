@@ -107,6 +107,11 @@ Each slice crosses the layers it needs (UI, action, data, integration) and ends 
 
 In plans and summaries, label what is **evidence** (observed or tested), **assumption**, **recommendation**, and **decision** (approved by the user). Only approved decisions go in `docs/decisions.md`.
 
+### Don't make the user a bottleneck
+
+- Log every action or question you need from the user as a Linear issue (D-035) in the "Waiting on you" project, with priority set by urgency. Don't leave a request only in chat.
+- Check those issues at the start of each session, and close them once they're resolved.
+
 ### Subagents
 
 Use subagents for broad read-only research and for genuinely independent parallel work, one task each. Don't use them for implementation that depends on decisions made in the main conversation, because they start without that context.
