@@ -27,7 +27,7 @@ No member gets invited to production in this slice.
 - **Not needed locally:** GitHub, Vercel and Fly CLIs. Deploys go through git, and remote changes go through MCP.
 
 **Accounts and connectors (you).** None of these block steps 1–7, which run locally. They're needed for step 8.
-- **GitHub:** connect the GitHub MCP, or create a private `housemate-prototype` repo.
+- **GitHub:** connect the GitHub MCP, or create a private `housemate_prototype` repo.
 - **Supabase:** an organization, plus the Supabase MCP. Claude creates the staging and production projects through it.
 - **Vercel:** account linked to GitHub, plus the Vercel MCP.
 - **Twilio:** account, a Verify service (for sign-in codes), one phone number, and the Twilio MCP. Start sole-proprietor 10DLC registration now (open question 10).
@@ -147,7 +147,7 @@ Each step ends with its check.
 These come from `docs/open-questions.md`; say if any should change.
 - **8. Sign-in:** invite creates the account; code texted via Twilio Verify; sign-ups disabled.
 - **9. Non-invited texters:** one invite-only reply, no agent run.
-- **17. Repo:** private `housemate-prototype`; branch per change; commit and push only when asked.
+- **17. Repo:** private `johnrehealy/housemate_prototype`; branch per change; commit and push only when asked.
 - **18. Worker hosting:** Fly.io.
 - **19. Team alerts:** a text to team phone numbers, which you'll need to provide, plus the monitoring view.
 

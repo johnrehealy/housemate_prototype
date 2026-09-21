@@ -70,7 +70,7 @@ Design-specific questions (typography, surfaces, toolbars, calendar edge cases, 
 *Default:* No. Build work is tracked in the slice plan in `tasks/todo.md`. **USER: Yes, build work should be tracked in Linear.** — recorded as D-039.
 
 **17. Git setup:** repository name and GitHub org, and how much commit and push autonomy Claude has.
-*Default:* A private `housemate-prototype` repo on your GitHub account; a branch per change; commit and push only when asked. **User agreed/approved**
+*Default:* A private `housemate-prototype` repo on your GitHub account; a branch per change; commit and push only when asked. **User agreed/approved** — the repo is `johnrehealy/housemate_prototype`, created 2026-09-17.
 
 **18. Worker hosting.** Which container host runs the agent worker?
 *Default:* Fly.io, with staging and production apps deployed by GitHub Actions on merge. **User agreed/approved**

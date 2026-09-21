@@ -1,4 +1,4 @@
-# Session handoff · 2026-09-17 (end of session)
+# Session handoff · 2026-09-18 (sign-in build, waiting on a design approval)
 
 Context for picking this up in a fresh session. Durable knowledge lives in the
 documents below; this file captures what a new session would otherwise have to
@@ -22,8 +22,9 @@ rediscover.
 
 ## Where things stand
 
-**Slice 0 (foundation): steps 1–4 are built. The user asked Claude to stop and
-wait for a go-ahead (HOU-7) before building the approved sign-in design.**
+**Slice 0 (foundation): steps 1–4 are built. The user gave the go-ahead
+(HOU-7). The plan for the sign-in build is approved. It is now blocked on one
+design approval, HOU-32.**
 
 - **Steps 1–3: done.** Workspace and tooling; seven tables with row-level
   security, an append-only activity log and a 10-member cap; `defineAction`
@@ -82,23 +83,60 @@ comparing each document's `updatedAt` with the manifest, then reading the copy.
   more than a minute past the manifest's `linearUpdatedAt` means the copy may
   have been edited. A bump alone isn't an edit — read the copy and compare.
 
-## What's next (only once the user says go, HOU-7)
+## What's next
 
-1. **Plan the build of the approved sign-in design.**
-   - Automatic sign-in on the sixth digit is a behavior change, so the plan
-     needs approval. Log it as a Review issue.
-   - Take the values from Paper with `get_computed_styles`: the "Sign-in" page
-     of the file "Diligent meadow", boards A1–A6 "Approved r1". Specs are in
-     `docs/design.md` §4 (Form controls, Sign-in page).
-2. **Build it and update the e2e tests.** Check against WCAG 2.2 AA (D-037).
-3. **Finish the Impeccable steps.** Run `impeccable detect`, then the
+**Blocked on HOU-32: the user approving the narrow and medium sign-in boards.**
+Nothing in the build starts until they do, because D-034 says anything the
+design system doesn't cover is approved in Paper first.
+
+1. **HOU-32.** Three boards are drawn in Paper, file "Diligent meadow", page
+   "Sign-in", built only from existing tokens:
+   - **A7 · Narrow, phone step** (390 × 844) — no story panel; wordmark at the
+     top, 56px down to a 360px form column with 24px gutters, invite note
+     pinned to the bottom in `--color-muted`.
+   - **A8 · Narrow, code step** — the same frame with "Enter your code", the
+     six-digit field, the hint line and the text button, cloned from A3.
+   - **A9 · Medium** (1024 × 768) — the story panel narrowed to 400px with
+     40px side padding. The three "How it works" rows fit unchanged, so
+     nothing is dropped. This differs from the approved plan, which proposed
+     dropping them; keeping them reads better.
+   - One rule for the build: panel hidden below 1024, 400px from 1024, 600px
+     from 1280.
+2. **Once approved:** record it in `docs/design.md` §4 under Sign-in page and
+   against Q12 in §7, and mirror `docs/design.md` to Linear in the same turn.
+3. **Then build**, following the approved plan (saved at
+   `~/.claude/plans/serialized-twirling-jellyfish.md`, and summarised below).
+   Nothing has been written to `apps/` yet.
+   - `packages/core/src/phone.ts` gains `formatUsPhone`, exported from
+     `index.ts`, with tests. The code-step helper needs the national format.
+   - `(auth)/layout.tsx` becomes a full-height flex row, no padding.
+   - New `sign-in/story-panel.tsx` (server component): 600px, evergreen,
+     `padding: 22px 64px 56px`, wordmark / headline group / three rows /
+     invite note. Phosphor `DeviceMobile`, `Wrench`, `CheckCircle` at 20px in
+     on-evergreen 74%; hairlines `#FFFBF929`; lead and row bodies `#FFFBF9BD`;
+     invite note `#FFFBF99E`.
+   - `sign-in-form.tsx` is rewritten: heading group, visible 13/19 labels,
+     40px fields with a muted resting border, the inline message line, and
+     **auto-submit on the sixth digit**.
+   - **Auto-submit decisions:** two sibling forms, so the code form has no
+     submit button and Enter still works with JavaScript off, with "Use a
+     different number" in its own form carrying `restart=1`; `readOnly` plus
+     `aria-disabled` rather than `disabled` while signing in, so focus isn't
+     thrown away; the approved hint "You'll be signed in as soon as all six
+     digits are in." is what satisfies WCAG 3.2.2, so it ships with the
+     behavior.
+   - `state.ts` drops `notice`; `actions.ts` drops `CODE_SENT`.
+   - e2e: `signIn()` stops clicking "Sign in"; the helper wording changes to
+     "is on the invite list"; add a test that the code step has no submit
+     button, and one for the story panel and the field's resting border.
+4. **Then the Impeccable steps.** `impeccable detect`, then the
    `impeccable-finish-reviewer` and `impeccable-documenter` subagents. The
    direction contract is
    `apps/web/.impeccable/surfaces/apps-web-src-app-auth-sign-in-sign-in-form-tsx.md`.
-4. **Close step 4** with the Impeccable review of the app shell.
-5. **Step 5 · Messaging path:** Twilio inbound and status routes with signature
+5. **Close step 4** with the Impeccable review of the app shell.
+6. **Step 5 · Messaging path:** Twilio inbound and status routes with signature
    validation, the simulator page and CLI, and enqueueing jobs.
-6. **Before step 8:** `supabase/config.toml` carries three deliberately
+7. **Before step 8:** `supabase/config.toml` carries three deliberately
    local-only settings: `[auth.sms.test_otp]`, placeholder Twilio credentials,
    and a 1-second code throttle. Staging and production are configured
    separately and must never inherit them.
@@ -117,9 +155,10 @@ comparing each document's `updatedAt` with the manifest, then reading the copy.
     ending any turn that touched docs.
 
 Everything else is in Linear. **Most urgent:**
+- **HOU-32:** approving the A7–A9 sign-in boards. The build is blocked on it.
 - **HOU-5:** Twilio and 10DLC registration, which takes weeks.
 - **HOU-6:** GitHub. There is no remote backup yet.
-- **HOU-7:** the go-ahead to continue.
+- **HOU-7:** done, the go-ahead was given.
 
 When a new need comes up, create an issue there rather than asking only in
 chat.
@@ -166,10 +205,9 @@ chat.
   is set locally to john.re.healy@gmail.com.
 - **Gitignored:** `.env*` and `apps/web/e2e/.auth/` (a real session token).
 - **Tracked:** `apps/web/.impeccable/` (the sign-in surface brief).
-- **Uncommitted:** the docs mirror and the answers copied back from Linear.
-  - Changed: `CLAUDE.md`, `docs/decisions.md`, `docs/open-questions.md`,
-    `docs/product.md` and this file.
-  - New: `scripts/linear-docs.sh` and `docs/linear-docs.json`.
+- **Uncommitted:** `CLAUDE.md` (the user's Lucid row edit),
+  `docs/linear-docs.json`, `docs/open-questions.md`, `tasks/todo.md` and this
+  file. No application code has changed yet.
 
 ## Compaction routine
 

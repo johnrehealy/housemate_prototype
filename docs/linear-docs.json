@@ -6,8 +6,8 @@
       "title": "Project instructions (CLAUDE.md)",
       "id": "d7d3d4c7-affe-45ff-82f3-46c7999bd02d",
       "url": "https://linear.app/housemate/document/project-instructions-claudemd-90b0f5a7a25f",
-      "sha256": "5474fd0ac1ee0f85af90b2659812ce3cbe7a583decde09f0f2a8f198ef851875",
-      "linearUpdatedAt": "2026-09-17T21:23:09.727Z"
+      "sha256": "16f8e73117983c11830bb492c2d8a69e71e8bb54935852d17c9c72a4b339b2de",
+      "linearUpdatedAt": "2026-09-17T21:28:56.365Z"
     },
     {
       "path": "docs/product.md",
@@ -38,8 +38,8 @@
       "title": "Open questions (docs/open-questions.md)",
       "id": "1d899be0-60c6-429a-b64b-f77541445c90",
       "url": "https://linear.app/housemate/document/open-questions-docsopen-questionsmd-0108e59be392",
-      "sha256": "cdd3cd29cf699ad0d26fba740d3e56797ec0fe396ace17fe89e6d303c0888ee6",
-      "linearUpdatedAt": "2026-09-17T20:22:32.326Z"
+      "sha256": "2ec2edeb2c6d5495a82b7208ada0550a592e08cc4da474c4e636c49719fde375",
+      "linearUpdatedAt": "2026-09-17T21:26:37.365Z"
     },
     {
       "path": "docs/build-plan.md",
@@ -54,8 +54,8 @@
       "title": "Current slice plan (tasks/todo.md)",
       "id": "87c7fcbe-f90d-49b1-b653-899be8578105",
       "url": "https://linear.app/housemate/document/current-slice-plan-taskstodomd-9e762e79220d",
-      "sha256": "a81c5c8f06c3bb1ad6ab878deaf03548bd1ff911a01387d824333f99171d3fed",
-      "linearUpdatedAt": "2026-09-17T18:04:37.239Z"
+      "sha256": "162d8fb62cf0e239f8956b8789331b11dd0a80d8eada9e707bcafd13f07d6f7d",
+      "linearUpdatedAt": "2026-09-17T21:27:50.008Z"
     },
     {
       "path": "tasks/lessons.md",
@@ -70,8 +70,8 @@
       "title": "Session handoff (tasks/handoff.md)",
       "id": "89caf58e-dfbb-47c4-b132-e64456d716fd",
       "url": "https://linear.app/housemate/document/session-handoff-taskshandoffmd-f7f60f9b71b5",
-      "sha256": "f2e3278eaa395d7ccd62b5ffad66423419d4d7a563e87b517025ed625b751568",
-      "linearUpdatedAt": "2026-09-17T20:26:31.647Z"
+      "sha256": "5d0a97ae2807ff4f85db992488f2b5a594da9e061e140b522580b54fd821189e",
+      "linearUpdatedAt": "2026-09-18T16:49:20.934Z"
     }
   ]
 }

@@ -41,7 +41,7 @@ These hold regardless of channel or provider. Changing one requires an approved 
 | High-fidelity design | Paper desktop, through its MCP. Mockups are built and approved there (D-034); written specs live in `docs/design.md` |
 | Pattern research | Mobbin |
 | UI build review | Impeccable skill |
-| Architecture diagrams | Lucid (D-041). Its MCP isn't connected yet, so no diagrams are made until it is |
+| Architecture diagrams | Lucid (D-041). |
 
 TypeScript throughout (D-026): Next.js (App Router) on Vercel for the web app and webhooks; a TypeScript worker on a container host for agent runs, scheduling, and the browser sandbox; Tailwind themed from the `docs/design.md` tokens; Vitest and Playwright.
 
