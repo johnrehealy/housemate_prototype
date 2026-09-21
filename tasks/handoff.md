@@ -264,15 +264,14 @@ chat.
   is set locally to john.re.healy@gmail.com.
 - **Gitignored:** `.env*` and `apps/web/e2e/.auth/` (a real session token).
 - **Tracked:** `apps/web/.impeccable/` (the sign-in surface brief).
-- **Last commit:** `f0a3050`, the repo name and the sign-in build plan.
-- **Uncommitted, two batches, neither asked for yet:**
-  - The 2026-09-21 docs cleanup — `docs/decisions.md`, `docs/open-questions.md`,
-    `docs/linear-docs.json`, `tasks/todo.md`, `tasks/lessons.md` and this file.
-  - The logo — new `brand/`, `apps/web/public/brand/`,
-    `apps/web/src/components/brand.tsx`, `apps/web/src/app/icon.svg`, plus
-    edits to `(app)/layout.tsx`, `sign-in-form.tsx` and `docs/design.md`.
+- **Last commit:** `07fddd2`, the logo and the docs cleanup, 21 files. The
+  working tree is clean apart from whatever this file says below.
 - **The sign-in build has still not started.** The logo is the only application
   code that has changed since `f0a3050`.
+- **`pnpm format` rewrapped four files nobody had touched** — `app-shell.spec.ts`,
+  `actions.ts`, `server-context.ts`, `playwright.config.ts` — and they went in
+  with `07fddd2`. They had been committed unformatted, so `format:check` was
+  already failing; it passes now. Run `pnpm format` before committing, not after.
 
 ## Compaction routine
 
