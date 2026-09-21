@@ -193,7 +193,7 @@ Entries are listed by number and never renumbered, so a reference like D-013 alw
   - **Controls:** the text field, primary button and text button are the first shared form controls, specified in `docs/design.md` §4. The field's resting border is `--color-muted` (4.9:1), chosen over line-strong (1.4:1) for visibility.
   - **Context from the user:** members text Housemate without ever signing in, because their number identifies them. The web sign-in is mostly used on desktop.
 - **Reason:** The user reviewed and approved the mockups in Paper, as D-034 requires.
-- **Still to do:** the build doesn't match yet. The build plan is approved; it waits on the narrow and medium boards being approved too (HOU-32), because the approved boards only cover 1440 × 900.
+- **Still to do:** the build doesn't match yet. The build plan is approved, and the narrow and medium widths it was waiting on were approved on 2026-09-21 as D-056 (HOU-32).
 
 ### D-037 · The web app meets WCAG 2.2 AA
 - **Status:** Approved · 2026-09-17 (user answer during `/impeccable init`)
@@ -291,3 +291,13 @@ D-043 to D-055 record answers the user gave in the Linear copy of `docs/open-que
 - **Status:** Approved · 2026-09-17 (answer to open question 18)
 - **Decision:** The agent worker runs on Fly.io, with staging and production apps deployed by GitHub Actions on merge.
 - **Note:** Nothing is deployable yet — `apps/worker` is a skeleton with no Dockerfile or `fly.toml`. Supabase stays the system of record, so no Fly Managed Postgres. Secrets go in with `fly secrets set`, never in the dashboard's env box. The deploy token still needs adding to GitHub (HOU-11).
+
+### D-056 · The sign-in page's narrow and medium layouts are approved
+- **Status:** Approved · 2026-09-21 (user approval in chat, of the Paper boards "Sign-in · A7–A9 · Approved r1"). Extends D-036 and partly answers design Q12.
+- **Decision:**
+  - **Below `--breakpoint-lg` (1024):** one column, no story panel. The lockup moves to the top of the form column and the invite note to the bottom of the page.
+  - **`--breakpoint-lg` to `--breakpoint-xl`:** two columns with the story panel at 400px, keeping all three "How it works" rows.
+  - **`--breakpoint-xl` (1280) and up:** the approved 600px panel from D-036.
+  - Type is identical at every width; only the page frame changes. Values are in `docs/design.md` §4 under Sign-in page.
+- **Reason:** D-036's boards only covered 1440 × 900, so the build had no approved narrow behavior. The user chose to design it in Paper rather than improvise it, as D-034 requires.
+- **Note:** This covers the sign-in page only. Every other screen is still 1440-only, so Q12 stays open.

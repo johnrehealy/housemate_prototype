@@ -41,3 +41,7 @@ Lessons refine how to work. They never override `CLAUDE.md` or `docs/decisions.m
 ### Mirror a doc to Linear by sending the whole file, never by patching it
 - **Why:** two failures. `save_document`'s `patch` was rejected three times because Linear rewrites `-` bullets to `*`, rewraps paragraphs and turns issue keys like `HOU-30` into mention markup, so anchors containing any of those never match. And tightening the wording while composing a copy left the Linear version saying things the repo file didn't — `scripts/linear-docs.sh mark` only hashes the repo file, so `check` reported "matches" and never saw it. Found on 2026-09-18 and 2026-09-21.
 - **Applies when:** every `save_document` call for a file in `docs/linear-docs.json`. Read the file, send its content verbatim, and don't improve it on the way past.
+
+### A client component imports from a `@housemate/core` subpath, never the barrel
+- **Why:** `sign-in-form.tsx` imported `formatUsPhone` from `@housemate/core`. The barrel re-exports `./sms`, which reaches `twilio-provider.ts`, so `next build` failed resolving Node built-ins for the browser bundle. `pnpm lint` and `pnpm typecheck` both passed — only the build caught it. Found on 2026-09-21.
+- **Applies when:** any `"use client"` file that needs something from `packages/core`. Import from a narrow subpath (`@housemate/core/phone`), adding one to the package's `exports` if it doesn't exist. Server files may use the barrel. The corollary: typecheck passing is not evidence that a client component compiles — run `pnpm build`.

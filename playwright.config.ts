@@ -48,6 +48,12 @@ export default defineConfig({
       dependencies: ["setup"],
       use: { ...desktop, storageState: MEMBER_STATE },
     },
+    // Screenshots for the Impeccable finish review, which won't give a verdict
+    // without captures on disk. They write files rather than assert, so they
+    // stay out of the normal run and CI: `CAPTURE=1 pnpm exec playwright test`.
+    ...(process.env.CAPTURE
+      ? [{ name: "capture", testMatch: /capture\.spec\.ts/, use: desktop }]
+      : []),
   ],
   webServer: {
     // A production build, not `next dev`. The dev server watches the whole

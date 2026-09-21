@@ -32,12 +32,14 @@ export const DESTINATIONS = [
  * Supabase throttles code requests per number, so the suite signs in as rarely
  * as it can: the shell tests reuse the session saved by auth.setup.ts rather
  * than calling this.
+ *
+ * There is no "Sign in" button on the code step (D-036): the sixth digit
+ * submits the form on its own, so filling the field is the whole action.
  */
 export async function signIn(page: Page) {
   await page.goto("/sign-in");
   await page.getByLabel("Mobile number").fill(SEED_PHONE);
   await page.getByRole("button", { name: "Send code" }).click();
   await page.getByLabel("Six-digit code").fill(TEST_CODE);
-  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/chat$/);
 }

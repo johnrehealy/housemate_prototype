@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toE164 } from "./phone";
+import { formatUsPhone, toE164 } from "./phone";
 
 describe("toE164", () => {
   it("accepts the ways someone types a US number", () => {
@@ -34,6 +34,19 @@ describe("toE164", () => {
       "+1",
     ]) {
       expect(toE164(input), input).toBeNull();
+    }
+  });
+});
+
+describe("formatUsPhone", () => {
+  it("writes a US number the way a member would", () => {
+    expect(formatUsPhone("+15550190001")).toBe("(555) 019-0001");
+    expect(formatUsPhone("+12125550123")).toBe("(212) 555-0123");
+  });
+
+  it("returns anything else unchanged", () => {
+    for (const input of ["+442079460958", "+1555019000", "", "not a number"]) {
+      expect(formatUsPhone(input), input).toBe(input);
     }
   });
 });
