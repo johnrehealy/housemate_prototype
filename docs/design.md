@@ -272,6 +272,38 @@ These are all 95 live Paper tokens, captured 11 September 2026. The register rec
 
 ## 3. Elements
 
+### Logo
+
+**Added 2026-09-21** from the files the user supplied. The artwork is theirs and
+is not up for discussion; the sizing and colour rules below are what's built so
+far and still want a yes.
+
+Two lockups, both a chevron mark over a lowercase serif wordmark:
+
+| Form | Aspect | Use |
+|---|---|---|
+| Lockup (mark + wordmark) | 8.161 : 1 | The default. 20px tall (163px wide) in the sidebar bar and on sign-in. |
+| Mark alone | 1.840 : 1 | Only where the wordmark can't fit, and the product name is already on screen. |
+
+- **Colour:** `--color-evergreen` on light grounds, `--color-on-evergreen` on
+  evergreen fills. **Rule:** the supplied white lockup is `#FFFFFF`, which reads
+  cold beside our warm text — on evergreen the logo takes `--color-on-evergreen`
+  (`#FFFBF9`) like everything else. `Wordmark` draws in `currentColor`, so it
+  inherits this and there is nothing to choose.
+- **Size:** 20px tall is the only size in use. It's the same height as the text
+  wordmark it replaced, so nothing else on those screens moved.
+- **Cropping:** the supplied file pads the artwork by 24 units at the bottom out
+  of 140, which would leave the logo sitting high in any box. Everything we ship
+  is cropped to the artwork (`viewBox="10.84 7.06 905.52 110.95"`), so a set
+  height is the height you see.
+
+| Where | What |
+|---|---|
+| `brand/` | The three files as supplied. Source of truth, never edited. |
+| `apps/web/src/components/brand.tsx` | `Wordmark` and `Mark`, drawn in `currentColor`. **Use these in the app.** |
+| `apps/web/public/brand/*.svg` | Flat per-ground files, for `<img>`, Paper and anywhere that needs a URL. Generated from the component. |
+| `apps/web/src/app/icon.svg` | Favicon: the mark in on-evergreen on an evergreen square, so it holds up on a dark tab strip. |
+
 ### Iconography
 
 **Phosphor Regular.** Two sizes (**Open Q3**):
@@ -502,8 +534,13 @@ Whether segments act as filters, and what counts as Requested, is **Open Q8**.
 
 **Approved 2026-09-17** (D-036) from the Paper boards "Sign-in · A1–A5 · Approved r1".
 
+**Changed 2026-09-21:** every board now carries the real lockup (§3 Logo) where
+it used to carry the word "Housemate" set in Lato. Same 20px height, same place,
+so nothing else on the boards moved. The user asked for this directly, so the
+A1–A6 boards keep their "Approved r1" names rather than reopening D-036.
+
 - **Layout:** two columns at 1440 × 900.
-  - **Story panel:** 600px, filled `--color-evergreen`, 64px side padding. The wordmark sits at the top, centered in the 64px bar height, and the invite note is 56px from the bottom.
+  - **Story panel:** 600px, filled `--color-evergreen`, 64px side padding. The lockup (§3 Logo, 20px tall) sits at the top, centered in the 64px bar height, and the invite note is 56px from the bottom.
   - **Form column:** 360px wide, centered on the canvas, with 32px between the heading group and the form.
 - **Story panel content:**
   - **Headline:** `--text-display` in `--color-on-evergreen`: "Your home, taken care of by text."

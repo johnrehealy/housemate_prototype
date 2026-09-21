@@ -1,4 +1,4 @@
-# Session handoff · 2026-09-18 (sign-in build, waiting on a design approval)
+# Session handoff · 2026-09-21 (sign-in build, waiting on a design approval)
 
 Context for picking this up in a fresh session. Durable knowledge lives in the
 documents below; this file captures what a new session would otherwise have to
@@ -13,7 +13,7 @@ rediscover.
    **Also check project "Key Docs"** for docs the user edited in Linear
    (D-038, "Docs in Linear" in `CLAUDE.md`).
 3. `docs/build-plan.md` — architecture and slices 0–7 (approved, D-031).
-4. `docs/decisions.md` — D-001 to D-042. Binding.
+4. `docs/decisions.md` — D-001 to D-055. Binding.
 5. `docs/open-questions.md` — unanswered questions and the defaults in effect.
 6. `tasks/todo.md` — the Slice 0 plan with per-step results.
 7. `tasks/lessons.md` — lessons already paid for.
@@ -22,9 +22,9 @@ rediscover.
 
 ## Where things stand
 
-**Slice 0 (foundation): steps 1–4 are built. The user gave the go-ahead
-(HOU-7). The plan for the sign-in build is approved. It is now blocked on one
-design approval, HOU-32.**
+**Slice 0 (foundation): steps 1–4 are built. The user gave the go-ahead. The
+plan for the sign-in build is approved. It is now blocked on one design
+approval, HOU-32.**
 
 - **Steps 1–3: done.** Workspace and tooling; seven tables with row-level
   security, an append-only activity log and a 10-member cap; `defineAction`
@@ -40,6 +40,60 @@ design approval, HOU-32.**
 **Test counts:** 43 unit, 31 database, 8 Playwright. All pass, with lint and
 typecheck clean.
 
+**Docs cleaned up, 2026-09-21.** Both docs had drifted from their own rules;
+this is now the state to trust.
+- **`docs/decisions.md`** is one numbered sequence, D-001 to D-055. The stale
+  "Approved" / "Proposed" split is gone, because it had approved, withdrawn and
+  undecided entries mixed under both headings; every entry carries its own
+  status line instead. Nothing was renumbered.
+- **D-043 to D-055 are new entries** that write down answers the user had
+  already given on 2026-09-17 in the Linear copy of `docs/open-questions.md`,
+  but which had never been recorded as decisions: the task model's owner
+  terms, safety escalation, reminders, desktop-first with mobile coming, one
+  member per home in the prototype, sign-in, uninvited texters, opt-in and
+  media, sensitive data, the starting data model, the repo, and Fly.io.
+  **D-047 is the one to know about:** desktop-first, and the user's own note
+  that mobile layouts are coming.
+- **`docs/open-questions.md` is down to three questions** — 10 (texting
+  registration), 21 (is D-008 approved), 22 (is $100 per member or per pilot)
+  — plus the business-registration blocker and a connector note. Answered
+  questions were deleted, as that file's own rule says. **Numbers are never
+  reused,** so "open question 16" still points at the same question.
+- **Eight Checklist issues closed** as already answered. HOU-11 is now just
+  the Fly.io deploy token, and HOU-33 is new for the team alert phone numbers.
+
+**The logo landed, 2026-09-21.** The user supplied three SVGs and said to use
+them in mockups and code. This is the only application code that changed today.
+
+- **`brand/`** holds the three files exactly as supplied. Never edit them.
+- **`apps/web/src/components/brand.tsx`** exports `Wordmark` and `Mark`, drawn
+  in `currentColor`. **Use these in the app.** Generated from the source SVG by
+  a throwaway script, not hand-typed, so the 900 glyph path values are exact.
+- **Both text wordmarks are gone:** the sidebar bar in `(app)/layout.tsx` and
+  the card in `sign-in-form.tsx` now render `<Wordmark className="h-5 w-auto
+  text-evergreen" />`. Same 20px height as the text it replaced, so no layout
+  moved. Measured: 163.22 × 20, 48.78px of slack in the 260px rail.
+- **The viewBox is cropped to the artwork** (`10.84 7.06 905.52 110.95`). The
+  supplied file pads the bottom by 24 of 140 units, which would make a set
+  height lie about what you see. Confirmed against `getBBox()` in the browser.
+- **On evergreen the logo is `--color-on-evergreen` (#FFFBF9), not the
+  #FFFFFF** the supplied white file carries — pure white reads cold beside our
+  warm text. `currentColor` makes this automatic. **Flagged for the user on
+  HOU-32**; they may want the true white.
+- **`apps/web/public/brand/*.svg`** are flat per-ground copies for `<img>`,
+  Paper and anything needing a URL, generated from the component.
+- **`apps/web/src/app/icon.svg`** is a new favicon: the mark in on-evergreen on
+  an evergreen square. `apps/web/src/app/favicon.ico` is still there and still
+  wins for `/favicon.ico`; deleting it wasn't asked for.
+- **All eleven Paper boards** on the Sign-in page carry the lockup now, placed
+  as `<img src="paper-asset://…/apps/web/public/brand/…">` at 163 × 20. That
+  includes the approved A1–A6, which keep their "Approved r1" names because the
+  user asked for the change directly.
+- **Recorded** in `docs/design.md` §3 under a new "Logo" heading, with a note
+  under Sign-in page, and mirrored to Linear.
+- **Not verified:** the app shell in a browser, which needs a signed-in session.
+  Only the sidebar geometry was measured, not a real render.
+
 **Done on 2026-09-17, after the sign-in approval:**
 - **Linear set up (D-035).**
   - Project "Checklist", with the labels Action, Decision and Review.
@@ -53,13 +107,19 @@ typecheck clean.
   - The user confirmed Users, Positioning and Accessibility.
   - D-037 records that the web app meets WCAG 2.2 AA.
 - **Everything above is committed** (`92939d6`).
-- **Docs mirrored in Linear (D-038), not committed yet.**
+- **Docs mirrored in Linear (D-038).**
   - The nine project docs are documents in the Linear project "Key Docs".
     `docs/linear-docs.json` maps each file to its document.
   - `scripts/linear-docs.sh check` lists stale copies; `mark` records a copy.
   - The rule is under "Docs in Linear" in `CLAUDE.md`.
   - **Every edit to a mirrored file needs a Linear update in the same turn,**
     this file included.
+  - **`mark` only hashes the repo file,** so if the Linear copy is given text
+    the repo file doesn't have, `check` will never notice. Save exactly what
+    the file says.
+  - **Patching a Linear copy is unreliable.** Linear rewrites `-` bullets to
+    `*`, rewraps paragraphs and turns issue keys into mention markup, so
+    `patch` anchors that contain any of those fail. Send the whole file.
 
 **The user answered questions in Linear, 2026-09-17 evening.** Found by
 comparing each document's `updatedAt` with the manifest, then reading the copy.
@@ -68,17 +128,12 @@ comparing each document's `updatedAt` with the manifest, then reading the copy.
   docs" → **Key Docs**. The docs and `docs/linear-docs.json` now use the new
   names.
 - **`docs/open-questions.md`:** they marked most defaults approved in place, and
-  answered Q1, Q2, Q6, Q7, Q15, Q16 and Q19. Copied back into the repo verbatim.
+  answered Q1, Q2, Q6, Q7, Q15, Q16 and Q19. Copied back into the repo verbatim,
+  and recorded as decisions in the 2026-09-21 cleanup.
 - **`docs/decisions.md`:** D-006, D-007 and D-009 approved; **D-008 is "I want to
   discuss this one further"** (HOU-23, retitled).
 - **`docs/product.md`:** connectors to inbox, email and calendars are part of the
   product, not only the eventual one.
-- **New decisions from those answers:** D-039 build work is tracked in Linear
-  too, D-040 quiet hours are 9 PM–7:30 AM, D-041 Lucid for architecture
-  diagrams, D-042 team alerts move to Slack later.
-- **New issues:** HOU-30 (connect Lucid, Checklist) and HOU-31 (build work:
-  change the quiet-hours window in `sendMessage`, which still enforces
-  10 PM–8 AM and has tests asserting it).
 - **Check the Key Docs project this way at every session start:** `updatedAt`
   more than a minute past the manifest's `linearUpdatedAt` means the copy may
   have been edited. A bump alone isn't an edit — read the copy and compare.
@@ -111,7 +166,8 @@ design system doesn't cover is approved in Paper first.
      `index.ts`, with tests. The code-step helper needs the national format.
    - `(auth)/layout.tsx` becomes a full-height flex row, no padding.
    - New `sign-in/story-panel.tsx` (server component): 600px, evergreen,
-     `padding: 22px 64px 56px`, wordmark / headline group / three rows /
+     `padding: 22px 64px 56px`, `<Wordmark className="h-5 w-auto" />` (it
+     inherits on-evergreen from the panel) / headline group / three rows /
      invite note. Phosphor `DeviceMobile`, `Wrench`, `CheckCircle` at 20px in
      on-evergreen 74%; hairlines `#FFFBF929`; lead and row bodies `#FFFBF9BD`;
      invite note `#FFFBF99E`.
@@ -156,9 +212,10 @@ design system doesn't cover is approved in Paper first.
 
 Everything else is in Linear. **Most urgent:**
 - **HOU-32:** approving the A7–A9 sign-in boards. The build is blocked on it.
-- **HOU-5:** Twilio and 10DLC registration, which takes weeks.
-- **HOU-6:** GitHub. There is no remote backup yet.
-- **HOU-7:** done, the go-ahead was given.
+- **HOU-5:** Twilio and 10DLC registration, which takes weeks. Twilio's MCP is
+  documentation-only, so the account work is the user's to do.
+- **No remote backup yet.** The repo exists (HOU-6, closed), but no git remote
+  is configured and nothing has been pushed.
 
 When a new need comes up, create an issue there rather than asking only in
 chat.
@@ -196,6 +253,8 @@ chat.
 - **Take values into code with `get_computed_styles` or `get_jsx`,** never by
   reading a screenshot. Call `finish_working_on_nodes` when done, and never
   show node ids to the user.
+- **Clone instead of rewriting.** `<x-paper-clone node-id="..." style="..." />`
+  inside `write_html` reuses an approved node exactly, with style overrides.
 - **Don't take specs from other boards** in the file. Only
   `docs/design.md` and approved Claude mockups count.
 
@@ -205,9 +264,15 @@ chat.
   is set locally to john.re.healy@gmail.com.
 - **Gitignored:** `.env*` and `apps/web/e2e/.auth/` (a real session token).
 - **Tracked:** `apps/web/.impeccable/` (the sign-in surface brief).
-- **Uncommitted:** `CLAUDE.md` (the user's Lucid row edit),
-  `docs/linear-docs.json`, `docs/open-questions.md`, `tasks/todo.md` and this
-  file. No application code has changed yet.
+- **Last commit:** `f0a3050`, the repo name and the sign-in build plan.
+- **Uncommitted, two batches, neither asked for yet:**
+  - The 2026-09-21 docs cleanup — `docs/decisions.md`, `docs/open-questions.md`,
+    `docs/linear-docs.json`, `tasks/todo.md`, `tasks/lessons.md` and this file.
+  - The logo — new `brand/`, `apps/web/public/brand/`,
+    `apps/web/src/components/brand.tsx`, `apps/web/src/app/icon.svg`, plus
+    edits to `(app)/layout.tsx`, `sign-in-form.tsx` and `docs/design.md`.
+- **The sign-in build has still not started.** The logo is the only application
+  code that has changed since `f0a3050`.
 
 ## Compaction routine
 
@@ -239,8 +304,14 @@ chat.
 - **Linear MCP:** the claude.ai Linear connector works (team id
   `7d810437-c5b9-4649-a348-cd4459dcfdd5`). The separate
   `plugin:product-management:linear` server needs OAuth and isn't used.
-- **The GitHub plugin connector failed to connect** ("Incompatible auth
-  server"). See HOU-6.
+- **The GitHub plugin connector failed to connect** (HTTP 400 at
+  `api.githubcopilot.com`). The `gh` CLI is used instead, called as
+  `/opt/homebrew/bin/gh` with `dangerouslyDisableSandbox: true`, because
+  `~/.config/gh` is read-denied in the sandbox.
+- **Every other MCP is connected:** Linear, Paper, Supabase, Vercel, Stripe,
+  Twilio, Mobbin, Lucid, Google Drive and Chrome. **Twilio's is
+  documentation-only** — two tools, search and retrieve — so it can't create a
+  number, a Messaging Service or a Verify service.
 
 ## Conventions worth keeping
 

@@ -1,3 +1,4 @@
+import { Wordmark } from "@/components/brand";
 import { requireMember } from "@/lib/auth/session";
 import { signOut } from "./actions";
 import { Nav } from "./_components/nav";
@@ -11,7 +12,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex h-full">
       <aside className="flex w-(--container-sidebar) shrink-0 flex-col bg-nav">
         <div className="flex h-(--spacing-bar) shrink-0 items-center px-6">
-          <span className="text-sm text-evergreen">Housemate</span>
+          <Wordmark className="h-5 w-auto text-evergreen" />
         </div>
         <Nav />
       </aside>

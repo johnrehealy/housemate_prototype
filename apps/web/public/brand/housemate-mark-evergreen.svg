@@ -1,0 +1,25 @@
+<svg role="img" aria-label="Housemate"
+      viewBox="0 0 189.152 102.826"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+<!-- Generated from apps/web/src/components/brand.tsx. Source artwork: brand/. -->
+<title>Housemate mark</title>
+      <g
+        fill="none"
+        stroke="#14342F"
+        stroke-linecap="butt"
+        stroke-linejoin="miter"
+        stroke-miterlimit="4"
+      >
+        <path
+          stroke-width="12"
+          transform="translate(4.1619, 8.3374)"
+          d="M0 88.96681 92.38802 0 180.8203 85.48654"
+        />
+        <path
+          stroke-width="10"
+          transform="translate(39.6619, 45.1974)"
+          d="M0 54.02708 56.10468 0 109.8072 51.91361"
+        />
+      </g>
+    </svg>

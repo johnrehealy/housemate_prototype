@@ -22,24 +22,24 @@
       "title": "Design system (docs/design.md)",
       "id": "45e84f8f-3d10-4902-83b6-6fa34a94088e",
       "url": "https://linear.app/housemate/document/design-system-docsdesignmd-aa2f1e595a1f",
-      "sha256": "b407bd0c999504e3f6d47a8fea5de0238aea6f5f4180e15a891eb1f9376ed5ca",
-      "linearUpdatedAt": "2026-09-17T17:44:12.944Z"
+      "sha256": "32068f447a3973f9e1a0eda7a4b596b9a1b6a538c7eb967ecc963ae1f12a7ff4",
+      "linearUpdatedAt": "2026-09-21T18:31:20.347Z"
     },
     {
       "path": "docs/decisions.md",
       "title": "Decisions (docs/decisions.md)",
       "id": "253be20b-27b5-4f96-82ec-268f280f0fb3",
       "url": "https://linear.app/housemate/document/decisions-docsdecisionsmd-09090248dfc7",
-      "sha256": "bcbb619c8ebb4db6e02fb167703283115e2628e743837ec62bc41d919655b115",
-      "linearUpdatedAt": "2026-09-17T20:24:19.170Z"
+      "sha256": "176848a68dcfc00cd7b8926402d1e6dffdd88280d52fc1393fa64c6a2f3b0516",
+      "linearUpdatedAt": "2026-09-21T18:10:07.399Z"
     },
     {
       "path": "docs/open-questions.md",
       "title": "Open questions (docs/open-questions.md)",
       "id": "1d899be0-60c6-429a-b64b-f77541445c90",
       "url": "https://linear.app/housemate/document/open-questions-docsopen-questionsmd-0108e59be392",
-      "sha256": "2ec2edeb2c6d5495a82b7208ada0550a592e08cc4da474c4e636c49719fde375",
-      "linearUpdatedAt": "2026-09-17T21:26:37.365Z"
+      "sha256": "b3fb21143904f98f1f44d87e3c52ed29826f470224084b98e78d9181699cb946",
+      "linearUpdatedAt": "2026-09-21T18:08:46.378Z"
     },
     {
       "path": "docs/build-plan.md",
@@ -54,24 +54,24 @@
       "title": "Current slice plan (tasks/todo.md)",
       "id": "87c7fcbe-f90d-49b1-b653-899be8578105",
       "url": "https://linear.app/housemate/document/current-slice-plan-taskstodomd-9e762e79220d",
-      "sha256": "162d8fb62cf0e239f8956b8789331b11dd0a80d8eada9e707bcafd13f07d6f7d",
-      "linearUpdatedAt": "2026-09-17T21:27:50.008Z"
+      "sha256": "01adb64f9c08feb95519a910657221c2922a57ea193aa99f2459331e9733f149",
+      "linearUpdatedAt": "2026-09-21T18:12:36.797Z"
     },
     {
       "path": "tasks/lessons.md",
       "title": "Lessons (tasks/lessons.md)",
       "id": "b1d739e1-01fb-4d68-9deb-6262dd77f521",
       "url": "https://linear.app/housemate/document/lessons-taskslessonsmd-8b3d6f340833",
-      "sha256": "48b505aac5b6a6b4523387677f189a8fe3064f22cd328c35676b06ff944ac054",
-      "linearUpdatedAt": "2026-09-17T16:55:07.062Z"
+      "sha256": "917e81a76e81643ced8a52ecbddfe606b21b36b7aeb7d89f303fc5087097c1cc",
+      "linearUpdatedAt": "2026-09-21T18:33:03.071Z"
     },
     {
       "path": "tasks/handoff.md",
       "title": "Session handoff (tasks/handoff.md)",
       "id": "89caf58e-dfbb-47c4-b132-e64456d716fd",
       "url": "https://linear.app/housemate/document/session-handoff-taskshandoffmd-f7f60f9b71b5",
-      "sha256": "5d0a97ae2807ff4f85db992488f2b5a594da9e061e140b522580b54fd821189e",
-      "linearUpdatedAt": "2026-09-18T16:49:20.934Z"
+      "sha256": "68e3ea65284f50970a250c6e5128d913b99e52851e48c783eb8a49e9edfa1bef",
+      "linearUpdatedAt": "2026-09-21T18:34:11.605Z"
     }
   ]
 }

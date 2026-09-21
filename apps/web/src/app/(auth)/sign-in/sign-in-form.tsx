@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Wordmark } from "@/components/brand";
 import { submitSignIn } from "./actions";
 import { INITIAL_SIGN_IN_STATE } from "./state";
 
@@ -28,7 +29,7 @@ export function SignInForm() {
 
   return (
     <div className="w-[380px] max-w-full rounded-lg border border-line bg-surface p-7 shadow-composer">
-      <p className="text-sm text-evergreen">Housemate</p>
+      <Wordmark className="h-5 w-auto text-evergreen" />
 
       <h1 className="mt-6 text-lead text-heading">Sign in</h1>
       <p className="mt-1 text-xs text-muted">

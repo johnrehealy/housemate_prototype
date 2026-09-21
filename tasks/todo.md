@@ -142,14 +142,16 @@ Each step ends with its check.
 - Security, activity-log, idempotency, member-cap, quiet-hours and cost-alert tests all pass.
 - Production exists but has no members.
 
-## Defaults this slice relies on
+## Decisions this slice relies on
 
-These come from `docs/open-questions.md`; say if any should change.
-- **8. Sign-in:** invite creates the account; code texted via Twilio Verify; sign-ups disabled.
-- **9. Non-invited texters:** one invite-only reply, no agent run.
-- **17. Repo:** private `johnrehealy/housemate_prototype`; branch per change; commit and push only when asked.
-- **18. Worker hosting:** Fly.io.
-- **19. Team alerts:** a text to team phone numbers, which you'll need to provide, plus the monitoring view.
+These were open questions when the slice was planned. They were all answered on
+2026-09-17 and are now recorded in `docs/decisions.md`.
+- **D-049 · Sign-in:** invite creates the account; code texted via Twilio Verify; sign-ups disabled.
+- **D-050 · Non-invited texters:** one invite-only reply, no agent run.
+- **D-054 · Repo:** private `johnrehealy/housemate_prototype`; branch per change; commit and push only when asked.
+- **D-055 · Worker hosting:** Fly.io. The deploy token still needs adding to GitHub (HOU-11).
+- **D-042 · Team alerts:** a text to the team phone numbers, plus the monitoring view, moving to Slack later. The numbers still need to go in `.env.local` (HOU-33).
+- **D-047 · Desktop-first,** usable to 1024px, with mobile layouts coming. This is why the sign-in build waits on HOU-32.
 
 ## Results
 

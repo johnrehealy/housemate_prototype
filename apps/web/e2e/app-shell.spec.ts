@@ -53,5 +53,8 @@ test("matches the design system", async ({ page }) => {
   await expect(property).toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
 
   await expect(chat.locator("svg")).toHaveCSS("color", "rgb(20, 52, 47)");
-  await expect(property.locator("svg")).toHaveCSS("color", "rgb(104, 112, 110)");
+  await expect(property.locator("svg")).toHaveCSS(
+    "color",
+    "rgb(104, 112, 110)",
+  );
 });

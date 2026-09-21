@@ -4,7 +4,10 @@ import { MEMBER_STATE } from "./apps/web/e2e/support";
 const baseURL = "http://127.0.0.1:3000";
 
 // The design system is specified at 1440 x 900 (docs/design.md §1).
-const desktop = { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } };
+const desktop = {
+  ...devices["Desktop Chrome"],
+  viewport: { width: 1440, height: 900 },
+};
 
 /**
  * Browser tests for the web app.

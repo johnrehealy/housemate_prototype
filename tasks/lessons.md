@@ -34,6 +34,10 @@ Lessons refine how to work. They never override `CLAUDE.md` or `docs/decisions.m
 - **Why:** `next dev` watches the whole workspace, ran out of file descriptors (`EMFILE: too many open files`), and kept deleting `.next/dev` and restarting until Playwright timed out. The system's `maxfiles` soft limit is 256. Found on 2026-09-15.
 - **Applies when:** Any Playwright run. `playwright.config.ts` builds and starts the app instead, which is also what staging and CI serve.
 
-### Package installs run outside the sandbox
-- **Why:** The sandbox's network filtering breaks pnpm's downloader with an "invalid peer certificate" error, though `curl` to the same registry works. Found on 2026-09-15.
-- **Applies when:** `pnpm add` or any install. Run it outside the sandbox, which goes through the normal permission check. Everything else (lint, typecheck, tests, builds) runs inside the sandbox.
+### Installs and `pnpm build` run outside the sandbox
+- **Why:** The sandbox's network filtering breaks fetchers that aren't plain `curl`. pnpm's downloader fails with "invalid peer certificate", and `next build` fails on "Failed to fetch Lato from Google Fonts" — even with `fonts.googleapis.com` in `allowed_domains`, where `curl` to that exact URL returns 200. `next/font` downloads Lato at build time, so any build needs the real network. Found on 2026-09-15 and 2026-09-21.
+- **Applies when:** `pnpm add`, any install, and `pnpm build` (so also `pnpm exec playwright test`, which builds first). Run those outside the sandbox, one at a time, through the normal permission check. `pnpm lint`, `pnpm typecheck` and `pnpm test` run inside it fine.
+
+### Mirror a doc to Linear by sending the whole file, never by patching it
+- **Why:** two failures. `save_document`'s `patch` was rejected three times because Linear rewrites `-` bullets to `*`, rewraps paragraphs and turns issue keys like `HOU-30` into mention markup, so anchors containing any of those never match. And tightening the wording while composing a copy left the Linear version saying things the repo file didn't — `scripts/linear-docs.sh mark` only hashes the repo file, so `check` reported "matches" and never saw it. Found on 2026-09-18 and 2026-09-21.
+- **Applies when:** every `save_document` call for a file in `docs/linear-docs.json`. Read the file, send its content verbatim, and don't improve it on the way past.

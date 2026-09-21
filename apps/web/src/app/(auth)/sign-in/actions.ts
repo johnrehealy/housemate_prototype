@@ -63,10 +63,7 @@ async function requestCode(input: string): Promise<SignInState> {
   return { step: "code", phone, notice: CODE_SENT };
 }
 
-async function verifyCode(
-  phone: string,
-  token: string,
-): Promise<SignInState> {
+async function verifyCode(phone: string, token: string): Promise<SignInState> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.verifyOtp({
     phone,
@@ -92,7 +89,10 @@ async function verifyCode(
     // Signing in is what activates an invited member.
     await activateMember(
       actionContext({
-        actor: { type: member.role === "staff" ? "staff" : "member", id: member.id },
+        actor: {
+          type: member.role === "staff" ? "staff" : "member",
+          id: member.id,
+        },
         source: { type: "web" },
       }),
       { memberId: member.id },

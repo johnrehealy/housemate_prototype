@@ -1,14 +1,12 @@
 # Decisions
 
-Approved decisions are binding. Proposed decisions are recommendations awaiting the user's approval; don't treat them as settled.
+Approved decisions are binding. A decision marked Proposed is a recommendation awaiting the user's approval; don't treat it as settled.
 
-To add a decision, append an entry with the next number. To reverse one, add a new entry that supersedes it rather than editing the old one. Update an entry's status line when it's approved, withdrawn or superseded; the entry stays where it was first recorded.
+Entries are listed by number and never renumbered, so a reference like D-013 always points at the same decision. To add one, append an entry with the next number. To reverse one, add a new entry that supersedes it rather than editing the old one. When an entry is approved, withdrawn or superseded, update its status line and leave the rest of it alone: the text is the record of what was decided at the time.
 
-**Entry format:** number and title, status (Proposed / Approved / Superseded by D-nnn), date, decision, and reason.
+**Entry format:** number and title, status (Proposed / Approved / Withdrawn / Superseded by D-nnn), date, decision, and reason.
 
 ---
-
-## Approved
 
 ### D-001 · SMS/RCS/MMS is the primary channel
 - **Status:** Approved · 2026-09-15 (original CLAUDE.md draft)
@@ -31,6 +29,26 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Status:** Approved · 2026-09-15 (original CLAUDE.md draft)
 - **Decision:** These are the current providers. They may change, so they sit behind our own interfaces.
 
+### D-006 · Every record is traceable to its source
+- **Status:** Approved · 2026-09-17
+- **Decision:** Each record stores the message, user, or agent action that created or last changed it.
+- **Reason:** Users can't understand or correct what the agent did without knowing where a record came from.
+
+### D-007 · Corrections are kept as history
+- **Status:** Approved · 2026-09-17
+- **Decision:** Changes to agent-created records are recorded as history rather than silent overwrites.
+- **Reason:** Lets the user see what the agent did versus what they changed, and gives the agent feedback to learn from.
+
+### D-008 · Sensitive home data stays out of logs, fixtures, and commits
+- **Status:** **Proposed. The user wants to discuss this one further** · raised 2026-09-15, held 2026-09-17 (HOU-23). It is followed in the meantime, and it is also product invariant 6 in `CLAUDE.md`.
+- **Decision:** Access codes, alarm codes, addresses, and interior photos never appear in logs, seed data, test fixtures, or commits. Secrets live in environment variables.
+- **Reason:** A home-management product holds data that gives physical access to someone's home.
+
+### D-009 · SMS flows are verified with a local simulator
+- **Status:** Approved · 2026-09-17
+- **Decision:** A local simulator sends messages through the same handler as the Twilio webhook, so text flows can be tested end to end without a phone. Real-device testing is a separate manual step.
+- **Reason:** Claude can't send or receive real texts, and "verify before done" needs to be achievable.
+
 ### D-010 · The design system lives in the repo; Claude doesn't take specs from Paper
 - **Status:** Approved · 2026-09-15 (user instruction). **Clarified by D-034:** "doesn't use Paper" means Claude doesn't read other Paper boards and infer the design system from them. Creating mockups in Paper is expected.
 - **Decision:** `docs/design.md`, exported from the "Housemate Design System" page, is the design system. Claude disregards everything else in Paper and doesn't consult Paper again. Paper visuals are for the user's review only.
@@ -41,7 +59,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Decision:** Housemate's agent is Claude, running server-side.
 
 ### D-012 · The agent reads Housemate's records; the prototype uses dummy data
-- **Status:** Approved · 2026-09-15 (1b). The dummy-data clause is superseded by D-028.
+- **Status:** Approved · 2026-09-15 (1b). The dummy-data clause is superseded by D-028, and the connectors clause by the product record: connectors to the member's inbox, email and calendars are part of the product.
 - **Decision:** The agent has real access to Housemate's own records. In the prototype those records hold dummy data. Connectors to inbox, email and calendars come in the eventual product, not the prototype.
 
 ### D-013 · The agent acts on its own, except where money is involved
@@ -76,6 +94,21 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Status:** Approved · 2026-09-15 (user instruction)
 - **Decision:** A small set of real users will use the prototype the way they'd use the product and give feedback. The agent's computer use works on real vendor websites, not a mock.
 
+### D-021 · Demo homes and real homes
+- **Status:** Withdrawn · 2026-09-15. All members are real users with real data (D-028), so there are no demo homes.
+- **Decision:** Every home is marked **demo** or **real**.
+  - **Demo homes** hold dummy data for development and testing. The agent can browse real sites for them but never submits anything: no bookings, forms or messages to vendors.
+  - **Real homes** hold the member's real name, phone and address, and start empty or with details the member provides. Real-world actions only happen for real homes.
+- **Reason:** D-012 (dummy data) and D-020 (real sites) conflict. Booking a real technician with a fake name and address wastes vendors' time and could lead to no-show fees. Seeded history, like fake equipment models, could also be passed to real vendors as fact.
+
+### D-022 · The payment check is enforced in code, not just in the prompt
+- **Status:** Approved · 2026-09-15 (user instruction)
+- **Decision:**
+  - The application blocks any step that involves or could involve a payment until the member confirms it (D-013). The model's instructions alone aren't enough.
+  - Content from websites is treated as untrusted data. It can never approve a payment or change what the agent is allowed to do.
+  - Every real-world action the agent takes is logged.
+- **Reason:** The agent reads real websites while able to change everything and message the member. A malicious or confusing page must not be able to talk it into spending money.
+
 ### D-023 · The agent can pay on the member's behalf after confirmation, using Stripe
 - **Status:** Approved · 2026-09-15 (user instruction)
 - **Decision:** Once the member confirms a payment (D-013), the agent completes it for them. Stripe is the payments provider.
@@ -87,7 +120,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 ### D-025 · Payments use Housemate-funded single-use Stripe Issuing cards
 - **Status:** Approved · 2026-09-15 (build planning)
 - **Decision:** For each confirmed payment, Housemate places a hold on the member's saved card, then creates a single-use Issuing card for exactly that amount. Worker code fills in the card number, which never enters the model's context. Live payments wait on business registration and Issuing approval; until then, payments are built in Stripe test mode.
-- **Note:** Money moves from the member to Housemate to the vendor. Check with counsel before scaling beyond the pilot.
+- **Note:** Money moves from the member to Housemate to the vendor. Check with counsel before scaling beyond the pilot (HOU-28).
 
 ### D-026 · TypeScript throughout
 - **Status:** Approved · 2026-09-15 (build planning)
@@ -107,6 +140,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 ### D-030 · Cost budget of $100 per member per month, flagged not blocked
 - **Status:** Approved · 2026-09-15 (user instruction)
 - **Decision:** Track each member's costs (Claude, including computer use, and Twilio) from the start, and estimate from real usage. The initial budget is $100 per member per month. A member going over is flagged to the team; the agent isn't stopped.
+- **Note:** Whether $100 is per member or for the whole pilot is still to be confirmed (HOU-24). Per member is what's built to.
 
 ### D-031 · Build plan
 - **Status:** Approved · 2026-09-15
@@ -122,10 +156,9 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 - **Reason:** Contain mistaken commands and malicious packages before real credentials exist. Staging and production changes already go through MCP connectors (CLAUDE.md), so their secrets never need to be inside the sandbox.
 
 ### D-033 · Sign-in is built from existing design tokens
-- **Status:** Approved · 2026-09-15 (user instruction, answering a question raised while building Slice 0 step 4)
+- **Status:** Superseded by D-036 · approved 2026-09-15 (user instruction, answering a question raised while building Slice 0 step 4). The values first built were never approved; the approved design came from a Paper mockup.
 - **Decision:** The design system covers no sign-in page, text field, button or focus treatment, and Mobbin's MCP isn't connected for pattern research. Sign-in is built from existing tokens rather than left unstyled or deferred: the field follows the search bar, the primary button is an evergreen fill at nav-item height, focus is an evergreen outline, and hover changes opacity so no second green enters the palette. The specific values are recorded as **Q13** in `docs/design.md` for approval, and may become named components later.
 - **Reason:** Real pilot members sign in before any of these get designed, and inventing colors would be harder to undo than reusing tokens.
-- **Note:** Superseded by D-036. The values first built were never approved; the approved design came from a Paper mockup.
 
 ### D-034 · Visual design is done in Paper; `docs/design.md` stays the written source of truth
 - **Status:** Approved · 2026-09-17 (user instruction). Clarifies D-010.
@@ -160,7 +193,7 @@ To add a decision, append an entry with the next number. To reverse one, add a n
   - **Controls:** the text field, primary button and text button are the first shared form controls, specified in `docs/design.md` §4. The field's resting border is `--color-muted` (4.9:1), chosen over line-strong (1.4:1) for visibility.
   - **Context from the user:** members text Housemate without ever signing in, because their number identifies them. The web sign-in is mostly used on desktop.
 - **Reason:** The user reviewed and approved the mockups in Paper, as D-034 requires.
-- **Still to do:** the build doesn't match yet. Automatic sign-in is a behavior change, so it's planned before it's built.
+- **Still to do:** the build doesn't match yet. The build plan is approved; it waits on the narrow and medium boards being approved too (HOU-32), because the approved boards only cover 1440 × 900.
 
 ### D-037 · The web app meets WCAG 2.2 AA
 - **Status:** Approved · 2026-09-17 (user answer during `/impeccable init`)
@@ -187,52 +220,74 @@ To add a decision, append an entry with the next number. To reverse one, add a n
 
 ### D-040 · Quiet hours are 9 PM to 7:30 AM
 - **Status:** Approved · 2026-09-17 (user answer to open question 2, left in the Linear copy of `docs/open-questions.md`)
-- **Decision:** The agent sends no unprompted text between 9 PM and 7:30 AM in the member's timezone. Replies are unaffected. Each unprompted text is logged with what triggered it.
+- **Decision:** The agent sends no unprompted text between 9 PM and 7:30 AM in the member's timezone. Replies are unaffected. Each unprompted text is logged with what triggered it, in the internal monitoring view.
 - **Note:** `sendMessage` in `packages/core` still enforces the earlier 10 PM to 8 AM window, and its tests assert it. Changing it is messaging behavior, so it is planned before it is built (HOU-31).
 
 ### D-041 · Lucid is the architecture-diagram tool
-- **Status:** Approved · 2026-09-17 (user answer to open question 15, left in the Linear copy of `docs/open-questions.md`)
-- **Decision:** Architecture diagrams are made in Lucid. Lucid's MCP isn't connected yet, so no diagrams are made until it is (HOU-30).
+- **Status:** Approved · 2026-09-17 (user answer to open question 15, left in the Linear copy of `docs/open-questions.md`). The user's words: "LUCID IS ARCHITECTURE TOOL OF CHOICE".
+- **Decision:** Architecture diagrams are made in Lucid, through its MCP. The MCP was connected on 2026-09-17 (HOU-30), so diagrams can be made.
 
 ### D-042 · Team alerts move to Slack eventually
 - **Status:** Approved · 2026-09-17 (user answer to open question 19, left in the Linear copy of `docs/open-questions.md`)
-- **Decision:** Team alerts start as a text to the team numbers plus the internal monitoring view, and move to Slack later.
+- **Decision:** Team alerts start as a text to team phone numbers listed in configuration, plus an entry in the internal monitoring view, and move to Slack later.
 
 ---
 
-## Proposed
+## Recorded 2026-09-21, from answers already given
 
-### D-006 · Every record is traceable to its source
-- **Status:** Approved · 2026-09-17
-- **Decision:** Each record stores the message, user, or agent action that created or last changed it.
-- **Reason:** Users can't understand or correct what the agent did without knowing where a record came from.
+D-043 to D-055 record answers the user gave in the Linear copy of `docs/open-questions.md` on 2026-09-17, either by marking a default **User agreed/approved** or by writing an answer in. They were in effect from that date; this is where they are written down.
 
-### D-007 · Corrections are kept as history
-- **Status:** Approved · 2026-09-17
-- **Decision:** Changes to agent-created records are recorded as history rather than silent overwrites.
-- **Reason:** Lets the user see what the agent did versus what they changed, and gives the agent feedback to learn from.
+### D-043 · What the task model's owners mean
+- **Status:** Approved · 2026-09-17 (answer to open question 1)
+- **Decision:** In the task model, `homeowner` is the member, `housemate` is the agent, and `vendor` is the service provider. **Team** is a fourth idea, not a task owner: the company's employees and contract workers, who do the human actions such as the weekly errand visits (D-027). Weekly visits are modeled within Errands.
 
-### D-008 · Sensitive home data stays out of logs, fixtures, and commits
-- **Status:** **I want to discuss this one further** · 2026-09-15
-- **Decision:** Access codes, alarm codes, addresses, and interior photos never appear in logs, seed data, test fixtures, or commits. Secrets live in environment variables.
-- **Reason:** A home-management product holds data that gives physical access to someone's home.
+### D-044 · Safety emergencies are escalated, not troubleshot
+- **Status:** Approved · 2026-09-17 (answer to open question 3)
+- **Decision:** For a gas smell, an electrical hazard, flooding, a break-in or anything like them, the agent stops troubleshooting and tells the member to contact emergency services or the utility right away.
 
-### D-009 · SMS flows are verified with a local simulator
-- **Status:** Approved · 2026-09-17
-- **Decision:** A local simulator sends messages through the same handler as the Twilio webhook, so text flows can be tested end to end without a phone. Real-device testing is a separate manual step.
-- **Reason:** Claude can't send or receive real texts, and "verify before done" needs to be achievable.
+### D-045 · What a member must give before a reminder is saved
+- **Status:** Approved · 2026-09-17 (answer to open question 4)
+- **Decision:** The timezone is inferred from the home address. If the date or time is missing, the agent asks one short question rather than guessing.
 
-### D-021 · Demo homes and real homes
-- **Status:** Withdrawn · 2026-09-15. All members are real users with real data (D-028), so there are no demo homes.
-- **Decision:** Every home is marked **demo** or **real**.
-  - **Demo homes** hold dummy data for development and testing. The agent can browse real sites for them but never submits anything: no bookings, forms or messages to vendors.
-  - **Real homes** hold the member's real name, phone and address, and start empty or with details the member provides. Real-world actions only happen for real homes.
-- **Reason:** D-012 (dummy data) and D-020 (real sites) conflict. Booking a real technician with a fake name and address wastes vendors' time and could lead to no-show fees. Seeded history, like fake equipment models, could also be passed to real vendors as fact.
+### D-046 · Reminders appear in both Schedule and To Do
+- **Status:** Approved · 2026-09-17 (answer to open question 5)
+- **Decision:** One reminder record, shown in both Schedule (Reminders category) and To Do.
 
-### D-022 · The payment check is enforced in code, not just in the prompt
-- **Status:** Approved · 2026-09-15 (user instruction)
-- **Decision:**
-  - The application blocks any step that involves or could involve a payment until the member confirms it (D-013). The model's instructions alone aren't enough.
-  - Content from websites is treated as untrusted data. It can never approve a payment or change what the agent is allowed to do.
-  - Every real-world action the agent takes is logged.
-- **Reason:** The agent reads real websites while able to change everything and message the member. A malicious or confusing page must not be able to talk it into spending money.
+### D-047 · Desktop-first, with mobile layouts coming
+- **Status:** Approved · 2026-09-17 (answer to open question 6). The user added: "mobile layouts are coming, for awareness."
+- **Decision:** The web app is designed desktop-first at 1440 × 900. Layouts stay usable down to `--breakpoint-lg` (1024px). Narrow layouts aren't designed by default, but they are coming, so nothing should be built in a way that makes them hard to add.
+- **Note:** The sign-in page is the first place this bites. Its narrow and medium layouts are mocked up in Paper and waiting on approval (HOU-32), because D-034 requires anything the design system doesn't cover to be approved there first.
+
+### D-048 · One member per home in the prototype
+- **Status:** Approved · 2026-09-17 (answer to open question 7). The user's words: "this will not be part of the prototype but a later phase."
+- **Decision:** The data model allows several members per home, but several members per home is not part of the prototype. It's a later phase.
+
+### D-049 · Signing in is an invite plus a texted code
+- **Status:** Approved · 2026-09-17 (answer to open question 8)
+- **Decision:** Inviting a member creates their account. They sign in with a one-time code texted through Twilio Verify via Supabase Auth, and new sign-ups are disabled. Verify sends from Twilio's own registered senders, so sign-in shouldn't be blocked by our pending texting registration; confirm that during setup.
+
+### D-050 · Someone who isn't invited gets one reply
+- **Status:** Approved · 2026-09-17 (answer to open question 9)
+- **Decision:** A text from a number that isn't invited gets one short reply saying Housemate is invite-only right now. There's no agent run, and the message is logged.
+
+### D-051 · Opt-in, STOP/HELP and MMS media
+- **Status:** Approved · 2026-09-17 (answer to open question 11)
+- **Decision:** Twilio's standard STOP and HELP handling. Opt-in consent is recorded at invite. MMS media is stored in a private Supabase Storage bucket.
+
+### D-052 · Which sensitive data Housemate stores
+- **Status:** Approved · 2026-09-17 (answer to open question 12)
+- **Decision:** Real contact details — name, phone number and address — are stored, protected by product invariant 6 and row-level security. Access codes and alarm codes are not stored. Card details live only at Stripe.
+- **Note:** D-008, which covers what must never reach logs, fixtures or commits, is still to be discussed (HOU-23). It is followed in the meantime.
+
+### D-053 · The design's task and vendor models are the starting data model
+- **Status:** Approved · 2026-09-17 (answer to open question 13)
+- **Decision:** The task model and vendor model in `docs/design.md` §6 are the starting point for the data model. Each schema is still presented for approval in its slice plan.
+
+### D-054 · The repo is `johnrehealy/housemate_prototype`
+- **Status:** Approved · 2026-09-17 (answer to open question 17; the repo was created the same day, HOU-6)
+- **Decision:** Code lives in a private repo, `johnrehealy/housemate_prototype`, on the user's GitHub account. Claude works on a branch per change, and commits and pushes only when asked.
+
+### D-055 · Fly.io hosts the agent worker
+- **Status:** Approved · 2026-09-17 (answer to open question 18)
+- **Decision:** The agent worker runs on Fly.io, with staging and production apps deployed by GitHub Actions on merge.
+- **Note:** Nothing is deployable yet — `apps/worker` is a skeleton with no Dockerfile or `fly.toml`. Supabase stays the system of record, so no Fly Managed Postgres. Secrets go in with `fly secrets set`, never in the dashboard's env box. The deploy token still needs adding to GitHub (HOU-11).
