@@ -50,4 +50,16 @@ test("captures every shipped sign-in state", async ({ page }) => {
     page.getByRole("alert").filter({ hasText: "didn't work" }),
   ).toBeVisible();
   await page.screenshot({ path: `${DIR}/code-error.png`, fullPage: true });
+
+  // A4 — signing in. The response is held open so the state can be caught; the
+  // code is still a wrong one, so this ends in an error rather than a session.
+  await page.route("**/sign-in", async (route) => {
+    if (route.request().method() === "POST") {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    await route.continue();
+  });
+  await page.getByLabel("Six-digit code").fill("000000");
+  await expect(page.locator("#code-message")).toHaveText(/Signing you in/);
+  await page.screenshot({ path: `${DIR}/code-working.png`, fullPage: true });
 });

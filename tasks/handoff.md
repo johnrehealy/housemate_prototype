@@ -23,6 +23,11 @@ sign-in design is built, and the Impeccable review of the app shell has been
 run and reported. Steps 1–4 are ticked. **Step 5, the messaging path, is
 next.**
 
+**The Impeccable finish review of the sign-in came back faithful**, and its
+four material fixes are all closed — see the step 4 results in `tasks/todo.md`.
+The one real defect was a live region that only became live in the same commit
+as its text, so "Signing you in…" was never announced; it is now a lesson.
+
 **A7–A9 were approved by the user and recorded as D-056.** Below
 `--breakpoint-lg` the sign-in is one column with no story panel; from
 `--breakpoint-lg` the panel is 400px and keeps all three "How it works" rows;
@@ -32,21 +37,22 @@ every width — only the page frame changes. The Paper boards are renamed
 
 ## Repo state
 
-Branch `slice-0/foundation`, based on `main`. The session's work is one commit
-covering the A7–A9 approval and the build it unblocked, opened as a pull
-request. `main` is never worked on directly.
+Branch `slice-0/foundation`, based on `main`, open as
+[PR #1](https://github.com/johnrehealy/housemate_prototype/pull/1). Commit
+`a2cb458` carries the A7–A9 approval and the build it unblocked; a second
+commit carries the finish review's fixes. `main` is never worked on directly.
 
 What the change contains:
 
 | Area | What |
 |---|---|
 | `docs/design.md` | §1 Breakpoints states the sign-in's three widths; §4 Sign-in page gained "Narrow and medium"; the message-line offset corrected to 8px; the panel's max-widths and the `readOnly` substitution recorded; Q12 marked partly answered. |
-| `docs/decisions.md` | **D-056**; D-036's "Still to do" now points at it. |
-| `tasks/todo.md` | Step 4 ticked, with result blocks for the sign-in build and the shell review. |
-| `tasks/lessons.md` | New lesson: a client component imports from a `@housemate/core` subpath, never the barrel. |
+| `docs/decisions.md` | **D-056**; D-036 now records the sign-in as built rather than pending. |
+| `tasks/todo.md` | Step 4 ticked, with result blocks for the sign-in build, the shell review and the finish review. |
+| `tasks/lessons.md` | Three new lessons: the `@housemate/core` subpath import, live regions, and reading `::selection`. |
 | `packages/core` | `formatUsPhone` with tests, exported from the barrel **and** a new `./phone` subpath. |
 | `apps/web/src/app/(auth)/` | `layout.tsx` is a full-height flex row; `page.tsx` renders the panel plus the form side; `story-panel.tsx` is new; `sign-in-form.tsx` rewritten; `notice` dropped from `state.ts` and `actions.ts`. |
-| `apps/web/e2e/` | `sign-in.spec.ts` and `support.ts` updated for auto-submit; new three-width and no-button tests; `capture.spec.ts` writes the review screenshots. |
+| `apps/web/e2e/` | `sign-in.spec.ts` and `support.ts` updated for auto-submit; new three-width, no-button and working-state tests; `capture.spec.ts` writes the review screenshots. |
 | `playwright.config.ts` | A `capture` project, gated on `CAPTURE=1` so it stays out of the normal run and CI. |
 | `apps/web/.impeccable/` | The shell critique snapshot, the six render captures, five Paper comps, and a refreshed surface brief. |
 
@@ -56,9 +62,9 @@ What the change contains:
    with signature validation, the simulator page and CLI, and job enqueueing.
 2. **The shell review's findings are HOU-34 to HOU-38**, not fixed here. Each
    needs a Paper mockup first (D-034), and none is part of the sign-in build.
-3. The Impeccable finish review of the sign-in was re-run with captures in
-   hand; if its verdict arrived after this file was written, fold the outcome
-   into `tasks/todo.md` step 4.
+3. **HOU-39** — on the code step, the pointer lands on "Use a different
+   number" where "Send code" just was, so an impatient second click throws the
+   code away. Both boards draw it that way, so it needs a Paper mockup.
 
 ## Waiting on the user
 
@@ -71,6 +77,7 @@ What the change contains:
 - **HOU-37** (P1) — an unknown URL renders Next's stock black 404.
 - **HOU-38** (P2) — reserve the nav's trailing state slot before six
   destinations are built on it.
+- **HOU-39** (P3) — the sign-in's two overlapping controls, above.
 - **HOU-11** — the Fly deploy token still needs adding to GitHub.
 - **HOU-33** — team phone numbers still need to go in `.env.local`.
 - **HOU-23** — D-008 is still marked Proposed, pending the user's discussion.
@@ -97,6 +104,13 @@ What the change contains:
   clipped). Use `javascript_tool` + `getBoundingClientRect()` for numbers, and
   **Playwright** for pictures — `CAPTURE=1 pnpm exec playwright test
   --project=capture` writes them to `apps/web/.impeccable/review/`.
+- **A transient state is photographed by holding the response open**, with
+  `page.route` delaying the POST to `/sign-in`. That is how A4 ("Signing you
+  in…") is both captured and asserted, always with a wrong code so nothing
+  signs in.
+- **Tailwind v4 emits a `/n` opacity modifier as `oklab(...)`,** not `rgba`, so
+  a Playwright colour assertion has to expect that. `--color-evergreen` at 12%
+  is `oklab(0.299134 -0.0389275 -0.00135583 / 0.12)`.
 - **The local test code is `123456`**, from `[auth.sms.test_otp]` in
   `supabase/config.toml`. `psql` is **not installed** on this machine, so read
   seeded values from config and migrations rather than querying.

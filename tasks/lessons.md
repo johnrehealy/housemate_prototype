@@ -45,3 +45,11 @@ Lessons refine how to work. They never override `CLAUDE.md` or `docs/decisions.m
 ### A client component imports from a `@housemate/core` subpath, never the barrel
 - **Why:** `sign-in-form.tsx` imported `formatUsPhone` from `@housemate/core`. The barrel re-exports `./sms`, which reaches `twilio-provider.ts`, so `next build` failed resolving Node built-ins for the browser bundle. `pnpm lint` and `pnpm typecheck` both passed — only the build caught it. Found on 2026-09-21.
 - **Applies when:** any `"use client"` file that needs something from `packages/core`. Import from a narrow subpath (`@housemate/core/phone`), adding one to the package's `exports` if it doesn't exist. Server files may use the barrel. The corollary: typecheck passing is not evidence that a client component compiles — run `pnpm build`.
+
+### A live region has to be live before the text it announces arrives
+- **Why:** the sign-in code step renders hint, working and error in one `<p>`, and only the working branch carried `role="status"`. React reuses the DOM node, so the region became live in the same commit that set its text — which NVDA and VoiceOver treat as initial content and don't announce. "Signing you in…" was silent. Nothing in the markup looked wrong; the Impeccable finish review caught it. Found on 2026-09-21.
+- **Applies when:** any status or alert message that shares a slot with another message. Put the role on the element from the first render, so the update is a content change rather than the region's birth. Announcing an error is the exception that can rely on focus instead, because the field is focused and `aria-describedby` points at the same line.
+
+### Read an authored `::selection` rather than photographing it
+- **Why:** a review flagged the code field's selection band as the wrong grey. It wasn't: a headless browser paints its own colour for a selection in an unfocused window. `getComputedStyle(el, "::selection").backgroundColor` returns the real rule — and Tailwind v4 emits an opacity modifier as `oklab(...)`, not `rgba(...)`, which is what the assertion has to expect. Found on 2026-09-21.
+- **Applies when:** any check of selection, caret or other chrome-owned colours, and any Playwright assertion on a Tailwind colour carrying a `/n` opacity modifier.

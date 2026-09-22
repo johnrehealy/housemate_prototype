@@ -193,7 +193,7 @@ Entries are listed by number and never renumbered, so a reference like D-013 alw
   - **Controls:** the text field, primary button and text button are the first shared form controls, specified in `docs/design.md` §4. The field's resting border is `--color-muted` (4.9:1), chosen over line-strong (1.4:1) for visibility.
   - **Context from the user:** members text Housemate without ever signing in, because their number identifies them. The web sign-in is mostly used on desktop.
 - **Reason:** The user reviewed and approved the mockups in Paper, as D-034 requires.
-- **Still to do:** the build doesn't match yet. The build plan is approved, and the narrow and medium widths it was waiting on were approved on 2026-09-21 as D-056 (HOU-32).
+- **Built:** 2026-09-21, in Slice 0 step 4, together with the narrow and medium widths it was waiting on (D-056, HOU-32). The Impeccable finish review found the build faithful to the approved boards.
 
 ### D-037 · The web app meets WCAG 2.2 AA
 - **Status:** Approved · 2026-09-17 (user answer during `/impeccable init`)
@@ -256,7 +256,7 @@ D-043 to D-055 record answers the user gave in the Linear copy of `docs/open-que
 ### D-047 · Desktop-first, with mobile layouts coming
 - **Status:** Approved · 2026-09-17 (answer to open question 6). The user added: "mobile layouts are coming, for awareness."
 - **Decision:** The web app is designed desktop-first at 1440 × 900. Layouts stay usable down to `--breakpoint-lg` (1024px). Narrow layouts aren't designed by default, but they are coming, so nothing should be built in a way that makes them hard to add.
-- **Note:** The sign-in page is the first place this bites. Its narrow and medium layouts are mocked up in Paper and waiting on approval (HOU-32), because D-034 requires anything the design system doesn't cover to be approved there first.
+- **Note:** The sign-in page is the first place this bites. Its narrow and medium layouts were mocked up in Paper and approved on 2026-09-21 as D-056 (HOU-32), because D-034 requires anything the design system doesn't cover to be approved there first.
 
 ### D-048 · One member per home in the prototype
 - **Status:** Approved · 2026-09-17 (answer to open question 7). The user's words: "this will not be part of the prototype but a later phase."

@@ -224,7 +224,17 @@ function CodeStep({ state, action, pending }: StepProps) {
           // The hint ships with the auto-submit, not as decoration: WCAG 3.2.2
           // allows a change of context on input only when the member is told
           // beforehand.
-          <p id="code-message" className={`${MESSAGE} text-muted`}>
+          //
+          // role="status" here as well as on the working line, even though the
+          // hint never changes: React reuses this <p> across the two, so a role
+          // that only arrives with "Signing you in…" would make the region live
+          // in the same commit as its own text, which NVDA and VoiceOver don't
+          // announce. Live from the first render, the swap is a content change.
+          <p
+            id="code-message"
+            role="status"
+            className={`${MESSAGE} text-muted`}
+          >
             {CODE_HINT}
           </p>
         )}

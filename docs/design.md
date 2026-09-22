@@ -511,7 +511,8 @@ Whether segments act as filters, and what counts as Requested, is **Open Q8**.
   - **Error:** `warning-circle` and text, both `--color-status-blocked-fg`.
   - **Working:** `circle-notch` in evergreen, with the text in `--color-body`.
   - **Hint:** text only, in `--color-muted`.
-- **Code value:** digits use `--tracking-wide`. After a wrong code, the digits stay selected so typing replaces them. The selection is evergreen at 12%.
+  - **In code the hint and the working line are one element carrying `role="status"` from the first render** (2026-09-21). They share a slot, so a role that only arrived with "Signing you in…" would make the region live in the same commit as its own text, and NVDA and VoiceOver announce nothing. Live from the start, the swap is an ordinary content change. The error line replaces the same element with `role="alert"`, and the field takes focus with it.
+- **Code value:** digits use `--tracking-wide`. After a wrong code, the digits stay selected so typing replaces them. The selection is evergreen at 12%, which Tailwind emits as `oklab`; a headless browser paints its own grey over it, so read the rule rather than a screenshot.
 
 **Primary button**
 

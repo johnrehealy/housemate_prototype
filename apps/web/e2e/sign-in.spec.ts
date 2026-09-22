@@ -65,6 +65,50 @@ test("refuses a wrong code, and an uninvited number that guesses", async ({
   await expect(page.getByLabel("Six-digit code")).toBeFocused();
 });
 
+test("holds the member in place while it signs them in", async ({ page }) => {
+  // The uninvited number again: this reaches the working state and then the
+  // wrong-code state, so nobody is ever signed in and the throttle is untouched.
+  await page.goto("/sign-in");
+  await page.getByLabel("Mobile number").fill(UNINVITED_PHONE);
+  await page.getByRole("button", { name: "Send code" }).click();
+
+  const field = page.getByLabel("Six-digit code");
+  const message = page.locator("#code-message");
+
+  // ::selection is authored, not inherited, and a headless window paints an
+  // unfocused selection its own grey — so read the rule rather than the pixels.
+  const selection = await field.evaluate(
+    (el) => getComputedStyle(el, "::selection").backgroundColor,
+  );
+  // Tailwind v4 emits the /12 modifier in oklab; this is #14342F at 12%.
+  expect(selection).toBe("oklab(0.299134 -0.0389275 -0.00135583 / 0.12)");
+
+  // role="status" is on the hint as well as the working line. If it arrived
+  // with "Signing you in…", the region would go live in the same commit as its
+  // text and screen readers wouldn't announce it (D-037, WCAG 4.1.3).
+  await expect(message).toHaveAttribute("role", "status");
+
+  // Hold the action's response so the working state can be asserted at all.
+  await page.route("**/sign-in", async (route) => {
+    if (route.request().method() === "POST") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+    await route.continue();
+  });
+
+  await field.fill("000000");
+
+  await expect(message).toHaveText(/Signing you in/);
+  await expect(message).toHaveAttribute("role", "status");
+  // readOnly, not disabled: the field keeps focus and stays in the tab order.
+  await expect(field).toBeFocused();
+  await expect(field).toHaveCSS("background-color", "rgb(245, 243, 241)"); // --color-nav
+  await expect(field).toHaveCSS("border-top-color", "rgb(236, 232, 229)"); // --color-line
+  await expect(
+    page.getByRole("button", { name: "Use a different number" }),
+  ).toBeDisabled();
+});
+
 test("refuses a number that isn't a number", async ({ page }) => {
   await page.goto("/sign-in");
   await page.getByLabel("Mobile number").fill("12345");
