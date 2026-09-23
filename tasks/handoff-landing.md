@@ -87,9 +87,121 @@ prefixes), `playwright.config.ts` (landing specs added to the projects, plus a
 1. The Impeccable finish review is done; its four defects are fixed and its four
    design-level findings are HOU-60. See the last section.
 2. PR #2 is open and awaiting review. Nothing has been merged.
-3. Going live is still blocked on HOU-47 (Vercel connector) and HOU-49 (DNS).
-4. HOU-59 before or at merge: regenerate the migration, and make sure the three doc
-   edits in the slice-0 tree survive.
+3. Going live: see the section below. The order is fixed by what the build needs:
+   **env vars → production migrations → merge #1 → retarget #2 to `main` → merge #2
+   → verify the deploy → attach the domain**. The first two steps are blocked on the
+   classifier, and on the user for the secrets. Tracked in HOU-61.
+4. HOU-59: see "HOU-59 is narrower than it looked" below. The three doc edits in the
+   slice-0 tree still need carrying across whichever way it goes.
+
+## Going live — the state on 2026-09-23
+
+**Evidence.** Everything here was read back from the providers, not assumed.
+
+**The site is not live.** `myhousemate.co` A-records to `162.255.119.105`, Namecheap's
+parking IP; the nameservers are still `dns1/dns2.registrar-servers.com` and `www`
+is a CNAME to `parkingpage.namecheap.com`. HTTPS returns nothing.
+
+**Vercel.** The project exists: `housemate_prototype`,
+`prj_WdzTatD61W4BOUfKx2vCtSrWygDq`, under the team `housemate`
+(`team_tqEo49byAubYHLwLKjWbLnSm`), hobby plan, Node 24.x. SSO protection is on for
+everything except custom domains, so the `*.vercel.app` URLs need a Vercel login and
+the real domain will be public.
+
+**Its first production deploy failed, for two reasons.** `dpl_784Dwf…`, from `main`
+@ `d8f59f0`, `errorCode: ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL`,
+`Command "pnpm run build" exited with 1`.
+
+1. **The project settings.** It was imported with `framework: null` and no root
+   directory, so Vercel ran the repo-root `pnpm -r --if-present build`. **Fixed**:
+   `framework: "nextjs"`, `rootDirectory: "apps/web"`, set through the Vercel MCP.
+   (An earlier version of this file blamed the worker. Wrong: the worker has no
+   `build` script, so the recursive run only ever ran `next build` in `apps/web`.)
+2. **`next build` itself needs two env vars.** Reproduced from a clean
+   `git archive` of `origin/site/landing` with no `.env` files, `CI=1 VERCEL=1`,
+   under `env -i`: **exit 1**, prerendering `/property` —
+   `publicSupabaseConfig()` in `src/lib/public-env.ts` throws, reached through
+   `(app)/layout.tsx` → `lib/auth/session.ts`. The same export with the eight
+   non-secret values below: **exit 0**, 12 routes, `/` dynamic. The build log for
+   `d8f59f0` itself is behind the 403, so this is the reproduced cause on the tree
+   being deployed, not proven for that exact commit.
+
+**So `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` must be
+set before `main` builds**, and a merge before then is a guaranteed failed
+production deploy. Next inlines `NEXT_PUBLIC_*` at build time, and the proxy throws
+on every request without them, so setting them afterwards needs a rebuild anyway.
+
+No pre-build of `@housemate/core` is needed: it exports TypeScript source
+(`"." : "./src/index.ts"`) and `apps/web/next.config.ts` sets
+`transpilePackages: ["@housemate/core"]`. The DB client sets `prepare: false`, so
+`DATABASE_URL` should be Supabase's **transaction pooler** (port 6543). The direct
+connection is IPv6-only, and Vercel can't reach it.
+
+**Environment variables are not set.** `filter_project_envs` returns `[]`. Writing
+them through the MCP was refused twice by Claude Code's auto-mode classifier as a
+secret-store write, including after the user asked for the blockers to be fixed.
+The secrets are the user's to enter in any case. The full production set, from
+`packages/core/src/env.ts`:
+
+| Key | Value | Secret |
+|---|---|---|
+| `APP_ENV` | `production` | no |
+| `PUBLIC_BASE_URL` | `https://myhousemate.co` | no |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xowuqiewsstnxtpwfrke.supabase.co` | no |
+| `SUPABASE_URL` | same as above | no |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_HsyCZ6IqlC_lTSJHXcTK2w_qK_uAI3B` | no, public by design |
+| `ACK_REPLY_ENABLED` | `false` | no — `env.ts` rejects `true` in production |
+| `SMS_PROVIDER` | `twilio` | no — `env.ts` rejects the simulator in production |
+| `TEAM_ALERT_PHONES` | empty | no |
+| `DATABASE_URL` | production Postgres URL | **yes** |
+| `SUPABASE_SECRET_KEY` | | **yes** |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_MESSAGING_SERVICE_SID` | | **yes** |
+
+The Twilio trio is required even though the landing page never sends a text: the
+waitlist submit calls `actionContext()`, which builds the whole server env, and
+`env.ts` requires all three whenever `SMS_PROVIDER` is `twilio` — which production
+forces. That is the known gap listed further down.
+
+**The production database is empty.** `list_tables` on `xowuqiewsstnxtpwfrke`
+(project "Housemate", `ACTIVE_HEALTHY`, us-west-2) returns `[]` for `public`, and
+`list_migrations` returns `[]`. Applying `20260915205225_init_schema` through the
+Supabase MCP was **refused by the classifier as a production deploy**, so nothing
+was applied. The five to apply, in order, are exactly the files on
+`origin/site/landing`: `init_schema`, `security`, `queue` (needs `pgmq`, available
+on hosted Supabase), `waitlist_signups`, `waitlist_security`. All are additive, and
+none needs to run outside a transaction. Use each file's full tag as the migration
+name, so every remote row traces back to its file. Sign-ups still need turning off
+and the site URL needs the real domain. Neither has a Supabase MCP tool, so both
+are the user's to set in the dashboard.
+
+**HOU-59 is narrower than it looked.** On origin there is no collision:
+`slice-0/foundation` has journal idx 0–2 and this branch adds 3–4. The clash is only
+with the other session's **unpushed** migrations: `20260922142151_message_idempotency`,
+`…142200_dead_letter_queue`, `…160000_message_costs_queue` and `…193304_alert_kinds`,
+untracked in the main checkout. **Whichever lands second re-sequences.** If this
+merges first, slice 0 regenerates its four after the waitlist pair when it rebases
+onto `main`, rather than this branch regenerating two.
+
+**The code is not on `main`.** Two pull requests have to land in order:
+[#1](https://github.com/johnrehealy/housemate_prototype/pull/1)
+`slice-0/foundation → main`, then
+[#2](https://github.com/johnrehealy/housemate_prototype/pull/2)
+`site/landing → slice-0/foundation`. Both are `MERGEABLE`/`CLEAN`, with no CI
+configured. Until both merge, a production deploy builds `main`, where
+`apps/web/src/app/page.tsx` still redirects `/` to `/chat`. **Merge with merge
+commits, not squash:** the main checkout sits on `slice-0/foundation` @ `8daaddb`
+with 83 uncommitted paths, and a squash would leave that branch diverged from
+`main`. After #1, retarget #2's base to `main` rather than merging it into
+`slice-0/foundation`, so the other session's branch is never moved under it. **Not
+merged yet, deliberately:** without the two `NEXT_PUBLIC_*` values the build is
+proven to fail.
+
+**The Vercel connector is only half-scoped.** It authenticates as the personal user
+`johnrehealy-7327` and unscoped reads work (`list_projects`, `get_project`,
+`list_deployments`, `get_deployment`, `update_project`), but anything explicitly
+scoped to the `housemate` team 403s with *"You must re-authenticate to this
+scope"* — including `get_team` and `list_deployment_events`, so **build logs cannot
+be read through the MCP**. That is the remaining half of HOU-47.
 
 ## Waiting on the user
 
