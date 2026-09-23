@@ -15,20 +15,20 @@ and the other session appends to it too.
 
 ## Where things stand
 
-**The page is on `main` and deployed to production, and serves on `myhousemate.co`
-at Vercel's edge. It is not reachable by the public yet only because DNS still
-points at Namecheap parking** (HOU-49). Tracked as HOU-46; going live as HOU-61.
+**The page is live at `https://myhousemate.co`.** DNS points at Vercel, and TLS
+is issued (HOU-49, closed). Tracked as HOU-46; going live as HOU-61, which stays
+open until the Supabase sign-up setting and the waitlist check are done.
 
 - [PR #1](https://github.com/johnrehealy/housemate_prototype/pull/1) (slice 0's
   sign-in and app shell) merged as `acce099`, then
   [PR #2](https://github.com/johnrehealy/housemate_prototype/pull/2) (this page),
   retargeted to `main`, merged as `eb80410`. Both merge commits, not squash.
-- Production deploy of `eb80410`: **READY**, aliased to `myhousemate.co` and
-  `www.myhousemate.co`.
+- [PR #3](https://github.com/johnrehealy/housemate_prototype/pull/3) (the title
+  fix) merged as `05ecd06`. Its production deploy,
+  `dpl_5uToRFEB5jcvVVGgSKyw3mx94gcR`, is **READY** and aliased to
+  `myhousemate.co` and `www.myhousemate.co`. It is the first build with all five
+  secrets, and production's title reads "Housemate" (checked at the edge).
 - Production database: schema applied and verified.
-- All five secrets are now in Vercel, but `eb80410`'s deploy predates them. The
-  title fix's merge redeploys production and picks them up. Until that deploy is
-  live, the waitlist submit fails in production.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
 design is the Paper file "Diligent meadow", page "Landing" (`p-6-0`): hero H3/H1/H2,
@@ -37,17 +37,41 @@ exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Worktree `.worktrees/landing`, on **`site/landing-followups`**, branched from
-`main` @ `eb80410`. It carries the title fix:
+Worktree `.worktrees/landing`, on **`site/landing-ribbon-rotation`**, branched
+from `main` @ `05ecd06` (PR #3, the title fix, is merged). **Uncommitted, not
+pushed** — the user's 2026-09-23 feedback, items 1 and 2:
 
-- `apps/web/src/app/(site)/page.tsx` — `title: { absolute: "Housemate" }`. The
-  root layout's `"%s · Housemate"` template made production's title
-  **"Housemate · Housemate"** (observed on the deployed page).
-- `apps/web/e2e/landing.spec.ts` — asserts the title. The landing spec passes 9/9
-  against a fresh production build.
+- `ribbon.tsx` — "Join the waitlist" now comes before "Sign in", so "Sign in"
+  holds the bar's right edge. The hidden button keeps its space, and with "Sign
+  in" first that space sat outside it, which is why it looked like it hovered.
+  At rest this now matches board H3.
+- `globals.css`, `panel.tsx`, `page.tsx`, `(site)/layout.tsx` — the ribbon's
+  waitlist button waits until P1 is fully on screen. P1 (`.hm-first-panel`)
+  publishes a view timeline `--hm-first-panel`, inset by the bar;
+  `timeline-scope` on `.hm-site` lets the ribbon see it. The fade covers the
+  last 48px before `entry 100%`, so "Learn more" (which lands P1 exactly there)
+  arrives with the button present. Reduced motion keeps the timing and drops the
+  8px rise (`hm-ribbon-late-still`).
+- `copy.ts`, `hero.tsx`, `globals.css` — item 3, the rotation (HOU-62, decided:
+  option A, 2s hold unchanged). New phrases in `HERO.phrases`. `--text-hero` is
+  `min(70px, 4.35vw)` (one line from md up: 63px at 1440, 45px at 1024) and
+  `--text-hero-narrow` is `min(32px, 8.5vw)` (two lines below md). The slot is
+  `h-[2lh] md:h-[1lh]`, the phrases `md:whitespace-nowrap`, and the hero's
+  600px column is gone because the longest phrase needs the full width.
+- `landing.spec.ts` — the ribbon test, run with and without reduced motion:
+  hidden at 0 and at 200px, visible after "Learn more", "Sign in" last. And a
+  fit test: every phrase inside its slot at ten widths from 320 to 1920. 12/12
+  pass against a production build on :3002.
+- This file.
 
-The user said to ship it: commit, push, PR to `main`, merge with a merge commit.
-Merging redeploys production.
+Measured in the browser pane: hidden until 48px before P1 lands, 0.50 at 24px,
+1.00 on landing, at 1024×768 (P1 taller than the view) and 1440×1200 (P1
+shorter, so "fully on" means fully visible). Paper's P1–P7 ribbons are reordered
+to match, and M1 row A is rewritten.
+
+Screenshots with the rotation frozen, at 1440, 1024, 390 and 320, match the H4 r3
+board, which now records the decision. Waiting on the go-ahead to commit, push,
+PR and merge all three items.
 
 `site/landing` carries two unpushed handoff-only commits (`9da2dfb`, `d410bc8`).
 This file supersedes both, so that branch can be deleted.
@@ -60,6 +84,14 @@ unpushed migrations after the waitlist pair (HOU-59).
 
 ## Environment facts that cost time to learn
 
+- **The browser pane can't screenshot while it's hidden**, and it can't run page
+  tools on a `file://` page. Screenshots come from a headless Playwright script
+  (`node --input-type=module -e` from the worktree root, importing
+  `@playwright/test`). To measure type, load the Google Fonts CSS into
+  `https://example.com` in a pane tab and measure spans there. Python's
+  fontTools can't read the build's `.woff2` without Brotli.
+- **Playwright's config is at the repo root**, so run it from the worktree root,
+  not `apps/web` ("Project(s) signed-out not found").
 - **Port 3000 is the other session's server**, running from the main checkout. A
   preview started here binds nothing and you end up looking at _their_ build.
   `preview_start` resolves `.claude/launch.json` from the main checkout, so it can
@@ -77,11 +109,19 @@ unpushed migrations after the waitlist pair (HOU-59).
   `landing-capture.spec.ts` sets `reducedMotion: "reduce"` for this reason.
 - **The browser pane sometimes screenshots blank** right after a resize or navigate.
   Measure with `javascript_tool` rather than trusting a blank image.
-- **Testing production before DNS moves:** pin the domain to Vercel's edge —
-  `curl --resolve myhousemate.co:80:76.76.21.21 http://myhousemate.co/`. HTTPS
-  fails the handshake until DNS points at Vercel, because no certificate is issued
-  before then. The `*.vercel.app` URLs are behind Vercel Authentication, and the
-  connector's `web_fetch_vercel_url` is denied (HOU-47), so this is the only way in.
+- **This Mac's resolver cached Namecheap's parking IP** (`162.255.119.105`) after
+  DNS moved, so a plain `curl https://myhousemate.co` times out here while the
+  public resolvers are right. Check with `dig @1.1.1.1`, and pin with
+  `curl --resolve myhousemate.co:443:76.76.21.21` until the cache clears. The
+  `*.vercel.app` URLs are behind Vercel Authentication, and the connector's
+  `web_fetch_vercel_url` is denied (HOU-47).
+- **zsh doesn't word-split `$VAR`**, so a string of `--resolve` flags in one
+  variable reaches curl as a single argument. Use a bash script or an array.
+  macOS's `openssl x509` has no `-ext`; use `-text` and grep.
+- **Supabase's public auth settings** are readable with the publishable key:
+  `GET https://xowuqiewsstnxtpwfrke.supabase.co/auth/v1/settings` with an
+  `apikey` header. It shows `disable_signup` and which providers are on. It does
+  not show the Site URL.
 - `.env.local` was copied in from the main checkout. It is local-only fake data.
 
 ## Conventions worth keeping
@@ -101,12 +141,14 @@ unpushed migrations after the waitlist pair (HOU-59).
 
 ## What's next
 
-1. Once the title fix's production deploy is READY: check production's `<title>`
-   reads "Housemate".
-2. Submit **one** waitlist address the user chooses, and confirm a row plus its
-   `activity_events` entry. That is production data, so no test addresses.
-3. Once DNS moves (HOU-49): check `https://myhousemate.co` serves over TLS, and that
-   `www` redirects.
+1. On the go-ahead: commit the three changes (ribbon order, ribbon timing,
+   rotation), push, PR to `main`, merge (merge commit), then check production:
+   the title, the new phrases, and the ribbon at the edge.
+2. HOU-62 is closed. If a phrase is ever added or lengthened, re-measure it
+   against `--text-hero`; the fit test will catch it if not.
+3. Submit **one** waitlist address the user chooses, and confirm a row plus its
+   `activity_events` entry. That is production data, so no test addresses. Asked;
+   waiting on the address. Status is on HOU-61.
 4. HOU-59 is now slice 0's to finish. See above.
 5. The Impeccable finish review's design-level findings are HOU-60.
 
@@ -161,28 +203,40 @@ function is **Supabase's own**, not ours: it returns `event_trigger` and backs t
 platform's `ensure_rls` event trigger, and Postgres refuses direct calls to trigger
 functions. Left alone.
 
-**Domains.** `myhousemate.co` and `www.myhousemate.co` (308 → apex) are attached and
-verified. Through Vercel's edge (`--resolve …:76.76.21.21`, over HTTP):
+**Domains.** DNS at Namecheap: apex `A` → `76.76.21.21` only, `www` `CNAME` →
+`cname.vercel-dns.com`, identical at 1.1.1.1 and 8.8.8.8. Let's Encrypt
+certificates for both names, expiring 2026-12-22 and renewed by Vercel. Over HTTPS
+with verified certificates:
 
-- `/` 200 — the landing page: hero, six panels, close, OG tags.
+- `/` 200, title "Housemate". The landing page: hero, six panels, close, OG tags.
 - `/sign-in` 200.
 - `/site/leak-under-sink.png` 200 `image/png`.
 - `/chat` 307 → `/sign-in`.
-- `www` 308 → `https://myhousemate.co/`.
+- `https://www` 308 → `https://myhousemate.co/`. `http://` 308 → `https://`.
+- HSTS `max-age=63072000`.
+
+**Supabase Auth, read from `/auth/v1/settings`:** `disable_signup: true` (off
+since 17:58 UTC; it read `false` before the user saved it). Only the `email`
+provider is enabled; `phone` is off. The Site URL can't be read from there; the
+user reports it set to `https://myhousemate.co`.
+
+**Home network:** the AT&T gateway (`192.168.1.254`) cached the old parking A
+record for its remaining TTL after DNS moved, so the user's own browser still
+reached Namecheap parking after the switch.
 
 **The Vercel connector is still half-scoped** (HOU-47): unscoped calls work, and
 team-scoped ones (build logs, authenticated fetch) 403.
 
 ## Waiting on the user
 
-- **HOU-49 — DNS at Namecheap.** Apex `A` → `76.76.21.21` (tested: it serves this
-  project) and `www` `CNAME` → `cname.vercel-dns.com`. Remove the parking records.
-  Vercel's Domains page shows the values it currently recommends.
+- **The go-ahead to ship** the ribbon and rotation changes (see "Repo state").
 - **Which address to use** for the one production waitlist check.
 - **HOU-5 — Twilio carrier registration (10DLC).** The credentials are in, which is
   all the waitlist needs; texting real numbers still waits on registration.
-- **Supabase Auth settings:** turn sign-ups off, and set the site URL to
-  `https://myhousemate.co`. The Supabase connector has no tool for either.
+- **Production sign-in doesn't work yet, by design.** It texts a code through
+  Supabase's `phone` provider, which is off, and Supabase has no SMS provider set.
+  Turning it on means Twilio creds in Supabase Auth and 10DLC (HOU-5), plus
+  inviting members. That's slice 0's work, not the landing page's.
 - **HOU-57** — P6's unbacked promises. **HOU-50** — privacy, terms, contact.
   **HOU-53** — the demo video.
 

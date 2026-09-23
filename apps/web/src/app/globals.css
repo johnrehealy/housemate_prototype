@@ -86,10 +86,19 @@
   /*
    * Marketing sizes (docs/design.md §1). The landing page only; the app's
    * scale tops out at --text-display. Each one is set in DM Serif Text, and
-   * each drops at the sm breakpoint to its narrow value.
+   * each drops at the sm breakpoint to its narrow value — except the hero,
+   * which switches at md.
+   *
+   * The hero is sized to fit its longest rotating phrase (board H4 r3, option
+   * A), not set at one size. From md up the phrase stays on one line, and
+   * 4.35vw keeps "someone to keep track of maintenance." inside the content
+   * width at every window from 768 up: 63px at 1440, 56px at 1280, 45px at
+   * 1024, never past the approved 70px. Below md every phrase fits two lines
+   * at 32px, so long as the column is at least 303px wide; 8.5vw shrinks it
+   * on phones narrower than that.
    */
-  --text-hero: 70px;
-  --text-hero-narrow: 40px;
+  --text-hero: min(70px, 4.35vw);
+  --text-hero-narrow: min(32px, 8.5vw);
   --text-close: 52px;
   --text-close-narrow: 34px;
   --text-panel: 32px;
@@ -136,10 +145,10 @@
   --text-metric--line-height: 44px;
   --text-metric--letter-spacing: -0.022em;
   --text-metric--font-weight: 300;
-  --text-hero--line-height: 78px;
+  --text-hero--line-height: 1.12;
   --text-hero--letter-spacing: -0.01em;
   --text-hero--font-weight: 400;
-  --text-hero-narrow--line-height: 48px;
+  --text-hero-narrow--line-height: 1.25;
   --text-hero-narrow--letter-spacing: -0.01em;
   --text-hero-narrow--font-weight: 400;
   --text-close--line-height: 60px;
@@ -316,6 +325,23 @@
   }
 }
 
+/* The same arrival without the move, for reduced motion. Whether the button is
+ * there is about where you are on the page, not about motion, so it still
+ * waits for P1; it just doesn't rise. */
+@keyframes hm-ribbon-late-still {
+  from {
+    visibility: hidden;
+    opacity: 0;
+  }
+  1% {
+    visibility: visible;
+  }
+  to {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
 /* Two pulses, not a heartbeat: it says working, not waiting (M1 · E). */
 @keyframes hm-browser-pulse {
   0%,
@@ -330,21 +356,44 @@
 }
 
 @supports (animation-timeline: view()) {
-  @media not (prefers-reduced-motion: reduce) {
-    /* A · the ribbon's waitlist button arrives.
-     *
-     * M1 fades the whole bar up from nothing. The bar is evergreen over an
-     * evergreen hero, so that would be invisible for the bar itself and would
-     * leave the wordmark and "Sign in" — which board H3 draws at rest — briefly
-     * missing, and briefly clickable while invisible. What actually differs
-     * between H3 and the panel boards is the waitlist button, so that is what
-     * arrives. Flagged to the user rather than resolved silently. */
-    .hm-ribbon-late {
-      animation: hm-ribbon-late linear both;
-      animation-timeline: scroll();
-      animation-range: 0 64px;
-    }
+  /* A · the ribbon's waitlist button arrives once P1 is fully on screen.
+   *
+   * The user's rule: the button isn't in the bar while any of the hero's own
+   * call to action could be, only once the page is fully on the first panel.
+   * P1 publishes a view timeline, with its top edge inset by the bar so "fully
+   * on" means fully below the bar. `timeline-scope` on the site wrapper lets the
+   * ribbon, which isn't inside P1, see it.
+   *
+   * The fade ends exactly at "fully on" rather than starting there, because
+   * "Learn more" lands P1 at precisely that point (its `scroll-margin-top` is
+   * the bar), and a fade that started there would leave the button missing
+   * after the jump. It covers the last 48px of scroll before P1 settles.
+   *
+   * A browser with scroll timelines but no `timeline-scope` finds no timeline
+   * by that name, so the animation never applies and the button simply shows,
+   * as it does in Firefox. */
+  .hm-site {
+    timeline-scope: --hm-first-panel;
+  }
 
+  .hm-first-panel {
+    view-timeline: --hm-first-panel block;
+    view-timeline-inset: var(--spacing-bar) 0;
+  }
+
+  .hm-ribbon-late {
+    animation: hm-ribbon-late linear both;
+    animation-timeline: --hm-first-panel;
+    animation-range: entry calc(100% - 48px) entry 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hm-ribbon-late {
+      animation-name: hm-ribbon-late-still;
+    }
+  }
+
+  @media not (prefers-reduced-motion: reduce) {
     /* B · panels arrive. The copy leads and the visual follows.
      *
      * M1 puts the visual 80ms behind the copy. A scroll timeline has no clock,

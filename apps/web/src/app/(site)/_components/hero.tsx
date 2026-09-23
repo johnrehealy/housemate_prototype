@@ -16,28 +16,35 @@ import { HERO } from "./copy";
  * pause it, which is a known exception to D-037 (WCAG 2.2.2) that the user
  * approved on the board; `prefers-reduced-motion` still holds it on the first
  * phrase and never moves.
+ *
+ * The slot never changes height, so nothing below it moves as the phrases
+ * swap (H4 r3, option A). From md up it is one line and the phrases never
+ * wrap; the type is sized so the longest still fits. Below md it is two
+ * lines, top-aligned, which every phrase fits at the narrow size. `lh` keeps
+ * both in step with whatever size the type resolves to.
  */
 export function Hero() {
   return (
     <section className="flex min-h-[calc(100svh-var(--spacing-bar))] flex-col items-center justify-center bg-evergreen px-6 pt-16 pb-12 lg:px-30">
-      <div className="flex w-full max-w-[600px] flex-col items-center">
+      <div className="flex w-full flex-col items-center">
         <Mark
           className="h-10 w-auto text-on-evergreen lg:h-[69px]"
           label={null}
         />
 
-        <h1 className="mt-7 text-center font-serif text-hero-narrow text-on-evergreen lg:text-hero">
+        {/* Full width, not a column: the longest phrase needs all of it. */}
+        <h1 className="mt-7 w-full text-center font-serif text-hero-narrow text-on-evergreen md:text-hero">
           <span className="block text-on-evergreen/74">{HERO.staticLine}</span>
           <span className="sr-only"> {HERO.phrases[0]}</span>
           <span
             aria-hidden
-            className="relative block h-[48px] overflow-hidden lg:h-[78px]"
+            className="relative block h-[2lh] overflow-hidden md:h-[1lh]"
             style={{ ["--phrase-count" as string]: HERO.phrases.length }}
           >
             {HERO.phrases.map((phrase, index) => (
               <span
                 key={phrase}
-                className="hm-phrase absolute inset-x-0 top-0"
+                className="hm-phrase absolute inset-x-0 top-0 md:whitespace-nowrap"
                 style={{ ["--phrase-index" as string]: index }}
               >
                 {phrase}

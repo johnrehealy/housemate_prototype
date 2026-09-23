@@ -11,6 +11,8 @@ type PanelProps = {
    * only one column to put them in.
    */
   layout: "centered" | "copy-first" | "visual-first";
+  /** Extra classes for the section, e.g. the hook the ribbon times itself by. */
+  className?: string;
   children: ReactNode;
 };
 
@@ -27,6 +29,7 @@ export function Panel({
   body,
   ground,
   layout,
+  className = "",
   children,
 }: PanelProps) {
   const groundClass = ground === "canvas" ? "bg-canvas" : "bg-nav";
@@ -36,7 +39,7 @@ export function Panel({
       <section
         id={id}
         aria-labelledby={`${id}-heading`}
-        className={`flex flex-col items-center gap-8 scroll-mt-(--spacing-bar) px-6 py-16 lg:px-30 lg:py-24 ${groundClass}`}
+        className={`flex flex-col items-center gap-8 scroll-mt-(--spacing-bar) px-6 py-16 lg:px-30 lg:py-24 ${groundClass} ${className}`}
       >
         <div className="hm-rise flex max-w-[720px] flex-col items-center gap-3 text-center">
           <h2
@@ -87,7 +90,7 @@ export function Panel({
     <section
       id={id}
       aria-labelledby={`${id}-heading`}
-      className={`flex flex-col gap-8 scroll-mt-(--spacing-bar) px-6 py-16 lg:flex-row lg:items-center lg:gap-24 lg:px-30 lg:py-24 ${groundClass}`}
+      className={`flex flex-col gap-8 scroll-mt-(--spacing-bar) px-6 py-16 lg:flex-row lg:items-center lg:gap-24 lg:px-30 lg:py-24 ${groundClass} ${className}`}
     >
       {copy}
       {visual}
