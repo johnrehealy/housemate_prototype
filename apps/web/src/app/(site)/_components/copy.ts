@@ -12,19 +12,22 @@ export const HERO = {
   /** Stays still while the second line rotates. */
   staticLine: "Every home needs",
   /**
-   * The rotating line (board H4). It loops, about 2s a phrase, and passes
+   * The rotating line (board H4 r3). It loops, about 2s a phrase, and passes
    * through "a Housemate." each time round rather than stopping on it.
    *
    * Only the first is read aloud: the heading a screen reader hears is "Every
    * home needs a Housemate.", steady, however long the page is open.
+   *
+   * The hero's type is sized so the longest of these fits (see --text-hero in
+   * globals.css). A longer phrase needs that sizing re-measured.
    */
   phrases: [
     "a Housemate.",
-    "a doer.",
-    "a coordinator.",
-    "an errand runner.",
-    "a record keeper.",
-    "a friend.",
+    "someone to call the plumber.",
+    "someone to pick up the dry cleaning.",
+    "someone to pay the handyman.",
+    "someone to drop off returns.",
+    "someone to keep track of maintenance.",
   ],
   learnMore: "Learn more",
 } as const;

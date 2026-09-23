@@ -42,6 +42,29 @@ test("shows a signed-out visitor the page, not sign-in", async ({ page }) => {
   await expect(heading).toContainText("a Housemate.");
 });
 
+test("every rotating phrase fits its slot, at every width", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // The hero is sized to its longest phrase rather than wrapped around it
+  // (board H4 r3, option A), so a phrase that grows, or a width nobody looked
+  // at, would be clipped by the slot without any other sign.
+  for (const width of [320, 390, 640, 767, 768, 1023, 1024, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const misfits = await page.evaluate(() => {
+      const slot = document.querySelector<HTMLElement>("h1 > [aria-hidden]")!;
+      return [...slot.children]
+        .filter(
+          (phrase) =>
+            phrase.scrollWidth > slot.clientWidth + 1 ||
+            phrase.getBoundingClientRect().height > slot.clientHeight + 1,
+        )
+        .map((phrase) => phrase.textContent);
+    });
+    expect(misfits, `at ${width}px`).toEqual([]);
+  }
+});
+
 test("carries every panel on one page", async ({ page }) => {
   await page.goto("/");
   for (const heading of PANEL_HEADINGS) {
@@ -113,6 +136,34 @@ test("the hero's cue goes to the first panel", async ({ page }) => {
   await page.getByRole("link", { name: "Learn more" }).click();
   await expect(page).toHaveURL(/#built$/);
 });
+
+// Whether the button is there is about where you are on the page, so reduced
+// motion changes how it arrives, not when.
+for (const reducedMotion of ["no-preference", "reduce"] as const) {
+  test(`the ribbon's waitlist button waits for the first panel (${reducedMotion})`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion });
+    await page.goto("/");
+    const ribbon = page.getByRole("navigation", { name: "Site" });
+    const ribbonJoin = ribbon.getByRole("link", { name: "Join the waitlist" });
+
+    // On the hero, the hero's own call to action is the only one — including
+    // part way down it, where the button used to arrive.
+    await expect(ribbonJoin).toBeHidden();
+    await page.evaluate(() => window.scrollTo(0, 200));
+    await expect(ribbonJoin).toBeHidden();
+
+    // "Learn more" lands P1 exactly where it is fully on screen, so the button
+    // has to be there on arrival, not one scroll later.
+    await page.getByRole("link", { name: "Learn more" }).click();
+    await expect(page).toHaveURL(/#built$/);
+    await expect(ribbonJoin).toBeVisible();
+
+    // "Sign in" holds the bar's right edge, before and after.
+    await expect(ribbon.getByRole("link").last()).toHaveText("Sign in");
+  });
+}
 
 test("has nothing to scroll sideways at 390", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

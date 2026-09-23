@@ -77,7 +77,7 @@ export default async function LandingPage() {
       <Ribbon />
       <main>
         <Hero />
-        {PANELS.map((panel) => (
+        {PANELS.map((panel, index) => (
           <Panel
             key={panel.id}
             id={panel.id}
@@ -85,6 +85,8 @@ export default async function LandingPage() {
             body={panel.body}
             ground={panel.ground}
             layout={panel.layout}
+            // The ribbon's waitlist button waits for this panel (M1 · A).
+            className={index === 0 ? "hm-first-panel" : undefined}
           >
             {VISUALS[panel.id]}
           </Panel>
