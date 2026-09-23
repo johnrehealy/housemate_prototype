@@ -20,9 +20,21 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const SIGN_IN_PATH = "/sign-in";
 
+/*
+ * Files under `public/`. The matcher below excludes `_next/static` and
+ * `_next/image` but nothing else, so without these a signed-out visitor
+ * requesting the landing page's logo or photographs would be redirected to
+ * sign-in and the images would silently never arrive.
+ */
+const PUBLIC_ASSET_PREFIXES = ["/_next", "/brand/", "/site/"];
+
 /** Paths a signed-out visitor may see. */
 function isPublicPath(pathname: string) {
-  return pathname === SIGN_IN_PATH || pathname.startsWith("/_next");
+  return (
+    pathname === "/" ||
+    pathname === SIGN_IN_PATH ||
+    PUBLIC_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  );
 }
 
 export async function proxy(request: NextRequest) {

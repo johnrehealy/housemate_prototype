@@ -50,6 +50,20 @@
       "when": 1790105584844,
       "tag": "20260922193304_alert_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790120053426,
+      "tag": "20260922233413_waitlist_signups",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790120100000,
+      "tag": "20260922233500_waitlist_security",
+      "breakpoints": true
     }
   ]
 }

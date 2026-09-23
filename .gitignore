@@ -28,6 +28,10 @@ supabase/.branches/
 .claude/agents/impeccable-*.md
 # Machine-local Claude Code settings; Impeccable's hooks live here
 .claude/settings.local.json
+# The design hook's cache. Rewritten on every UI edit, so it is neither worth
+# committing nor worth holding to Prettier's formatting.
+.impeccable/hook.cache.json
+**/.impeccable/hook.cache.json
 
 # OS
 .DS_Store

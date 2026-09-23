@@ -1,7 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 import { MEMBER_STATE, STAFF_STATE } from "./apps/web/e2e/support";
 
-const baseURL = "http://127.0.0.1:3000";
+/*
+ * 3000 unless told otherwise. The override exists so a run can't quietly reuse
+ * another checkout's server that already holds 3000 — `reuseExistingServer` is
+ * on locally, and the tests would then be run against someone else's build.
+ */
+const port = process.env.PLAYWRIGHT_PORT ?? "3000";
+const baseURL = `http://127.0.0.1:${port}`;
 
 // The design system is specified at 1440 x 900 (docs/design.md §1).
 const desktop = {
@@ -37,9 +43,9 @@ export default defineConfig({
       use: desktop,
     },
     {
-      // Sign-in's own tests start signed out.
+      // Sign-in's own tests, and the landing page, start signed out.
       name: "signed-out",
-      testMatch: /sign-in\.spec\.ts/,
+      testMatch: /(sign-in|landing)\.spec\.ts/,
       use: desktop,
     },
     {
@@ -47,7 +53,7 @@ export default defineConfig({
       // needs a signed-in member reuses one saved session instead of signing
       // in again.
       name: "signed-in",
-      testMatch: /(app-shell|messaging)\.spec\.ts/,
+      testMatch: /(app-shell|messaging|landing-signed-in)\.spec\.ts/,
       dependencies: ["setup"],
       use: { ...desktop, storageState: MEMBER_STATE },
     },
@@ -63,7 +69,13 @@ export default defineConfig({
     // without captures on disk. They write files rather than assert, so they
     // stay out of the normal run and CI: `CAPTURE=1 pnpm exec playwright test`.
     ...(process.env.CAPTURE
-      ? [{ name: "capture", testMatch: /capture\.spec\.ts/, use: desktop }]
+      ? [
+          {
+            name: "capture",
+            testMatch: /(capture|landing-capture)\.spec\.ts/,
+            use: desktop,
+          },
+        ]
       : []),
   ],
   webServer: [
@@ -71,8 +83,7 @@ export default defineConfig({
       // A production build, not `next dev`. The dev server watches the whole
       // tree, which runs macOS out of file descriptors (EMFILE) and restarts
       // mid-test, and it isn't what staging or CI serve anyway.
-      command:
-        "pnpm --filter @housemate/web build && pnpm --filter @housemate/web start",
+      command: `pnpm --filter @housemate/web build && pnpm --filter @housemate/web start -p ${port}`,
       url: baseURL,
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
