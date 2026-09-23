@@ -135,7 +135,7 @@ Each step ends with its check.
   - The simulator loop works on staging.
   - You sign in to staging with a real phone code.
   - Real-phone texting waits on 10DLC registration.
-- [ ] **9. Docs.** Fill in the Commands section of `CLAUDE.md`, record any new decisions, and add lessons from corrections.
+- [x] **9. Docs.** Fill in the Commands section of `CLAUDE.md`, record any new decisions, and add lessons from corrections. *Done 2026-09-23; see "Step 8" below.*
 
 ## Done when
 
@@ -233,16 +233,19 @@ Started on the user's instruction of 2026-09-23 to build the rest of Slice 0 and
 
 **Plan:**
 - [x] **Merge `main` in** and give the two branches one migration history (HOU-59): the waitlist migration regenerated after `alert_kinds`, its SQL byte-identical and its file name kept. 114 unit, 70 database and 31 Playwright tests pass on the merged tree.
-- [x] **CI** (`.github/workflows/ci.yml`), on every pull request and push to `main`: format, lint, typecheck and unit tests; then local Supabase on the runner, database tests, the seed and Playwright. `scripts/ci/write-local-env.sh` writes `.env.local` from `.env.example` and the runner's own local keys. Nothing reaches a hosted project or Twilio.
+- [x] **CI** (`.github/workflows/ci.yml`), on every pull request and push to `main`: format, lint, typecheck and unit tests; then local Supabase on the runner, database tests, the seed and Playwright. `scripts/ci/write-local-env.sh` writes `.env.local` from `.env.example` and the runner's own local keys. Nothing reaches a hosted project or Twilio. **Rehearsed locally**, since the push is blocked: a clean checkout with a fresh install and a fresh Supabase stack, excluded services and `CI=1` as in the workflow, passes 117 unit, 70 database and 31 browser tests.
 - [x] **The worker's image** (`apps/worker/Dockerfile`, `.dockerignore`): production dependencies of the worker and core only, no `.env` file. Run locally against local Supabase it answered a simulated text, costed both texts, and stopped on SIGTERM with exit 0.
 - [x] **Fly configs** for `housemate-worker-staging` (simulator, acknowledgment on) and `housemate-worker-production` (Twilio), one 512 MB shared machine each in `sea`, a health check on `/health` and no public service.
 - [x] **Deploy workflow** (`.github/workflows/deploy.yml` calling `deploy-environment.yml`), on every merge to `main`: staging, then production; each applies migrations with `supabase db push --include-all` and then deploys its worker. Whatever isn't configured is skipped with a notice in the run's summary.
 - [x] **Previews as staging** (recommendation): every non-`main` branch deploys to Vercel's Preview environment, whose env vars point at the staging project. A preview's `PUBLIC_BASE_URL` defaults to the deployment's own address, and the SMS simulator carries Vercel's protection-bypass header, so the simulator loop works behind Vercel Authentication.
-- [ ] **A pull request with green CI.**
+- [x] **Docs (step 9):** `CLAUDE.md`'s commands and a CI note, open question 24 (how staging works) and the connector limits, two lessons on migrations. No new decision: nothing in step 8 was approved beyond the plan, so its one real choice is open question 24.
+- [ ] **A pull request with green CI.** The three commits are ready; Claude's `git push` was refused by the permission classifier: **HOU-44**, the user's.
 - [ ] **The staging Supabase project.** Creating it ($0 a month) was refused by the permission classifier: **HOU-63**, the user's.
-- [ ] **Production's migration history aligned** with the file names, so the deploy workflow can take over from the MCP.
-- [ ] **Preview env vars, GitHub environment secrets, and the Fly apps.** Secret writes are the user's.
+- [ ] **Production's migration history aligned** with the file names, so the deploy workflow can take over from the MCP. The SQL was refused too; it's in **HOU-65** §1.
+- [ ] **Preview env vars, protection bypass, GitHub environment secrets** (**HOU-65**) **and the Fly apps** (**HOU-11**). Secret writes are the user's.
 - [ ] **Staging checks:** the simulator loop on a preview, and signing in with a real code (needs Twilio, HOU-5).
+
+**The build issue is HOU-64.** Merging to `main` stays the user's, as it was for PR #1 to #3.
 
 ## Results
 

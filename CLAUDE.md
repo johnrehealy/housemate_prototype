@@ -35,7 +35,7 @@ These hold regardless of channel or provider. Changing one requires an approved 
 | Hosting | Vercel, deploying from GitHub |
 | Payments | Stripe (single-use Issuing cards, D-025) |
 | Agent | Claude (`claude-opus-5`) via the Anthropic TypeScript SDK |
-| Agent worker hosting | Container host (proposed: Fly.io) |
+| Agent worker hosting | Fly.io (D-055), one app each for staging and production |
 | Coding-agent environment | Fly.io Sprite `mcp-housemate-dev` (D-059) |
 | Code | GitHub |
 | Backlog | Linear |
@@ -62,6 +62,10 @@ TypeScript throughout (D-026): Next.js (App Router) on Vercel for the web app an
 | `pnpm db:generate` | Generate a migration from the Drizzle schema |
 | `pnpm db:seed` | Fill the local database with obviously fake data |
 | `pnpm sms "text"` | Text Housemate through the local SMS simulator, as the seeded member or `--from` any number. Needs the web app running. The page is `/dev/sms`. |
+| `pnpm exec playwright test` | Browser tests. Builds and starts the web app and the worker itself. Run from the repo root, outside the sandbox. |
+| `docker build -f apps/worker/Dockerfile .` | The worker's image, as Fly builds it. From the repo root, outside the sandbox. |
+
+**CI and deploys.** `.github/workflows/ci.yml` runs every check above on each pull request, against a local Supabase stack on the runner. `.github/workflows/deploy.yml` runs on each merge to `main`: migrations and then the worker, staging before production. Vercel deploys the web app by itself: `main` to production, every other branch to a preview on staging (open question 24).
 
 Run TypeScript entry points with `node --import tsx/esm <file>`, not the `tsx` command; see `tasks/lessons.md`.
 

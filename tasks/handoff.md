@@ -1,4 +1,4 @@
-# Session handoff · 2026-09-23 (Slice 0 step 7 closed: costs, alerts and the ops cost view)
+# Session handoff · 2026-09-23 (Slice 0 step 8 built and rehearsed locally; waiting on the user to push and set up staging)
 
 Context for picking this up in a fresh session. Durable knowledge lives in the
 documents below; this file captures what a new session would otherwise have to
@@ -14,248 +14,194 @@ rediscover. Overwrite it; never append — **except** keep any "Landing page
    **Also check project "Key Docs"** for docs the user edited in Linear
    (D-038, "Docs in Linear" in `CLAUDE.md`).
 3. `docs/build-plan.md` — architecture and slices 0–7 (approved, D-031).
-4. `tasks/todo.md` — the approved Slice 0 plan and the per-step results.
+4. `tasks/todo.md` — the approved Slice 0 plan, and "Step 8" for where this
+   session got to.
 5. `tasks/lessons.md` — read every session.
 
 ## Where things stand
 
-**Slice 0 steps 1–7 are closed.** Step 7 (cost tracking and alerts) finished
-on 2026-09-23. Its decisions are **D-063** (how costs are recorded and when
-the team is texted; the $100 is the whole pilot's, superseding that part of
-D-030) and **D-064** (the ops cost view). Open question 22 is deleted, and
-HOU-24, HOU-54 and HOU-55 are closed. The approved plan was
-`~/.claude/plans/serialized-twirling-jellyfish.md`; the results are in
-`tasks/todo.md`.
+**Slice 0 steps 1–7 and 9 are done. Step 8 (CI, deploys, staging) is built
+and verified locally, and everything left in it waits on the user.** The user
+said on 2026-09-23 to build the rest of Slice 0 and stop only when blocked;
+the build issue is **HOU-64**.
 
-**Part B, built 2026-09-23 from the r2 Paper boards** (page "Ops", O1–O3 r2,
-approved when the user said "ok continue"). `/ops/costs` is staff only: anyone
-else gets a 404 from `requireStaff()` in `apps/web/src/lib/auth/session.ts`,
-checked in the page rather than left to row-level security. `/ops` redirects
-to it. One month at a time with a stepper (`?month=YYYY-MM`, never past the
-current month), three figures and a budget bar, the month's alerts with a
-state worked out from the data, and the by-member table. The written spec is
-`docs/design.md` §4 "Ops cost view".
+- **`main` already holds PR #1 to #3** (steps 1–4 and the landing page), and
+  production deploys it to myhousemate.co. Production's Vercel env vars are
+  all set, for the production target only.
+- **This branch merged `main` in** (`9c464cf`) and fixed the migration journal
+  collision (HOU-59, closed): the waitlist migration was regenerated after
+  `alert_kinds`, byte-identical, with its original file name.
+- **Built in step 8** (`dc9c9a9`): `.github/workflows/ci.yml`;
+  `scripts/ci/write-local-env.sh`; `apps/worker/Dockerfile` and
+  `.dockerignore`; `apps/worker/fly.{staging,production}.toml`;
+  `.github/workflows/deploy.yml` calling `deploy-environment.yml`. A preview's
+  `PUBLIC_BASE_URL` now defaults to `https://$VERCEL_URL`, and the SMS
+  simulator sends `x-vercel-protection-bypass` when
+  `VERCEL_AUTOMATION_BYPASS_SECRET` is set.
+- **Verified:** a clean checkout run exactly as CI runs it (fresh install,
+  fresh Supabase with the workflow's excluded services, `CI=1`) passes 117
+  unit, 70 database and 31 browser tests. The worker image, run against local
+  Supabase, answered a simulated text, costed both texts and exited 0 on
+  SIGTERM.
+- **How staging works is open question 24**, with the built design as its
+  default: Vercel previews pointed at a "Housemate Staging" Supabase project,
+  plus a staging worker on Fly running `main`.
 
-- **The logic lives in `@housemate/core/costs`** (`packages/core/src/costs/`):
-  `getCostReport` (the queries), `alerts.ts` (derived state, who was reached,
-  grouping a sweep's stuck sends into one row, and every alert's wording),
-  `copy.ts` (the page's sentences), `month.ts` (UTC budget months and dates)
-  and `money.ts`. The page files only lay it out. `BUDGET_TIMEZONE` now lives
-  beside `MONTHLY_BUDGET_USD` in `packages/core/src/config.ts`.
-- **Three things differ from the boards, on purpose,** and `docs/design.md`
-  records them: a stuck send says "delivered since" rather than a delivery
-  time (none is stored); the "Not a member" note says texts "to and from"
-  outside numbers (the team's alert texts land in that row); and the notice
-  has a "no team numbers are set" variant.
-- **Verified:** lint, typecheck and format pass; 114 unit, 66 database and 21
-  Playwright tests pass, twice in a row. Screenshots of an over-budget month,
-  an empty month and the current month matched O2, O3 and O1, using demo rows
-  that were removed afterwards.
+**A parallel session ("Landing Page", HOU-46)** works in the worktree
+`.worktrees/landing`, now on `site/landing-ribbon-rotation` with **PR #4 open
+against `main`**. Its handoff is `tasks/handoff-landing.md`, which asks to be
+folded into this file once slice 0 has rebased onto `main`. That's left for
+when its PR #4 is merged, because that session is still active. It holds three
+lessons meant for `tasks/lessons.md` for the same reason. **Re-read any shared
+doc just before editing it, and take new D-numbers at write time** (D-065 and
+open question 25 are the next free ones).
 
-**A parallel session ("Landing Page", HOU-46)** is building a marketing page
-for myhousemate.co on branch `site/landing`, in its own worktree. It edits
-`docs/decisions.md`, `tasks/todo.md`, `docs/design.md` and `docs/product.md`
-in place, and keeps its own section at the end of this file. Its branch changes
-`apps/web/src/proxy.ts` and `apps/web/src/app/page.tsx`, which may conflict
-with this branch when they merge. **Re-read any shared doc just before editing
-it, and take new D-numbers at write time** (the next free one is D-065 as of
-this writing).
-
-**The dev Sprite (D-059, HOU-45)** still waits on the user connecting the
-Sprites MCP (HOU-41). The checklist is in `tasks/todo.md` under "Dev Sprite
-for coding agents".
+**The dev Sprite (D-059, HOU-45)** still waits on the Sprites MCP (HOU-41).
 
 ## Repo state
 
-Branch `slice-0/foundation`, open as
-[PR #1](https://github.com/johnrehealy/housemate_prototype/pull/1). The last
-pushed commit is `8daaddb`. **Everything below is uncommitted**; commit only
-when the user asks.
+Branch `slice-0/foundation`. **Four commits are unpushed** (`82d7319` steps 5–7,
+`9c464cf` the merge of `main`, `dc9c9a9` step 8, and the docs commit after it).
+`origin/slice-0/foundation` is still at `8daaddb`, which was merged as PR #1.
+**Claude's `git push` was refused by the permission classifier**; HOU-44 asks
+the user to push or allow it. Merging to `main` stays the user's.
 
-| Area | What |
-|---|---|
-| Ops cost view (step 7B) | New: `packages/core/src/costs/` (with `month`, `alerts`, `copy` unit tests and `report.db.test.ts`), `apps/web/src/app/ops/{layout,page}.tsx`, `apps/web/src/app/ops/costs/{page,tables}.tsx`, `apps/web/e2e/ops.spec.ts`. Changed: `packages/core/package.json` (the `./costs` export), `config.ts`, `actions/{check-pilot-budget,index}.ts`, `scripts/seed-local.ts` (a staff member), `lib/auth/session.ts` (`requireStaff`), `e2e/{support,auth.setup}.ts`, `playwright.config.ts` (a `staff` project), `supabase/config.toml` (a second test code). |
-| Costs and alerts (step 7A) | New: `packages/core/src/actions/{raise-alert,check-pilot-budget}.ts`, `packages/core/src/jobs/{message-cost,sweep-stuck-sends,index}.ts`, `packages/core/src/actions/alerts.test.ts`, `packages/core/src/jobs/message-cost.db.test.ts`, migrations `20260922160000_message_costs_queue.sql` and `20260922193304_alert_kinds.sql`. Changed: `sms/{types,twilio-provider,simulator-provider}.ts`, `queue/jobs.ts`, `actions/{outbound,record-inbound-message,record-usage-cost,errors,index}.ts`, `db/schema.ts`, `config.ts`, `apps/worker/src/index.ts`, and the provider and action tests. |
-| Worker (step 6) | `packages/core/src/queue/{consumer,index}.ts`, `jobs/inbound-message.ts`, `actions/{outbound,send-invite-only-reply}.ts`, `sms/webhooks.ts` (`optOutOf`); migrations `20260922142151_message_idempotency.sql` and `20260922142200_dead_letter_queue.sql`. `apps/worker/src/{index,health}.ts`. In `apps/web`: `app/dev/thread/`, `lib/supabase/client.ts`, `e2e/messaging.spec.ts`. Also `playwright.config.ts` and `.claude/launch.json` (a `worker` entry). |
-| Messaging (step 5) | `packages/core/src/sms/{webhooks,simulate-inbound}.ts` and their tests; `signTwilioRequest`; `updateMessageStatus`; `getSmsThread`; `packages/core/scripts/simulate-sms.ts`. In `apps/web`: `api/twilio/{inbound,status}`, `lib/twilio-webhook.ts`, `dev/sms/`, the proxy matcher. Both `package.json` files and `.env.example`. |
-| Sign-in copy (D-057) | `story-panel.tsx`, `page.tsx`, `sign-in-form.tsx`, `e2e/sign-in.spec.ts`, the seven captures. |
-| Docs | `CLAUDE.md`, `docs/design.md` (§4 "Ops cost view"), `docs/decisions.md` (D-057 to D-064, D-030's status), `docs/open-questions.md` (Q22 gone), `tasks/todo.md`, `tasks/lessons.md`, this file. The Impeccable critique of the r1 boards is `apps/web/.impeccable/critique/2026-09-23T14-07-10Z__apps-web-src-app-ops-costs.md`. |
-| Dev Sprite (D-059) | `scripts/sprite/network-policy.json` and `scripts/sprite/bootstrap.sh` (untracked). |
-| Mirroring | `docs/linear-docs.json`, plus the **untracked** `.claude/agents/` and `.claude/skills/`. Whether those are committed is the user's call. |
+Still untracked, deliberately: `.claude/agents/` and `.claude/skills/` (the
+user's call), and `.impeccable/` at the root (the landing session's critique
+and the hook's cache).
 
 `.env.local` (git-ignored) holds a fake `TWILIO_AUTH_TOKEN` and two fake
-`TEAM_ALERT_PHONES` numbers. The local database holds the seeded member Sam
-Sample (`+15550190001`) and **a seeded staff member, Olly Ops
-(`+15550190002`, no home)**, plus texts and cost rows from Playwright and the
-by-hand checks. The alerts table and the queues are empty; the demo rows used
-for the screenshots were removed and the removal checked.
+`TEAM_ALERT_PHONES`. **The local database was rebuilt from scratch** during the
+CI rehearsal on 2026-09-23 and holds only the seed (Sam Sample `+15550190001`,
+Olly Ops `+15550190002`) plus the rows the rehearsal's tests left.
 
 ## What's next
 
-1. **An Impeccable finish review of `/ops/costs`, if the user wants one.**
-   It wasn't run; it's the user's to invoke (`/impeccable polish` or a
-   critique of the build). The build was checked against the boards by hand.
-2. **Step 8: CI, deploys and staging.** It will need HOU-52's answer (the
-   opt-out keywords) and should record a member's STOP as consent withdrawn
-   before real members arrive.
-3. **The dev Sprite, once HOU-41 is done.** Pick up at the first unticked
-   item in `tasks/todo.md` → "Dev Sprite for coding agents". Docker spike
-   first; if `dockerd` won't run as a Sprite service, stop and re-plan.
-4. **The shell review's findings, HOU-34 to HOU-38.** Each needs a Paper
-   mockup first (D-034).
-5. **HOU-39.** The pointer lands on "Use a different number" where "Send
-   code" just was.
+1. **Once the branch is pushed (HOU-44):** open the pull request with
+   `gh pr create` (outside the sandbox; the GitHub MCP doesn't connect), then
+   watch CI with the ccd_pr tools or `gh run watch`. The first real run may
+   need small fixes: action versions, pnpm 12 in `pnpm/action-setup`, or
+   `supabase start` timing on the runner. The Vercel preview will fail to
+   build until Preview has env vars (HOU-65), so it's expected to fail and
+   isn't a CI failure.
+2. **Once the staging project exists (HOU-63):** read its URL and publishable
+   key through the Supabase MCP for HOU-65's table. Apply the nine migrations
+   there — through the MCP if the pipeline isn't on `main` yet, then align its
+   history with HOU-65 §1's SQL (Claude may be refused again; see Environment
+   facts). Then run `get_advisors` for security.
+3. **Once HOU-65 and HOU-11 are done:** prove the simulator loop on a preview
+   (text in through `/dev/sms`, reply from the staging worker) and a first
+   `deploy.yml` run on `main` (it can be started by hand with
+   workflow_dispatch). Then tick step 8.
+4. **Signing in to staging with a real code** waits on Twilio Verify (HOU-5).
+5. **Before real members:** record a member's STOP as consent withdrawn, and
+   HOU-52's keyword trim. Neither is in Slice 0.
+6. Then the shell review's findings (HOU-34 to HOU-39) and Slice 1's plan.
 
 ## Waiting on the user
 
-- **HOU-44** — whether to commit and push the Slice 0 work. Steps 5–7 are all
-  uncommitted, and the Sprite only sees what's pushed; `8daaddb` is the last
-  push.
-- **HOU-52** (low) — yes or no on trimming Twilio's opt-out keywords to STOP,
-  STOPALL and UNSUBSCRIBE, so "Cancel" about an appointment doesn't opt a
-  member out. Needed by step 8.
-- **HOU-41** — connect the Sprites MCP, and install the `sprite` CLI.
-- **HOU-42** — a fine-grained GitHub token, entered with `gh auth login` on
-  the Sprite.
-- **HOU-43** — sign Claude Code in on the Sprite.
-- **HOU-34** (P0) — zero states for the six destinations. Paper mockup.
-- **HOU-35** (P1) — the shell's utility bar. Paper mockup.
-- **HOU-36** (P1) — keyboard focus: no authored nav ring, no skip link.
-- **HOU-37** (P1) — an unknown URL renders Next's stock 404. `/ops` for a
-  non-staff member shows the same stock page.
-- **HOU-38** (P2) — reserve the nav's trailing state slot.
-- **HOU-39** (P3) — the sign-in's two overlapping controls.
-- **HOU-11** — the Fly deploy token still needs adding to GitHub.
-- **HOU-33** — the real team phone numbers (`.env.local` has fakes).
-- **HOU-23** — D-008 is still marked Proposed.
+- **HOU-44** (Urgent) — push `slice-0/foundation`, or allow Claude to.
+  Everything else in step 8 follows from it.
+- **HOU-63** (High) — create the staging Supabase project ($0 a month), or
+  allow Claude to.
+- **HOU-65** (High) — production's migration history (one SQL statement),
+  Vercel Preview env vars and protection bypass, GitHub environment secrets,
+  and staging's Auth settings.
+- **HOU-11** (High) — the two Fly apps, their secrets and deploy tokens.
+- **HOU-66** (High) — the repo is public; D-054 says private.
+- **HOU-5** (Urgent) — Twilio. Blocks real-phone sign-in and the production
+  worker.
+- **HOU-52** (low) — the opt-out keywords.
+- **HOU-41, HOU-42, HOU-43** — the dev Sprite.
+- **HOU-34 to HOU-39** — the shell review's findings.
+- **HOU-33** — the real team phone numbers. **HOU-23** — D-008's status.
 
 ## Environment facts that were expensive to learn
 
-- **Signing in as staff locally needs the second test code.**
-  `supabase/config.toml` `[auth.sms.test_otp]` now lists `15550190002`
-  as well; a number missing there fails with `sms_send_failed 422`. A change
-  to `config.toml` only takes effect after `pnpm db:stop` and `pnpm db:start`
-  (outside the sandbox; the data is kept). On a fresh machine, run
-  `pnpm db:seed` so Olly Ops exists.
-- **Playwright saves two sessions:** `apps/web/e2e/.auth/member.json` and
-  `staff.json`. Both hold real session tokens, are git-ignored, and must never
-  be committed. The `staff` project runs only `ops.spec.ts`.
-- **Picture a page that needs a signed-in staff member** with a small
-  Playwright script that loads `staff.json` as its `storageState`, not the
-  browser pane (sign-in codes aren't typed there).
+- **Claude Code's permission classifier refuses these, even through an MCP:**
+  the Supabase MCP's `create_project` ("Modify Shared Resources"), an
+  `execute_sql` UPDATE on production, and `git push`. The landing session
+  found Vercel env-var writes refused the same way. Don't retry or route
+  around them; they go to the user as Checklist issues.
+- **The Vercel MCP works without a team slug.** Passing
+  `slug: "john-h-housemate"` or the team id returns 403; the project is
+  `prj_WdzTatD61W4BOUfKx2vCtSrWygDq` ("housemate_prototype"), and deployment
+  build logs (`list_deployment_events`) are 403 either way.
+- **A preview can't build without `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`**, and every Vercel variable today
+  targets production only. That's why the `site/landing-followups` preview
+  failed.
+- **The Supabase MCP's `apply_migration` records its own version**, not the
+  file's timestamp (see `tasks/lessons.md`). Production's five show as
+  `20260923162541`…; HOU-65 §1 holds the fix.
+- **`create_project`'s region list has no us-west-2**, though production is
+  there; the dashboard has it.
+- **The Supabase CLI isn't logged in,** so Auth settings on hosted projects
+  (sign-ups off, site URL) are dashboard work for the user.
+- **`gh` is signed in as johnrehealy but can't read or write Actions
+  secrets** (403). It runs outside the sandbox, because it reads its config
+  from `~/.config/gh`.
+- **`git fetch` and `git push` use SSH**, so they run outside the sandbox.
+- **Rehearsing CI locally:** `git worktree add --detach .worktrees/<name>
+  HEAD`, `pnpm install --frozen-lockfile`, `pnpm exec supabase stop
+  --no-backup` in the main checkout, then in the worktree `pnpm exec supabase
+  start -x …` (the list in `ci.yml`), `scripts/ci/write-local-env.sh`,
+  `pnpm test:db`, `pnpm db:seed`, `CI=1 pnpm exec playwright test`. Afterwards
+  stop the stack, remove the worktree, and `pnpm exec supabase start` from the
+  main checkout. It wipes local data (all generated).
+- **Testing the worker image:** `docker build -f apps/worker/Dockerfile -t
+  housemate-worker:local .`, then `docker run -d -p 18080:8080 --env-file
+  .env.local -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:54322/postgres
+  -e SUPABASE_URL=http://host.docker.internal:54321 housemate-worker:local`,
+  with the web app running for `pnpm sms`.
+- **Signing in as staff locally needs the second test code** in
+  `supabase/config.toml`; a change there takes a `db:stop` and `db:start`.
+- **Playwright saves two sessions**, `apps/web/e2e/.auth/member.json` and
+  `staff.json`: real tokens, git-ignored, never committed.
 - **Phone-number blocks for generated data:** seed `019`, database suites
-  `010`–`050`, `060` (the cost report) and `070`, browser tests `08x`. Take an
-  unused block for a new suite.
-- **The worker runs with `preview_start worker`** (`.claude/launch.json`),
-  because listening on a port is blocked in the sandbox. Its log is
-  `preview_logs`. `curl http://127.0.0.1:8080/health` works from the sandbox.
-- **Playwright starts both the web app and the worker**, or reuses whatever
-  is on 3000 and 8080. Stop the previews first to test a fresh start.
-- **Stopping a preview can take a few seconds to free its port.** Check with
-  `lsof -iTCP:8080 -sTCP:LISTEN` (outside the sandbox) before starting
-  Playwright.
-- **To simulate a crashed worker,** take a job with
-  `select * from pgmq.read('inbound_messages', 5, 1)` and don't delete it: it
-  comes back after 5 seconds as the next attempt.
-- **`pgmq.read_with_poll` with a poll time of 0 never reads**; the consumer
-  uses `pgmq.read` for that case.
-- **A queue's table is `pgmq.q_<name>`.** The cost report reads the
-  dead-letter tables directly, from a fixed list of names, never from an
-  alert's own text.
-- **A queued payload read through the app's own database client is an
-  object**, though the raw `postgres` client returns it as a string. A
-  dead-letter record whose `job` looks double-encoded was enqueued that way,
-  not mangled by the consumer.
-- **`activity_events` refuses deletes**, even on the server connection, so
-  probe rows in it can't be tidied away. That's the append-only trigger doing
-  its job.
-- **Hand-written SQL into enum columns needs a cast** (`'twilio'::usage_kind`,
-  `'send_stuck'::alert_kind`).
-- **Realtime:** a browser channel can report `SUBSCRIBED` with no Postgres
-  binding. `realtime.subscription` shows whether one exists, and the Realtime
-  container's log (`docker logs supabase_realtime_Prototype`, outside the
-  sandbox) only counts `subscription_errors`. See `tasks/lessons.md`.
-- **Local user JWTs are ES256**, and the browser's publishable key isn't a
-  JWT at all.
-- **Sandboxed and unsandboxed commands have different `$TMPDIR`s.** Don't
-  pass a file between them that way (see `tasks/lessons.md`).
-- **Checking the database without `psql`:** run a small `.mjs` that imports
-  from `./src/db/index.ts` inside `packages/core`, run it with
-  `node --import tsx/esm`, and delete it afterwards.
-- **The SMS simulator needs the app running:** `preview_start` "web" (a
-  production build, so run `pnpm build` or Playwright first), then `pnpm sms`.
-- **Run Playwright from the repo root.** Run from `apps/web` it finds no
-  config and every test fails with "Cannot navigate to invalid URL".
-- **`pnpm install`, `pnpm build` and `pnpm exec playwright test` run outside
-  the sandbox.** `next/font` downloads Lato at build time. `lint`,
-  `typecheck`, `test` and `test:db` are fine inside.
-- **Playwright's `getByText("…")` is a case-insensitive substring match.**
-  Pass `{ exact: true }` when a shorter string ends a longer one. A test that
-  sends a text should tag its body uniquely, because the local thread keeps
-  every earlier run's messages.
-- **A client component must not import from the `@housemate/core` barrel** —
-  use a subpath such as `@housemate/core/phone`.
-- **Theme gotchas:** `text-sm` is weight 700, so body copy at that size is
-  `text-sm font-normal`. A border sits outside a fixed height unless the
-  height is on the bordered element itself.
-- **`Intl` in en-GB writes "Sept"** for September's short name; the costs
-  module takes the short month from en-US and the rest from en-GB.
-- **Browser-pane screenshots of this app render unreliably.** Use
-  `javascript_tool` for numbers and Playwright for pictures:
-  `CAPTURE=1 pnpm exec playwright test --project=capture`.
-- **Signing in from the browser pane:** set the inputs with the native value
-  setter plus an `input` event; the local code is `123456`.
-- **Paper calls need `fileId`.** File `Diligent meadow`
-  (`01M2G0KC27F2PP2R60GJ60ZJ99`), Sign-in page `4-0`, Ops page `p-7-0`. Pass
-  the page id explicitly: the user is usually looking at the Landing page, and
-  a page-scoped call with no id lands wherever they are.
-- **Ops page board map:** r1 row at y 0 (x 0 / 1520 / 3040), r2 row at
-  y 1160 in the same columns — O1 r2 `C08-0`, O2 r2 `C6I-0`, O3 r2 `CCK-0`.
-  r2 is the approved one.
-- **Phosphor icon paths for Paper** come straight from the installed package:
-  `node_modules/.pnpm/@phosphor-icons+react@*/node_modules/@phosphor-icons/react/dist/defs/<Name>.es.js`,
-  the `"regular"` entry's `d` attribute, on a 256 viewBox.
-- **The lockup goes into Paper as a file,**
-  `paper-asset:///Users/healyfamily/Documents/Prototype/apps/web/public/brand/housemate-lockup-evergreen.svg`,
-  at 163 × 20.
-- **A mirror whose Linear `updatedAt` doesn't advance didn't land.** Don't
-  `mark` it.
+  `010`–`050`, `060` and `070`, browser tests `08x`, the simulator unit test
+  `099`.
+- **The worker runs with `preview_start worker`**; Playwright starts both the
+  web app and the worker, or reuses what's on 3000 and 8080.
+- **`pnpm install`, `pnpm build`, Playwright, Docker and the Supabase CLI run
+  outside the sandbox.** `lint`, `typecheck`, `test` and `test:db` are fine
+  inside.
+- **A client component must not import from the `@housemate/core` barrel.**
+- **Theme gotchas:** `text-sm` is weight 700; body copy at that size is
+  `text-sm font-normal`.
+- **Paper:** file `Diligent meadow` (`01M2G0KC27F2PP2R60GJ60ZJ99`), Sign-in
+  page `4-0`, Ops page `p-7-0`. Always pass the page id.
+- **A mirror whose Linear `updatedAt` doesn't advance didn't land.**
 
 ## Conventions worth keeping
 
 - **Every mirrored doc that changes is copied to Linear in the same turn**,
-  then `mark`ed, and `check` runs before the turn ends. Verbatim; never
-  `patch`, never reword.
-- **Remote changes go through MCP.** If the MCP can't, try the CLI or a direct
-  API call; if that fails, stop and ask. Never the browser.
-- **Work on a branch, never `main`.** Commit and push only when asked.
+  then `mark`ed, and `check` runs before the turn ends.
+- **Remote changes go through MCP**, a CLI or a direct API call; never the
+  browser.
+- **Work on a branch, never `main`.** Commit only when asked or when the
+  user's instruction covers it; pushing and merging are the user's unless they
+  say otherwise.
+- **Scan every commit for secrets and real phone numbers before making it**:
+  the repository is public.
 - **Anything the design system doesn't cover is mocked in Paper first**
-  (D-034). Dev tooling pages (`/dev/*`) are exempt (D-058, D-060); `/ops/*`
-  is not.
-- **Logs carry IDs, outcomes and error names only** — never a text's body or
-  a phone number.
-- **Alerts and costs are staff-only** under row-level security, and the page
-  checks the role too. Every probe row from a by-hand check is removed once
-  it's proved its point.
-- **Staff-only pages answer anyone else with a 404,** not a redirect or a
-  "forbidden", so they don't reveal that they exist.
+  (D-034); `/dev/*` is exempt, `/ops/*` isn't.
+- **Logs carry IDs, outcomes and error names only.**
+- **Staff-only pages answer anyone else with a 404.**
 
 ## Known gaps
 
-- **Staff sign-in lands on `/chat`,** like a member's, and nothing links to
-  `/ops`. Staff type the address. Worth settling when there's more than one
-  ops page.
-- **Claude token costs aren't tracked yet.** There's no agent until Slice 1;
-  the `claude` usage kind and the view's split columns are ready and appear
-  once a month has any.
-- **Alerts can't be resolved by a person.** The view works the state out from
-  the data (D-064); no surface acts on one.
+- **The production worker can't run until Twilio exists** (HOU-5): production
+  is `SMS_PROVIDER=twilio`, and the env check refuses to start without its
+  credentials. Its deploy is skipped until its token is set.
+- **Staff sign-in lands on `/chat`,** and nothing links to `/ops`.
+- **Claude token costs aren't tracked yet** (Slice 1).
+- **Alerts can't be resolved by a person;** their state is worked out
+  (D-064).
 - **Agent runs will outlast the worker's 30-second visibility window.** Slice
   1 needs a longer window or a heartbeat.
-- **`impeccable-documenter` was deliberately not run** — `docs/design.md` is
-  the design system (D-010, D-034).
-- **Narrow layouts exist for the sign-in only.** Q12 stays open; `/ops/costs`
-  is desktop only.
+- **Narrow layouts exist for the sign-in and the landing page only.** Q12
+  stays open.
 
 ## Landing page (parallel session)
 
