@@ -1,7 +1,6 @@
 export default function AuthLayout({ children }: LayoutProps<"/">) {
-  return (
-    <div className="flex min-h-full items-center justify-center bg-canvas px-6 py-16">
-      {children}
-    </div>
-  );
+  // The sign-in page owns its own frame at every width (docs/design.md §4,
+  // D-036 and D-056), so this layout only guarantees the full height it
+  // stretches into.
+  return <div className="flex min-h-full bg-canvas">{children}</div>;
 }

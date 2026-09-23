@@ -8,13 +8,6 @@ import { actionContext, serverDb } from "@/lib/server-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { INITIAL_SIGN_IN_STATE, type SignInState } from "./state";
 
-/**
- * The same answer whether or not the number is invited. Housemate is
- * invite-only, so saying "that number isn't invited" would turn this page into
- * a way of finding out who is in the pilot.
- */
-const CODE_SENT = "If that number is invited, a code is on its way.";
-
 export async function submitSignIn(
   previous: SignInState,
   formData: FormData,
@@ -60,7 +53,10 @@ async function requestCode(input: string): Promise<SignInState> {
     };
   }
 
-  return { step: "code", phone, notice: CODE_SENT };
+  // No notice: the code step's helper already says a code is on its way, and
+  // it says the same thing whether or not the number is invited, so this page
+  // can't be used to find out who is in the pilot.
+  return { step: "code", phone };
 }
 
 async function verifyCode(phone: string, token: string): Promise<SignInState> {

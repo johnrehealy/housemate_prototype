@@ -10,7 +10,6 @@ export type SignInState = {
   /** Set once a code has been requested, so the verify step knows the number. */
   phone?: string;
   error?: string;
-  notice?: string;
 };
 
 export const INITIAL_SIGN_IN_STATE: SignInState = { step: "phone" };

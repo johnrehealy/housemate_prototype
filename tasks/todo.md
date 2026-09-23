@@ -107,7 +107,7 @@ Each step ends with its check.
   - a duplicate inbound message is ignored;
   - an 11th member invite is rejected;
   - a proactive text at 11 PM is blocked.
-- [ ] **4. Web app shell and sign-in.** Next.js, Tailwind theme from the design tokens, Lato, Phosphor; nav item states per `docs/design.md` §4; 64px utility bar; the six routes with temporary placeholder content; phone code sign-in (local test code; Twilio Verify in staging); protected routes.
+- [x] **4. Web app shell and sign-in.** Next.js, Tailwind theme from the design tokens, Lato, Phosphor; nav item states per `docs/design.md` §4; 64px utility bar; the six routes with temporary placeholder content; phone code sign-in (local test code; Twilio Verify in staging); protected routes.
   *Check:* Playwright signs in, moves between all six destinations, and asserts sidebar width, nav item height, colors and selected state against the design spec. Impeccable review of the shell.
 - [ ] **5. Messaging path.** Twilio inbound and status routes with signature validation; the simulator page and a CLI; enqueueing jobs.
   *Check:* a request with an invalid signature gets a 403 and a valid one is accepted. A simulated text is stored and its job enqueued.
@@ -151,7 +151,7 @@ These were open questions when the slice was planned. They were all answered on
 - **D-054 · Repo:** private `johnrehealy/housemate_prototype`; branch per change; commit and push only when asked.
 - **D-055 · Worker hosting:** Fly.io. The deploy token still needs adding to GitHub (HOU-11).
 - **D-042 · Team alerts:** a text to the team phone numbers, plus the monitoring view, moving to Slack later. The numbers still need to go in `.env.local` (HOU-33).
-- **D-047 · Desktop-first,** usable to 1024px, with mobile layouts coming. This is why the sign-in build waits on HOU-32.
+- **D-047 · Desktop-first,** usable to 1024px, with mobile layouts coming. This is why the sign-in build waited on HOU-32, answered on 2026-09-21 as **D-056**: the sign-in page now has approved narrow and medium layouts.
 
 ## Results
 
@@ -204,7 +204,9 @@ These were open questions when the slice was planned. They were all answered on
 
 **Environment lessons (recorded in `tasks/lessons.md`):** run TypeScript with `node --import tsx/esm`, not the `tsx` command, which the sandbox blocks; package installs run outside the sandbox. Also: seed rows are committed, so test phone numbers must stay clear of the seed's.
 
-**Step 4 (done except the Impeccable review, 2026-09-15).**
+**Step 4 (done, 2026-09-21).** The shell shipped on 2026-09-15; the approved
+sign-in design and both Impeccable reviews landed on 2026-09-21. The two blocks
+below record it in the order it happened.
 
 - **Sign-in:** `/sign-in` takes a phone number, texts a code, and verifies it, both steps as server actions through `@supabase/ssr` so the session cookie is set server-side. An uninvited number gets the same answer as an invited one, so the page can't be used to learn who is in the pilot.
 - **`activateMember`:** invited → active on first sign-in, with one activity event. It runs on every sign-in, so an already-active member is left alone and writes nothing. A removed member is refused. The seed no longer shortcuts this: seeded members stay invited and activate by signing in.
@@ -214,12 +216,45 @@ These were open questions when the slice was planned. They were all answered on
 - **Design:** the system has no sign-in page, field or button, and Mobbin's MCP isn't connected, so it's built only from existing tokens, with the choices recorded as **Q13** in `docs/design.md` for approval.
 - **Sign-out is local-scoped**, so signing out of one browser doesn't end the member's sessions everywhere.
 - **Sign-in design approved in Paper, 2026-09-17 (D-036).** Recorded in `docs/design.md` §4 under Form controls and Sign-in page. The current build does **not** match it yet.
-- **Still to do:**
-  1. Plan and build the approved design. That covers the story panel, the visible labels, the muted field border, the inline error and working lines, and automatic sign-in on the sixth digit, which is a behavior change and gets planned first.
-  2. Update the browser tests to match.
-  3. Run `impeccable detect`, then the Impeccable finish review and documenter.
-  4. Run the Impeccable review of the shell.
 - **Note for a new machine:** `apps/web/.env.local` is a symlink to the repo-root `.env.local`, because Next reads env files from the app directory.
+
+**Step 4, the approved sign-in (2026-09-21).** Built to `docs/design.md` §4 Form controls and Sign-in page, from Paper boards A1–A9 (D-036 and D-056).
+
+- **The page frame:** `(auth)/layout.tsx` is a full-height flex row on canvas, and the page owns its own frame at every width. Three widths, all measured live against the boards and exact:
+  - **1440:** story panel 600 × 900, padding 22/64/56, three rows, invite note 56px off the bottom, form column 360px at x=840.
+  - **1024:** panel 400 × 768, padding 22/40/40, all three rows kept, form side padding 40px, field 360px at x=532.
+  - **390:** panel hidden, lockup at (24, 22) 20px tall with 56px to the heading, field 342px at x=24, invite note 32px off the bottom, no horizontal scroll.
+- **`story-panel.tsx`** is a server component. Its headline is a `<p>`, not a heading, because it precedes the page's `<h1>` in the DOM and an `h2` there would imply a structure the page doesn't have.
+- **`sign-in-form.tsx`** carries visible labels, the field/button/message classes as local constants (§7 Q13 leaves their tokens open, so they stay local rather than becoming a package on the way past), and **automatic sign-in on the sixth digit**.
+- **Auto-submit, and the three decisions it forced:**
+  1. **Two sibling forms.** The code form holds only the input, so implicit submission still posts it with JavaScript off, and "Use a different number" can't be what Enter reaches. It carries `restart=1` in its own form.
+  2. **`readOnly` while signing in,** not `disabled`, which would drop the field out of the tab order and throw away focus mid-flow. It ships with no `aria-disabled`: the field is still focusable and its value is still submitted, so calling it disabled would be untrue. The restart button uses a real `disabled`.
+  3. **Submitting from an effect, not `onChange`,** so the DOM value is the stripped one when the form is read — a pasted "123 456" would otherwise post with its space. The last-submitted guard stops a rejected code resubmitting itself, and clears when the digits drop below six so the same code can be retyped.
+- **WCAG 2.2 AA:** auto-submit is a change of context on input (3.2.2), allowed because the member is told first — so the hint "You'll be signed in as soon as all six digits are in." ships with the behavior, not as decoration. The error line is `role="alert"`, the working line `role="status"`, and the field carries `aria-invalid` and `aria-describedby`.
+  - **The hint carries `role="status"` too** (added after the finish review). React reuses one `<p>` across hint and working line, so a role arriving with "Signing you in…" would make the region live in the same commit as its text — the classic live-region miss, silent in NVDA and VoiceOver. Live from the first render, the swap is an ordinary content change.
+- **`formatUsPhone`** was added to `packages/core/src/phone.ts` with its own tests, and exported at a new `@housemate/core/phone` subpath. **The client must import from that subpath, never the package barrel:** the barrel reaches `twilio-provider.ts`, and `next build` fails resolving Node built-ins for the browser bundle. `pnpm typecheck` does not catch this — only the build does.
+- **A `h-full` on the story panel collapsed it to 571px.** An explicit `height: 100%` resolves against an auto-height parent and falls back to content height, overriding the flex row's stretch. Removing it is the fix; the row stretches it to 900 on its own.
+- **Verified:** `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, 45 unit tests, `pnpm build` and **11 Playwright tests** all pass. The browser tests assert the three widths, the resting *and* focused field borders, that the code step has no "Sign in" button, that filling six digits submits on its own, that the digits stay focused after a wrong code, and the whole working state.
+- **The autofocused field caught a wrong test, not a wrong build:** A1 focuses the field on load, so the border drawn at 1440 is evergreen. The test now asserts both states, blurring in between.
+
+**Step 4, the Impeccable finish review of the sign-in (2026-09-21).** Run against the surface brief, the five Paper comps and six captures, then re-run with the A4 capture added.
+
+- **Fidelity faithful.** Across five render/comp pairs the differing pixels are 0.2–1.7% of frame, all text antialiasing and 1px line-box rounding, with no structural band anywhere. Type, material and ground all match; the panel samples `#14342F` against a comp export that had drifted to `#1C332F`, so the build is the one on the token.
+- **Persistence passes** and the ceiling is reached. The only headroom named is that the step change from "Sign in" to "Enter your code" happens instantly — which is what §4 specifies, so it is unused device, not a miss.
+- **Four material fixes, all closed in the same turn:**
+  1. **The live-region miss** above — the real defect, and the reason this review was worth running.
+  2. **A4 shipped with no evidence.** It now has a capture (`code-working.png`) and a test asserting the `--color-nav`/`--color-line` field, retained focus, the status role and the disabled restart button. Both hold the action's response open with `page.route`, using a wrong code, so nothing is ever signed in.
+  3. **The selection colour was a headless artifact, not a defect.** `::selection` resolves to `oklab(0.299134 -0.0389275 -0.00135583 / 0.12)` — `#14342F` at 12%, exactly as §4 says. A headless window paints its own grey for an unfocused selection, which is what the screenshot showed. The test now reads the rule.
+  4. **D-036's "Still to do" was false** and mirrored to Linear. It is now a "Built" line.
+- **Two asides worth keeping.** The `@phosphor-icons/react` barrel tree-shakes cleanly in the client bundle — only the three glyphs used appear, in a 10KB chunk — so it needs no follow-up. And the underline on "Use a different number" in the captures is hover, not a style bug: the pointer parks on "Send code" and that lands inside the restart button on the next step. Logged as **HOU-39**, because an impatient second click would throw the code away.
+
+**Step 4, the Impeccable review of the shell (2026-09-21).** Run as two isolated assessments per the skill's hard invariant: A (design review) and B (detector plus browser evidence). Full report in `apps/web/.impeccable/critique/2026-09-21T19-02-20Z__src-app-app-layout-tsx.md`.
+
+- **Score 19/40, "Poor"** — dominated by what the shell doesn't carry yet (help, error handling, efficiency, agent status), not by what it got wrong. Every specified number was hit.
+- **Deterministic scan: 0 findings**, verified real by probing the detector with a deliberate anti-pattern first. The in-page detector's one finding, `cream-palette` on `#FFFBF9`, is a false positive: that is `--color-canvas`, a documented token.
+- **Findings are logged as HOU-34 to HOU-38** rather than fixed here, because each needs a Paper mockup first (D-034) and none is part of the sign-in build.
+- **Not run: `impeccable-documenter`.** It writes a `DESIGN.md`, and this project makes `docs/design.md` the design system by D-010 and D-034. Creating a second one would need the user's approval, so it was skipped deliberately rather than silently.
+- **Measurement trap worth keeping:** reading a focus ring's `outline-color` immediately after Tab returns the pre-transition colour, because Tailwind's `transition-property` includes `outline-color`. It is not a defect.
 
 **Step 4, earlier (shell only).**
 - **Build:** `next build` passes. All 95 tokens are emitted as CSS variables (`@theme static`), and Tailwind's default scales are cleared, so no non-design colors exist.

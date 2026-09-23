@@ -8,6 +8,7 @@
     "./auth": "./src/auth/index.ts",
     "./config": "./src/config.ts",
     "./db": "./src/db/index.ts",
+    "./phone": "./src/phone.ts",
     "./queue": "./src/queue/jobs.ts",
     "./time": "./src/time/timezone.ts"
   },

@@ -143,7 +143,10 @@ Each outline is its fill mixed 30% toward its foreground.
 | `--container-thread` | 660px |
 | `--container-shell` | 1440px |
 
-No narrow layouts have been designed (**Open Q12**).
+The [Sign-in page](#sign-in-page) is the only screen designed narrow so far
+(D-056): one column below `--breakpoint-lg`, a 400px story panel from
+`--breakpoint-lg`, and the full 600px panel from `--breakpoint-xl`. Every other
+screen is still 1440-only (**Open Q12**).
 
 ---
 
@@ -504,11 +507,12 @@ Whether segments act as filters, and what counts as Requested, is **Open Q8**.
 
 - **Anatomy:** 40px tall (`--spacing-nav-h`), `radius-md`, 12px side padding, `--text-base`. The visible label sits 6px above in 13/19 `--color-body`.
 - **Resting border:** muted rather than line-strong, because muted meets the 3:1 contrast needed to find a field (4.9:1). Line-strong is 1.4:1.
-- **Message line:** 6px below the field, 13/19. A 20px Phosphor glyph sits 8px before the text.
+- **Message line:** 8px below the field, 13/19 — the field group's 6px gap plus 2px of its own top padding, which seats the 20px glyph on the 19px line box. A 20px Phosphor glyph sits 8px before the text.
   - **Error:** `warning-circle` and text, both `--color-status-blocked-fg`.
   - **Working:** `circle-notch` in evergreen, with the text in `--color-body`.
   - **Hint:** text only, in `--color-muted`.
-- **Code value:** digits use `--tracking-wide`. After a wrong code, the digits stay selected so typing replaces them. The selection is evergreen at 12%.
+  - **In code the hint and the working line are one element carrying `role="status"` from the first render** (2026-09-21). They share a slot, so a role that only arrived with "Signing you in…" would make the region live in the same commit as its own text, and NVDA and VoiceOver announce nothing. Live from the start, the swap is an ordinary content change. The error line replaces the same element with `role="alert"`, and the field takes focus with it.
+- **Code value:** digits use `--tracking-wide`. After a wrong code, the digits stay selected so typing replaces them. The selection is evergreen at 12%, which Tailwind emits as `oklab`; a headless browser paints its own grey over it, so read the rule rather than a screenshot.
 
 **Primary button**
 
@@ -549,6 +553,7 @@ A1–A6 boards keep their "Approved r1" names rather than reopening D-036.
     - Each row has a 20px glyph in on-evergreen at 74% (`device-mobile`, `wrench`, `check-circle`) and a 16px gap.
     - The title is 14/700 in on-evergreen. The body is 14/400/20 at 74%.
   - **Invite note:** 13/19 in on-evergreen at 62%.
+  - **Measures:** the headline is capped at 480px and the row list at 472px, which is the panel's own inner width at 1440, so neither binds. The lead and the invite note are capped at **420px**, and that cap does bind — it is what sets their rag.
 - **Phone step (A1):**
   - The heading "Sign in" in `--text-display` `--color-heading`, with the helper in `--text-label` `--color-muted`.
   - Then the mobile field, and a full-width "Send code" button 16px below.
@@ -559,8 +564,25 @@ A1–A6 boards keep their "Approved r1" names rather than reopening D-036.
   - The helper "If (number) is on the invite list, a code is on its way." It never confirms that the number is invited.
   - The "Six-digit code" field, focused, with the hint "You'll be signed in as soon as all six digits are in."
   - There is no submit button. A "Use a different number" text button with `arrow-left` sits below.
-- **Signing in (A4):** the sixth digit submits on its own. The field turns disabled, the hint becomes the working line "Signing you in…", and the text button is disabled in place.
+- **Signing in (A4):** the sixth digit submits on its own. The field takes the disabled look, the hint becomes the working line "Signing you in…", and the text button is disabled in place.
+  - **In code the field is `readOnly`, not `disabled`** (2026-09-21). A disabled input leaves the tab order and throws away focus mid-flow; readOnly draws the same and keeps focus where the member left it. It carries no `aria-disabled`, because the field is still focusable and its value is still submitted — the working line is what announces the state. The restart button uses a real `disabled`.
 - **Wrong code (A5):** the field's error state, with the digits selected and the message "That code didn't work. Check it and try again." The text button is active.
+
+#### Narrow and medium
+
+**Approved 2026-09-21** (D-056) from the Paper boards "Sign-in · A7–A9 · Approved r1", which answer the narrow half of **Open Q12** for this screen only.
+
+Three widths, switching on the existing breakpoints. Nothing about the heading group, field group, message line or buttons changes between them — only the page frame does.
+
+| Width | Story panel | Boards |
+|---|---|---|
+| below `--breakpoint-lg` (1024) | none | A7, A8 |
+| `--breakpoint-lg` to `--breakpoint-xl` | 400px | A9 |
+| `--breakpoint-xl` (1280) and up | 600px | A1–A5 |
+
+- **Narrow (A7 phone step, A8 code step), 390 × 844.** One column on `--color-canvas`, 24px gutters, `justify-between` with 22px above and 32px below. The lockup (§3 Logo, 20px) sits at the top of the column and the form column hangs 56px beneath it, still capped at 360px. The invite note moves to the bottom of the page in `--color-muted` — 13/19, capped at the gutter width. The story panel's headline, lead and three rows are dropped, not stacked: on a phone the member is arriving from a text, so they already know what Housemate is.
+- **Medium (A9), 1024 × 768.** Still two columns. The story panel narrows to 400px with 40px side padding and 40px below, and **keeps all three "How it works" rows** — the rows reflow rather than disappear, so the medium width loses nothing but slack. The form side takes 40px side padding instead of 64px; the form column stays 360px.
+- **Type is identical at every width.** Heading 32/52/−0.022em, helper 15/20/−0.01em, headline 32/52/−0.022em, lead 17/26/−0.01em, row title 14/700, row body 14/400/20, invite note 13/19. Nothing scales down.
 
 ---
 
@@ -714,7 +736,7 @@ From ART-2026-003. None has a recorded answer.
 - **Q9 · Home-visit operations.** Is the weekly cadence fixed? Is "inside the front door by 9am" a confirmed rule? What eligibility, pricing, instructions, receipts and cash-handling constraints apply?
 - **Q10 · Favorite and model precision.** `--color-favourite` is referenced but doesn't exist. The prose favorites vendors, but the field is `category.favourite`. Does waking a snoozed task change its owner or status, or only clear `wake_at`?
 - **Q11 · Calendar edge cases.** How are six-week months, overlapping events, all-day events, very short events and "+N more" overflow handled? Is the toolbar filter shown in the example supported?
-- **Q12 · Missing states.** Nothing yet covers narrow layouts, long or translated text, loading and retry, empty filters, absent visits, keyboard focus, screen-reader names, error recovery or cross-channel updates. Which should be designed next?
+- **Q12 · Missing states.** *Partly answered 2026-09-21 (D-056):* the [Sign-in page](#sign-in-page) now has narrow and medium layouts, and the breakpoints it switches on are in [Breakpoints and containers](#breakpoints-and-containers). Still open for every other screen, and still nothing covers long or translated text, loading and retry, empty filters, absent visits, keyboard focus, screen-reader names, error recovery or cross-channel updates. Which should be designed next?
 - **Q13 · Sign-in, text fields and buttons.** *Answered 2026-09-17 (D-036).* Approved in Paper and recorded under [Form controls](#form-controls) and [Sign-in page](#sign-in-page). Still open: whether these controls get their own named tokens. Until then they reuse the existing ones.
 
 **Not represented anywhere yet:** the authenticated shell's utility bar, activation eligibility and pricing, the errand request form, edit/remove/reminder outcomes, skip confirmation, empty filters, loading and errors outside sign-in, narrow layouts, keyboard and focus outside form controls, long content, receipt and cash handling, timezone/cutoff/access rules, and cross-channel sync.
