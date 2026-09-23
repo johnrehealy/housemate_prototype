@@ -104,6 +104,26 @@ describe("loadServerEnv", () => {
     expect(env.SUPABASE_URL).toBe("https://project.supabase.co");
   });
 
+  it("takes a Vercel preview's own address when PUBLIC_BASE_URL is unset", () => {
+    const preview = {
+      ...localEnv,
+      PUBLIC_BASE_URL: "",
+      VERCEL_ENV: "preview",
+      VERCEL_URL: "housemate-abc123-housemate.vercel.app",
+    };
+    expect(loadServerEnv(preview).PUBLIC_BASE_URL).toBe(
+      "https://housemate-abc123-housemate.vercel.app",
+    );
+    expect(
+      loadServerEnv({ ...preview, PUBLIC_BASE_URL: "https://example.com" })
+        .PUBLIC_BASE_URL,
+    ).toBe("https://example.com");
+    // Production has a real address, and must say so.
+    expect(() =>
+      loadServerEnv({ ...preview, VERCEL_ENV: "production" }),
+    ).toThrow(/PUBLIC_BASE_URL/);
+  });
+
   it("rejects the SMS simulator in production", () => {
     expect(() => loadServerEnv({ ...localEnv, APP_ENV: "production" })).toThrow(
       /SMS_PROVIDER/,

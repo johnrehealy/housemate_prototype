@@ -34,6 +34,7 @@ export async function sendSimulatedText(
     from,
     to: env.TWILIO_PHONE_NUMBER ?? SIMULATOR_HOUSEMATE_NUMBER,
     body,
+    protectionBypass: env.VERCEL_AUTOMATION_BYPASS_SECRET,
   });
   if (status !== 200) {
     return { error: `The inbound webhook answered ${status}, not 200.` };

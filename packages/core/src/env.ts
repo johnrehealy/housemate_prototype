@@ -55,6 +55,12 @@ export const serverEnvSchema = z
     SUPABASE_SECRET_KEY: optionalString,
     ACK_REPLY_ENABLED: booleanString.default(false),
     TEAM_ALERT_PHONES: phoneList,
+    /**
+     * Set by Vercel when the project's Protection Bypass for Automation is on.
+     * The SMS simulator sends it, so its request to the app's own webhook gets
+     * past a preview's Vercel Authentication.
+     */
+    VERCEL_AUTOMATION_BYPASS_SECRET: optionalString,
   })
   .superRefine((env, ctx) => {
     if (env.APP_ENV === "production" && env.ACK_REPLY_ENABLED) {
@@ -97,11 +103,22 @@ export const serverEnvSchema = z
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+type EnvSource = Record<string, string | undefined>;
+
+/**
+ * A Vercel preview has no fixed address, so unless PUBLIC_BASE_URL is set it
+ * is the deployment's own. The SMS simulator posts there, and the webhook
+ * checks the signature against the same address.
+ */
+function withPreviewBaseUrl(source: EnvSource): EnvSource {
+  if (source.PUBLIC_BASE_URL?.trim()) return source;
+  if (source.VERCEL_ENV !== "preview" || !source.VERCEL_URL) return source;
+  return { ...source, PUBLIC_BASE_URL: `https://${source.VERCEL_URL}` };
+}
+
 /** Parses server-side environment variables, failing fast with a readable message. */
-export function loadServerEnv(
-  source: Record<string, string | undefined> = process.env,
-): ServerEnv {
-  const result = serverEnvSchema.safeParse(source);
+export function loadServerEnv(source: EnvSource = process.env): ServerEnv {
+  const result = serverEnvSchema.safeParse(withPreviewBaseUrl(source));
   if (!result.success) {
     throw new Error(`Invalid environment:\n${z.prettifyError(result.error)}`);
   }

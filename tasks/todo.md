@@ -122,7 +122,7 @@ Each step ends with its check.
   - A non-invited number gets exactly one reply.
 - [x] **7. Cost tracking and alerts.** Twilio price from the status callback goes into `usage_costs`; a monthly per-member view; a team alert by text to the configured team numbers (open question 19). **As built (D-063, D-064):** the price is fetched, since the callback carries none; the budget is the whole pilot's; the view is `/ops/costs`. See "Step 7" below.
   *Check:* a test crossing $100 creates exactly one alert and one team notification for that member and month.
-- [ ] **8. CI, deploys and staging.**
+- [ ] **8. CI, deploys and staging.** In progress; see "Step 8" below.
   - GitHub Actions: lint, typecheck, unit tests, database tests against Supabase in CI, Playwright.
   - Vercel: previews per pull request, production on main.
   - Supabase: staging and production projects, with migrations applied on merge.
@@ -219,6 +219,30 @@ designed internal view, so it stops for approval in Paper.
 - [x] Record the approved design in `docs/design.md`, and review the build.
 
 *Check:* a text costs a row within seconds; crossing the budget texts the team exactly once for the month; a dead-lettered job and a stuck send each raise one alert; `/ops/costs` shows the month's per-member totals to staff and 404s for anyone else.
+
+
+## Step 8 — CI, deploys and staging (2026-09-23)
+
+Started on the user's instruction of 2026-09-23 to build the rest of Slice 0 and stop only when blocked. It builds step 8 as the Slice 0 plan above describes it; the choices it makes inside that plan are marked **recommendation** until the user confirms them.
+
+**Evidence, at the start:**
+- PR #1 to #3 are merged: `main` holds steps 1–4 and the landing page. Production deploys `main` on Vercel, and production's Vercel env vars are all set, **for the production target only**. Preview has none, and a preview can't build without the two `NEXT_PUBLIC_SUPABASE_*` values, so every preview build fails today.
+- One Supabase project exists, production (`Housemate`, us-west-2). Its five migrations were applied through the MCP, which records apply-time versions (`20260923162541` …), not the file timestamps `supabase db push` expects.
+- **The repository is public.** D-054 says private.
+- No Fly CLI, no Fly MCP and no Fly account connection; `gh` is signed in, but its token can't read or write Actions secrets.
+
+**Plan:**
+- [x] **Merge `main` in** and give the two branches one migration history (HOU-59): the waitlist migration regenerated after `alert_kinds`, its SQL byte-identical and its file name kept. 114 unit, 70 database and 31 Playwright tests pass on the merged tree.
+- [x] **CI** (`.github/workflows/ci.yml`), on every pull request and push to `main`: format, lint, typecheck and unit tests; then local Supabase on the runner, database tests, the seed and Playwright. `scripts/ci/write-local-env.sh` writes `.env.local` from `.env.example` and the runner's own local keys. Nothing reaches a hosted project or Twilio.
+- [x] **The worker's image** (`apps/worker/Dockerfile`, `.dockerignore`): production dependencies of the worker and core only, no `.env` file. Run locally against local Supabase it answered a simulated text, costed both texts, and stopped on SIGTERM with exit 0.
+- [x] **Fly configs** for `housemate-worker-staging` (simulator, acknowledgment on) and `housemate-worker-production` (Twilio), one 512 MB shared machine each in `sea`, a health check on `/health` and no public service.
+- [x] **Deploy workflow** (`.github/workflows/deploy.yml` calling `deploy-environment.yml`), on every merge to `main`: staging, then production; each applies migrations with `supabase db push --include-all` and then deploys its worker. Whatever isn't configured is skipped with a notice in the run's summary.
+- [x] **Previews as staging** (recommendation): every non-`main` branch deploys to Vercel's Preview environment, whose env vars point at the staging project. A preview's `PUBLIC_BASE_URL` defaults to the deployment's own address, and the SMS simulator carries Vercel's protection-bypass header, so the simulator loop works behind Vercel Authentication.
+- [ ] **A pull request with green CI.**
+- [ ] **The staging Supabase project.** Creating it ($0 a month) was refused by the permission classifier: **HOU-63**, the user's.
+- [ ] **Production's migration history aligned** with the file names, so the deploy workflow can take over from the MCP.
+- [ ] **Preview env vars, GitHub environment secrets, and the Fly apps.** Secret writes are the user's.
+- [ ] **Staging checks:** the simulator loop on a preview, and signing in with a real code (needs Twilio, HOU-5).
 
 ## Results
 

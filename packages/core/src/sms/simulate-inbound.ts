@@ -13,6 +13,11 @@ export type SimulatedText = {
   from: string;
   to: string;
   body: string;
+  /**
+   * VERCEL_AUTOMATION_BYPASS_SECRET, when the app is a protected Vercel
+   * preview: without it Vercel answers the request before the webhook sees it.
+   */
+  protectionBypass?: string;
 };
 
 /**
@@ -46,6 +51,9 @@ export async function simulateInboundSms(
         url,
         params,
       }),
+      ...(text.protectionBypass
+        ? { "x-vercel-protection-bypass": text.protectionBypass }
+        : {}),
     },
     body: new URLSearchParams(params),
   });
