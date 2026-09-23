@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toEmail } from "../email";
 
 export const e164Phone = z
   .string()
@@ -12,3 +13,17 @@ export const ianaTimezone = z.string().refine((value) => {
     return false;
   }
 }, "Must be an IANA timezone, such as America/New_York");
+
+/**
+ * An email address, normalized. It defers to `toEmail` rather than carrying a
+ * second pattern, so the landing page and the action can't disagree about what
+ * counts as an address.
+ */
+export const emailAddress = z.string().transform((value, ctx) => {
+  const email = toEmail(value);
+  if (!email) {
+    ctx.addIssue({ code: "custom", message: "Must be an email address" });
+    return z.NEVER;
+  }
+  return email;
+});
