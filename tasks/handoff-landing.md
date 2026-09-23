@@ -13,8 +13,15 @@ file is mirrored and the other session may be appending to it too.
 
 ## Where things stand
 
-The landing page is **built and verified**, not committed. Tracked as HOU-46, which
-carries the full status; this file covers what a next session needs to carry on.
+The landing page is **built, verified, committed and pushed**. It is
+[PR #2](https://github.com/johnrehealy/housemate_prototype/pull/2), based on
+`slice-0/foundation` rather than `main` so the diff is just the two landing
+commits — which also means **it has to merge after slice 0**. Tracked as HOU-46,
+which carries the full status; this file covers what a next session needs.
+
+The user asked for this to go to `johnrehealy/housemate_dotcom` and then chose the
+prototype repo instead, once it was clear the branch carries the whole monorepo.
+`housemate_dotcom` exists and is still empty; what it is for is undecided.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
 design is the Paper file "Diligent meadow", page "Landing" (`p-6-0`): hero H3/H1/H2,
@@ -22,8 +29,8 @@ rotation H4, panels P1–P7, motion M1, narrow N1.
 
 ## Repo state
 
-Branch `site/landing` in the worktree `.worktrees/landing`. Everything below is
-uncommitted.
+Branch `site/landing` in the worktree `.worktrees/landing`, pushed to `origin`.
+Two commits: `993bfa1` the data layer, `377bd8e` the page.
 
 **New:** `apps/web/src/app/(site)/` (page, layout, actions, state, waitlist-form,
 and `_components/` — copy, ribbon, hero, panel, close, phone, demo-frame,
@@ -79,7 +86,7 @@ prefixes), `playwright.config.ts` (landing specs added to the projects, plus a
 
 1. The Impeccable finish review is done; its four defects are fixed and its four
    design-level findings are HOU-60. See the last section.
-2. Commit, then push and open a PR when asked. Nothing here has been committed.
+2. PR #2 is open and awaiting review. Nothing has been merged.
 3. Going live is still blocked on HOU-47 (Vercel connector) and HOU-49 (DNS).
 4. HOU-59 before or at merge: regenerate the migration, and make sure the three doc
    edits in the slice-0 tree survive.
