@@ -82,6 +82,18 @@
   --text-xs: 13px;
   --text-2xs: 12px;
   --text-metric: 36px;
+
+  /*
+   * Marketing sizes (docs/design.md §1). The landing page only; the app's
+   * scale tops out at --text-display. Each one is set in DM Serif Text, and
+   * each drops at the sm breakpoint to its narrow value.
+   */
+  --text-hero: 70px;
+  --text-hero-narrow: 40px;
+  --text-close: 52px;
+  --text-close-narrow: 34px;
+  --text-panel: 32px;
+  --text-panel-narrow: 26px;
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-bold: 700;
@@ -124,6 +136,24 @@
   --text-metric--line-height: 44px;
   --text-metric--letter-spacing: -0.022em;
   --text-metric--font-weight: 300;
+  --text-hero--line-height: 78px;
+  --text-hero--letter-spacing: -0.01em;
+  --text-hero--font-weight: 400;
+  --text-hero-narrow--line-height: 48px;
+  --text-hero-narrow--letter-spacing: -0.01em;
+  --text-hero-narrow--font-weight: 400;
+  --text-close--line-height: 60px;
+  --text-close--letter-spacing: -0.01em;
+  --text-close--font-weight: 400;
+  --text-close-narrow--line-height: 42px;
+  --text-close-narrow--letter-spacing: -0.01em;
+  --text-close-narrow--font-weight: 400;
+  --text-panel--line-height: 40px;
+  --text-panel--letter-spacing: -0.01em;
+  --text-panel--font-weight: 400;
+  --text-panel-narrow--line-height: 34px;
+  --text-panel-narrow--letter-spacing: -0.01em;
+  --text-panel-narrow--font-weight: 400;
 
   /* Breakpoints and containers */
   --breakpoint-sm: 640px;
@@ -166,4 +196,250 @@
 
 @theme inline {
   --font-sans: var(--font-lato), ui-sans-serif, system-ui, sans-serif;
+  /* Headings on the public site only. One weight, 400 (docs/design.md §1). */
+  --font-serif: var(--font-dm-serif-text), ui-serif, Georgia, serif;
+}
+
+/* ===========================================================================
+ * Landing page motion — board M1.
+ *
+ * Motion confirms what the page is doing; it never performs. Everything here
+ * is opacity and a vertical move of at most 24px. Nothing scales, spins,
+ * parallaxes or slides sideways.
+ *
+ * All of it is CSS scroll-driven animation, which is what muse.ai itself uses:
+ * no JavaScript and no animation library. Every rule sits inside
+ * `@supports (animation-timeline: view())`, so a browser without scroll
+ * timelines — Firefox today — gets the finished state and never hides content.
+ * That is M1's open question, answered with its stated default.
+ *
+ * Two of M1's seven entries can't be had exactly in CSS, because a scroll
+ * timeline has no way to latch: an animation tied to scroll always reverses on
+ * the way back up, and a time-based one can't be started by entering the view.
+ * C and E are therefore scrubbed across the element's view range rather than
+ * fired once. Going down the page they read as drawn; going back up they undo
+ * themselves.
+ * =========================================================================== */
+
+/* The hero's rotating line (board H4). Time-based, not scroll-based: it is the
+ * one thing on the page that moves while you sit still. Each phrase holds
+ * ~2s and swaps in 450ms, and the cycle length follows --phrase-count so the
+ * list can grow without retiming anything. */
+@keyframes hm-phrase {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  6%,
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  17%,
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+.hm-phrase {
+  opacity: 0;
+  animation: hm-phrase calc(var(--phrase-count) * 2.45s) infinite
+    cubic-bezier(0.22, 1, 0.36, 1);
+  animation-delay: calc(var(--phrase-index) * 2.45s);
+}
+
+@keyframes hm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hm-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The approval sheet and the glass over the thread behind it (M1 · D). */
+@keyframes hm-approval-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hm-approval-glass {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hm-approval-blur {
+  from {
+    filter: blur(0);
+  }
+  to {
+    filter: blur(3px);
+  }
+}
+
+/* The ribbon's waitlist button (M1 · A). `visibility` is animated alongside
+ * opacity so the button is genuinely absent while it is invisible: a control
+ * you cannot see but can still click or tab to is worse than no control. */
+@keyframes hm-ribbon-late {
+  from {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  1% {
+    visibility: visible;
+  }
+  to {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Two pulses, not a heartbeat: it says working, not waiting (M1 · E). */
+@keyframes hm-browser-pulse {
+  0%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0.3;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media not (prefers-reduced-motion: reduce) {
+    /* A · the ribbon's waitlist button arrives.
+     *
+     * M1 fades the whole bar up from nothing. The bar is evergreen over an
+     * evergreen hero, so that would be invisible for the bar itself and would
+     * leave the wordmark and "Sign in" — which board H3 draws at rest — briefly
+     * missing, and briefly clickable while invisible. What actually differs
+     * between H3 and the panel boards is the waitlist button, so that is what
+     * arrives. Flagged to the user rather than resolved silently. */
+    .hm-ribbon-late {
+      animation: hm-ribbon-late linear both;
+      animation-timeline: scroll();
+      animation-range: 0 64px;
+    }
+
+    /* B · panels arrive. The copy leads and the visual follows.
+     *
+     * M1 puts the visual 80ms behind the copy. A scroll timeline has no clock,
+     * so the delay becomes a later range instead — the same "copy first, then
+     * the picture" at any scroll speed.
+     *
+     * Both ranges end inside `entry`, not at `cover 35%` as M1 writes it.
+     * The close is the last section on the page, so the page runs out of
+     * scroll before its cover range finishes and its button would sit for
+     * ever at 57% opacity — measured, not guessed. An `entry` range always
+     * completes once the element is fully on screen. */
+    .hm-rise {
+      animation: hm-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+    }
+
+    .hm-rise-late {
+      animation-range: entry 25% entry 85%;
+    }
+
+    /* C · the thread fills. One bubble after another as the phone comes in.
+     *
+     * The ranges are in `entry`, not `cover`: the phone is 680px tall, so its
+     * cover range is most of a screen of scrolling and the last bubble would
+     * still be arriving once the panel had settled. In `entry` the whole
+     * thread is filled by the time the phone is fully on screen. */
+    .hm-thread > * {
+      animation: hm-rise linear both;
+      animation-timeline: view();
+    }
+    .hm-thread > :nth-child(1) {
+      animation-range: entry 40% entry 55%;
+    }
+    .hm-thread > :nth-child(2) {
+      animation-range: entry 46% entry 61%;
+    }
+    .hm-thread > :nth-child(3) {
+      animation-range: entry 52% entry 67%;
+    }
+    .hm-thread > :nth-child(4) {
+      animation-range: entry 58% entry 73%;
+    }
+    .hm-thread > :nth-child(5) {
+      animation-range: entry 64% entry 79%;
+    }
+    .hm-thread > :nth-child(6) {
+      animation-range: entry 70% entry 85%;
+    }
+
+    /* D · the approval rises, and the glass settles over the thread. */
+    .hm-approval-rise {
+      animation: hm-approval-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 50% entry 90%;
+    }
+
+    .hm-approval-scrim {
+      animation: hm-approval-glass linear both;
+      animation-timeline: view();
+      animation-range: entry 50% entry 90%;
+    }
+
+    .hm-approval-thread {
+      animation: hm-approval-blur linear both;
+      animation-timeline: view();
+      animation-range: entry 50% entry 90%;
+    }
+
+    /* E · the browser works. Scrubbed, so the two pulses land as the card
+     * arrives rather than at page load, which no one would be there to see. */
+    .hm-browser-pulse {
+      animation: hm-browser-pulse linear both;
+      animation-timeline: view();
+      animation-range: entry 60% entry 95%;
+    }
+
+    /* F · the hero cue leaves as soon as the page moves. */
+    .hm-learn-more {
+      animation: hm-fade-out linear both;
+      animation-timeline: scroll();
+      animation-range: 0 120px;
+    }
+  }
+}
+
+/* The hero's rotating line is time-based, so it is switched off here rather
+ * than inside the @supports block: reduced motion holds it on the first
+ * phrase, which is the real second line of the heading. */
+@media (prefers-reduced-motion: reduce) {
+  .hm-phrase {
+    animation: none;
+    opacity: 0;
+  }
+  .hm-phrase:first-of-type {
+    opacity: 1;
+  }
 }
