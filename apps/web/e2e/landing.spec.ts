@@ -33,6 +33,8 @@ async function join(page: import("@playwright/test").Page, address: string) {
 test("shows a signed-out visitor the page, not sign-in", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
+  // Not "Housemate · Housemate": the root layout templates every other title.
+  await expect(page).toHaveTitle("Housemate");
 
   // The heading reads as one steady line however long the rotation runs.
   const heading = page.getByRole("heading", { level: 1 });

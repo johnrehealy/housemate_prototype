@@ -1,75 +1,88 @@
-# Handoff — branch `site/landing`
+# Handoff — the myhousemate.co landing page
 
 **A deliberate one-off departure from `CLAUDE.md`.** The handoff normally lives in
 `tasks/handoff.md` and is overwritten. That file holds slice 0's handoff, it is
-mirrored to a Linear document, and a second session is working from it right now —
-so overwriting it here would have clobbered their continuity record in Linear and
-guaranteed a merge conflict. This branch gets its own file instead. `tasks/handoff.md`
-is untouched on both branches. Fold this back into it once the branches converge.
+mirrored to a Linear document, and a second session works from it — so overwriting
+it from here would clobber their continuity record in Linear and guarantee a merge
+conflict. The landing work keeps its own file instead. Fold this into
+`tasks/handoff.md` once slice 0 has rebased onto `main`.
 
 Two lessons below (the blank full-page captures, and `cover` ranges that never
-finish) belong in `tasks/lessons.md`. They are held here for the same reason: that
-file is mirrored and the other session may be appending to it too.
+finish) belong in `tasks/lessons.md`, and so does a third: **reproduce a failed
+build before diagnosing it** — an error code alone produced a wrong diagnosis here
+(see "Going live"). They are held here for the same reason: that file is mirrored
+and the other session appends to it too.
 
 ## Where things stand
 
-The landing page is **built, verified, committed and pushed**. It is
-[PR #2](https://github.com/johnrehealy/housemate_prototype/pull/2), based on
-`slice-0/foundation` rather than `main` so the diff is just the two landing
-commits — which also means **it has to merge after slice 0**. Tracked as HOU-46,
-which carries the full status; this file covers what a next session needs.
+**The page is on `main` and deployed to production, and serves on `myhousemate.co`
+at Vercel's edge. It is not reachable by the public yet only because DNS still
+points at Namecheap parking** (HOU-49). Tracked as HOU-46; going live as HOU-61.
 
-The user asked for this to go to `johnrehealy/housemate_dotcom` and then chose the
-prototype repo instead, once it was clear the branch carries the whole monorepo.
-`housemate_dotcom` exists and is still empty; what it is for is undecided.
+- [PR #1](https://github.com/johnrehealy/housemate_prototype/pull/1) (slice 0's
+  sign-in and app shell) merged as `acce099`, then
+  [PR #2](https://github.com/johnrehealy/housemate_prototype/pull/2) (this page),
+  retargeted to `main`, merged as `eb80410`. Both merge commits, not squash.
+- Production deploy of `eb80410`: **READY**, aliased to `myhousemate.co` and
+  `www.myhousemate.co`.
+- Production database: schema applied and verified.
+- All five secrets are now in Vercel, but `eb80410`'s deploy predates them. The
+  title fix's merge redeploys production and picks them up. Until that deploy is
+  live, the waitlist submit fails in production.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
 design is the Paper file "Diligent meadow", page "Landing" (`p-6-0`): hero H3/H1/H2,
-rotation H4, panels P1–P7, motion M1, narrow N1.
+rotation H4, panels P1–P7, motion M1, narrow N1. `johnrehealy/housemate_dotcom`
+exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Branch `site/landing` in the worktree `.worktrees/landing`, pushed to `origin`.
-Two commits: `993bfa1` the data layer, `377bd8e` the page.
+Worktree `.worktrees/landing`, on **`site/landing-followups`**, branched from
+`main` @ `eb80410`. It carries the title fix:
 
-**New:** `apps/web/src/app/(site)/` (page, layout, actions, state, waitlist-form,
-and `_components/` — copy, ribbon, hero, panel, close, phone, demo-frame,
-familiar-thread, browser-thread, team-photo, approval-thread, saved-logins);
-`apps/web/public/site/` (two photographs); `apps/web/e2e/landing.spec.ts`,
-`landing-signed-in.spec.ts`, `landing-capture.spec.ts`;
-`packages/core/src/email.ts`, `src/actions/join-waitlist.ts`; two migrations
-(`20260922233413_waitlist_signups.sql`, `20260922233500_waitlist_security.sql`).
+- `apps/web/src/app/(site)/page.tsx` — `title: { absolute: "Housemate" }`. The
+  root layout's `"%s · Housemate"` template made production's title
+  **"Housemate · Housemate"** (observed on the deployed page).
+- `apps/web/e2e/landing.spec.ts` — asserts the title. The landing spec passes 9/9
+  against a fresh production build.
 
-**Changed:** `globals.css` (marketing type tokens, `--font-serif`, and the motion
-block at the end), `proxy.ts` (`isPublicPath` now allows `/` and the public asset
-prefixes), `playwright.config.ts` (landing specs added to the projects, plus a
-`PLAYWRIGHT_PORT` override), `schema.ts`, `shared.ts`, both barrels,
-`packages/core/package.json` (an `./email` export), the two db test files,
-`.gitignore` (the Impeccable hook cache).
+The user said to ship it: commit, push, PR to `main`, merge with a merge commit.
+Merging redeploys production.
 
-**Deleted:** `apps/web/src/app/page.tsx`, which used to redirect `/` to `/chat`.
+`site/landing` carries two unpushed handoff-only commits (`9da2dfb`, `d410bc8`).
+This file supersedes both, so that branch can be deleted.
+
+**The other session.** The main checkout is on `slice-0/foundation` @ `8daaddb`
+with ~83 uncommitted paths, untouched. The repo doesn't auto-delete merged
+branches, so `origin/slice-0/foundation` still exists. When slice 0 next syncs it
+must rebase onto `main`, which now also contains this page, and re-sequence its four
+unpushed migrations after the waitlist pair (HOU-59).
 
 ## Environment facts that cost time to learn
 
 - **Port 3000 is the other session's server**, running from the main checkout. A
-  preview started here binds nothing and you end up looking at *their* build, which
-  is why `/` appeared to redirect to `/sign-in`. `preview_start` resolves
-  `.claude/launch.json` from the main checkout, so it can never serve this worktree.
-  Serve it by hand instead: `pnpm exec next start -p 3002` from `apps/web`, then
-  open `http://localhost:3002`. Playwright takes `PLAYWRIGHT_PORT=3002`.
-- **`pnpm build` must run outside the sandbox.** `next/font/google` fetches Lato and
-  DM Serif Text at build time and the sandbox refuses both hosts; adding them to
+  preview started here binds nothing and you end up looking at _their_ build.
+  `preview_start` resolves `.claude/launch.json` from the main checkout, so it can
+  never serve this worktree. Serve it by hand (`pnpm exec next start -p 3002` from
+  `apps/web`), and give Playwright `PLAYWRIGHT_PORT`.
+- **`pnpm build` and Playwright must run outside the sandbox.** `next/font/google`
+  fetches Lato and DM Serif Text at build time and the sandbox refuses both hosts;
   `allowed_domains` does not help.
+- **The sandbox can't write the shared `.git/config`**, so `git switch -c` from a
+  remote branch fails while setting upstream. Use `--no-track`, and set upstream on
+  push outside the sandbox.
 - **Full-page Playwright screenshots of this page come out blank** unless reduced
-  motion is on. A full-page capture resizes the viewport to the document height, so
-  nothing is ever "entering" it and every scroll-driven animation stays pinned to
-  its opening keyframe. `landing-capture.spec.ts` sets `reducedMotion: "reduce"`
-  for exactly this reason.
+  motion is on: the capture resizes the viewport to the document height, so every
+  scroll-driven animation stays pinned to its opening keyframe.
+  `landing-capture.spec.ts` sets `reducedMotion: "reduce"` for this reason.
 - **The browser pane sometimes screenshots blank** right after a resize or navigate.
-  It is a render-timing artifact, not the page. Measure with `javascript_tool`
-  (computed opacity, `scrollWidth`) rather than trusting a blank image.
-- `.env.local` was copied in from the main checkout. It is local-only fake data and
-  the file says so.
+  Measure with `javascript_tool` rather than trusting a blank image.
+- **Testing production before DNS moves:** pin the domain to Vercel's edge —
+  `curl --resolve myhousemate.co:80:76.76.21.21 http://myhousemate.co/`. HTTPS
+  fails the handshake until DNS points at Vercel, because no certificate is issued
+  before then. The `*.vercel.app` URLs are behind Vercel Authentication, and the
+  connector's `web_fetch_vercel_url` is denied (HOU-47), so this is the only way in.
+- `.env.local` was copied in from the main checkout. It is local-only fake data.
 
 ## Conventions worth keeping
 
@@ -81,62 +94,120 @@ prefixes), `playwright.config.ts` (landing specs added to the projects, plus a
   on the page cannot reach high cover values, and its animation would never finish.
 - Nothing on the page names a real vendor, brand, price or customer, and the footer
   carries no link to a page that does not exist.
+- Production migrations go through the Supabase MCP named with the file's **full
+  tag** (`20260915205225_init_schema`), so each remote row traces back to its file.
+  The versions are MCP-assigned (`2026092316…`), not the file timestamps, so
+  don't point `supabase db push` at production without `migration repair` first.
 
 ## What's next
 
-1. The Impeccable finish review is done; its four defects are fixed and its four
-   design-level findings are HOU-60. See the last section.
-2. PR #2 is open and awaiting review. Nothing has been merged.
-3. Going live is still blocked on HOU-47 (Vercel connector) and HOU-49 (DNS).
-4. HOU-59 before or at merge: regenerate the migration, and make sure the three doc
-   edits in the slice-0 tree survive.
+1. Once the title fix's production deploy is READY: check production's `<title>`
+   reads "Housemate".
+2. Submit **one** waitlist address the user chooses, and confirm a row plus its
+   `activity_events` entry. That is production data, so no test addresses.
+3. Once DNS moves (HOU-49): check `https://myhousemate.co` serves over TLS, and that
+   `www` redirects.
+4. HOU-59 is now slice 0's to finish. See above.
+5. The Impeccable finish review's design-level findings are HOU-60.
+
+## Going live — the state on 2026-09-23
+
+**Evidence.** Everything here was read back from the providers or tested.
+
+**Vercel.** Project `housemate_prototype`, `prj_WdzTatD61W4BOUfKx2vCtSrWygDq`, team
+`housemate` (`team_tqEo49byAubYHLwLKjWbLnSm`), hobby plan, Node 24.x,
+`framework: "nextjs"`, `rootDirectory: "apps/web"`. Vercel Authentication covers
+everything except custom domains.
+
+**Why the first deploy failed** (`dpl_784Dwf…`, `main` @ `d8f59f0`,
+`ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL`). There were two causes. First, the project was
+imported with no framework and no root directory. Second, `next build` itself needs
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: without them,
+prerendering `/property` throws in `publicSupabaseConfig()`. Reproduced from a clean
+`git archive` with no env (exit 1) and with the eight non-secret values (exit 0). An
+earlier version of this file blamed the worker from the error code alone; the worker
+has no `build` script.
+
+**Env vars set** (production target only): `APP_ENV`, `PUBLIC_BASE_URL`,
+`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+`ACK_REPLY_ENABLED=false`, `SMS_PROVIDER=twilio`, `TEAM_ALERT_PHONES` (empty).
+**Secrets, all set (sensitive, production only):** the user entered `DATABASE_URL`
+(the **transaction pooler**, port 6543 — the DB client sets `prepare: false` for it,
+and the direct connection is IPv6-only, which Vercel can't reach) and the three
+Twilio values. `SUPABASE_SECRET_KEY` came from the Supabase↔Vercel integration,
+which also added vars the app doesn't read (`POSTGRES_*`, `SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`, `SUPABASE_PUBLISHABLE_KEY`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`). If the database password is reset, the
+integration updates `POSTGRES_*` but **not** `DATABASE_URL`, which must be
+re-entered by hand. **Preview deploys will fail to build,** because nothing is set
+for the preview target. That is deliberate: previews must not point at production (invariant
+6). They need a staging Supabase project of their own.
+
+**Production database** (`xowuqiewsstnxtpwfrke`). Five migrations applied, in order:
+`init_schema`, `security`, `queue`, `waitlist_signups`, `waitlist_security`.
+Verified:
+
+- Both regex checks (E.164 and email) accept and reject correctly.
+- Every `public` table has RLS on, with 8 policies.
+- `anon` has no grants on `public`.
+- The three triggers are present (`activity_events` append-only and no-truncate,
+  plus the member cap).
+- The `pgmq` queue `inbound_messages` exists, and realtime publishes `messages` and
+  `conversations`.
+- `waitlist_signups` has 0 rows.
+
+The security advisor flags `public.rls_auto_enable()` as executable by `anon`. That
+function is **Supabase's own**, not ours: it returns `event_trigger` and backs the
+platform's `ensure_rls` event trigger, and Postgres refuses direct calls to trigger
+functions. Left alone.
+
+**Domains.** `myhousemate.co` and `www.myhousemate.co` (308 → apex) are attached and
+verified. Through Vercel's edge (`--resolve …:76.76.21.21`, over HTTP):
+
+- `/` 200 — the landing page: hero, six panels, close, OG tags.
+- `/sign-in` 200.
+- `/site/leak-under-sink.png` 200 `image/png`.
+- `/chat` 307 → `/sign-in`.
+- `www` 308 → `https://myhousemate.co/`.
+
+**The Vercel connector is still half-scoped** (HOU-47): unscoped calls work, and
+team-scoped ones (build logs, authenticated fetch) 403.
 
 ## Waiting on the user
 
-- **HOU-57** — P6 promises no ads, no data selling and no referral fees. Nothing
-  backs it. The user said they would take this one.
-- **HOU-50** — privacy, terms and contact. The user said they would take this too.
-- **HOU-53** — the demo video. P1 ships an honest empty frame until it exists.
+- **HOU-49 — DNS at Namecheap.** Apex `A` → `76.76.21.21` (tested: it serves this
+  project) and `www` `CNAME` → `cname.vercel-dns.com`. Remove the parking records.
+  Vercel's Domains page shows the values it currently recommends.
+- **Which address to use** for the one production waitlist check.
+- **HOU-5 — Twilio carrier registration (10DLC).** The credentials are in, which is
+  all the waitlist needs; texting real numbers still waits on registration.
+- **Supabase Auth settings:** turn sign-ups off, and set the site URL to
+  `https://myhousemate.co`. The Supabase connector has no tool for either.
+- **HOU-57** — P6's unbacked promises. **HOU-50** — privacy, terms, contact.
+  **HOU-53** — the demo video.
 
 ## Known gaps
 
-- The two photographs are ~2MB PNGs. `sips` cannot convert them here: it writes
-  through the real macOS temp directory, which the sandbox blocks. `next/image`
-  serves optimised WebP/AVIF at request time, so page weight is fine and only repo
-  size is affected.
+- The two photographs are ~2MB PNGs. `next/image` serves optimised WebP/AVIF at
+  request time, so only repo size is affected.
 - The waitlist submit goes through `actionContext()`, which builds the **full**
-  server env. It needs the Twilio values present in production even though it never
-  sends a text. Narrowing that would mean changing `server-context.ts`, which the
-  other session has uncommitted.
-- Firefox has no scroll timelines and deliberately gets the page fully still. That
-  was M1's open question, answered with its stated default.
+  server env — hence the Twilio requirement above.
+- Firefox has no scroll timelines and deliberately gets the page fully still (M1's
+  open question, answered with its stated default).
 
 ## The Impeccable finish review
 
 Run after the build, and reported `disposition: fix` with eight material fixes.
 
-**Four were defects and are fixed**, each with a test where one made sense:
-1. The close's "Join the waitlist" landed on the hero's *closed* button — a 6,000px
-   scroll back up and then a second click before there was anywhere to type.
-   `waitlist-form.tsx` now opens the bar on the `#waitlist` hash, so the jump lands
-   on a focused field. Covered by a Playwright test.
-2. "Learn more ↓" was a `<p>`. It carries a label and an arrow and sits at the fold,
-   so it read as a control that did nothing. Now an `<a href="#built">` with a focus
-   ring, and every panel section gained `scroll-mt-(--spacing-bar)` so anchors land
-   below the sticky ribbon. Covered by a test.
-3. The hero shifted 13px at the moment of success, because the joined state collapses
-   a 52px control row to a 26px line. `min-h-13` on the `#waitlist` wrapper holds it.
-4. No social preview at all on a page that spreads by being pasted into messages.
-   `openGraph`/`twitter` metadata added. **No preview image** — that is a design, so
-   it goes through Paper first.
+**Four were defects and are fixed**, each with a test where one made sense: the
+close's call to action now lands on a focused field; "Learn more ↓" is a real link;
+the hero no longer shifts 13px on success; and the page has `openGraph`/`twitter`
+metadata. It has **no preview image**, because that is a design and goes through
+Paper first.
 
-**Four are changes to approved boards, so they are HOU-60, not code.** Empty-looking
+**Four are changes to approved boards, so they are HOU-60, not code**: empty-looking
 visuals on P1/P3/P6, the page's single rhythm across ~5,000px, `$89` doing three
-different jobs, and the phones' untokenised greys and heavy shadows.
-
-One finding was based on a mistake in the brief I gave the reviewer: it called P4
-"full-bleed", but board AS7-0 draws a contained rounded card and the build matches
-the board. Recorded in HOU-60 as a proposal to change the board, not a defect.
-
-The review also independently caught the missing marketing type scale in
-`docs/design.md` — already HOU-59.
+jobs, and the phones' untokenised greys and heavy shadows. One finding came from a
+mistake in the reviewer's brief (P4 is a contained card on the board, not
+full-bleed). The review also caught the missing marketing type scale in
+`docs/design.md`, which is HOU-59's doc carry-over.

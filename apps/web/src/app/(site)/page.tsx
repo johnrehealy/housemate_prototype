@@ -24,7 +24,9 @@ const DESCRIPTION =
  * text only until that exists.
  */
 export const metadata: Metadata = {
-  title: "Housemate",
+  // Absolute, because the root layout's "%s · Housemate" template would
+  // otherwise make the front door read "Housemate · Housemate".
+  title: { absolute: "Housemate" },
   description: DESCRIPTION,
   openGraph: {
     title: "Housemate",
