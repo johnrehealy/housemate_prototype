@@ -23,6 +23,7 @@ import { createSimulatorProvider } from "../src/sms/simulator-provider";
 // security tests use +1555010xxxx and action tests use +1555020xxxx, and the
 // seed's rows are committed, so an overlap breaks them.
 const SEED_PHONE = "+15550190001";
+const STAFF_PHONE = "+15550190002";
 const HOUSEMATE_NUMBER = "+15550190000";
 
 // Use .env.local from the repo root when it exists; otherwise rely on whatever
@@ -48,31 +49,34 @@ if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) {
 
 const db = createDb(env.DATABASE_URL);
 
-try {
+async function seeded(phone: string): Promise<boolean> {
   const existing = await db
     .select({ id: members.id })
     .from(members)
-    .where(eq(members.phone, SEED_PHONE))
+    .where(eq(members.phone, phone))
     .limit(1);
+  return existing.length > 0;
+}
 
-  if (existing.length > 0) {
+try {
+  const ctx: ActionContext = {
+    db,
+    actor: { type: "system" },
+    source: { type: "system" },
+    services: {
+      auth: createSupabaseAuthAdmin({
+        url: env.SUPABASE_URL,
+        secretKey: env.SUPABASE_SECRET_KEY,
+      }),
+      sms: createSimulatorProvider(),
+    },
+  };
+
+  if (await seeded(SEED_PHONE)) {
     console.log(
       "Seed data is already there. Run `pnpm db:reset` first to redo it.",
     );
   } else {
-    const ctx: ActionContext = {
-      db,
-      actor: { type: "system" },
-      source: { type: "system" },
-      services: {
-        auth: createSupabaseAuthAdmin({
-          url: env.SUPABASE_URL,
-          secretKey: env.SUPABASE_SECRET_KEY,
-        }),
-        sms: createSimulatorProvider(),
-      },
-    };
-
     const { memberId, homeId } = await inviteMember(ctx, {
       phone: SEED_PHONE,
       firstName: "Sam",
@@ -105,6 +109,19 @@ try {
     console.log(
       `Seeded home ${homeId} with member ${memberId} (${SEED_PHONE}).`,
     );
+  }
+
+  // Staff have no home. The ops pages (/ops/costs) are theirs alone, so local
+  // development and the browser tests need one to open them. Checked on its
+  // own, so a database seeded before staff existed gains one without a reset.
+  if (!(await seeded(STAFF_PHONE))) {
+    const { memberId } = await inviteMember(ctx, {
+      phone: STAFF_PHONE,
+      firstName: "Olly",
+      lastName: "Ops",
+      role: "staff",
+    });
+    console.log(`Seeded staff member ${memberId} (${STAFF_PHONE}).`);
   }
 } finally {
   await db.close();

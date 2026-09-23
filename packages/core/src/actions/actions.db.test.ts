@@ -20,6 +20,7 @@ import {
 import { createSimulatorProvider } from "../sms/simulator-provider";
 import type { SmsProvider } from "../sms/types";
 import { activateMember } from "./activate-member";
+import { checkPilotBudget } from "./check-pilot-budget";
 import type { ActionContext, AuthAdmin } from "./context";
 import { ActionError } from "./errors";
 import { inviteMember } from "./invite-member";
@@ -413,7 +414,7 @@ describe("recordInboundMessage", () => {
     });
   });
 
-  it("stores a text from an unknown number without a home and without queueing", async () => {
+  it("stores a text from an unknown number without a home, queued only for the invite-only reply", async () => {
     await withRollback(db, async (tx) => {
       const before = await queuedJobs(tx);
 
@@ -427,11 +428,64 @@ describe("recordInboundMessage", () => {
       expect(result).toMatchObject({
         homeId: null,
         memberId: null,
-        queued: false,
+        queued: true,
       });
       const [event] = await eventsFor(tx, "message", result.messageId);
       expect(event).toMatchObject({ action: "received", homeId: null });
+      expect(await queuedJobs(tx)).toBe(before + 1);
+    });
+  });
+
+  it("stores STOP and HELP but never queues them, from members or not", async () => {
+    await withRollback(db, async (tx) => {
+      const home = await createHome(tx, "Opt-out home");
+      const member = await createMember(tx, {
+        homeId: home.id,
+        phone: nextPhone(),
+      });
+      const before = await queuedJobs(tx);
+
+      for (const [fromPhone, optOut] of [
+        [member.phone, "stop"],
+        [member.phone, "help"],
+        ["+15550199998", "stop"],
+      ] as const) {
+        const result = await recordInboundMessage(context(tx), {
+          providerSid: `SM${randomUUID()}`,
+          fromPhone,
+          toPhone: "+15550100000",
+          body: optOut.toUpperCase(),
+          optOut,
+        });
+        expect(result.queued).toBe(false);
+        const event = one(
+          await tx
+            .select({ after: activityEvents.after })
+            .from(activityEvents)
+            .where(eq(activityEvents.entityId, result.messageId)),
+        );
+        expect(event.after).toMatchObject({ optOut });
+      }
       expect(await queuedJobs(tx)).toBe(before);
+    });
+  });
+
+  it('queues a member\'s "Yes" like any other text', async () => {
+    await withRollback(db, async (tx) => {
+      const home = await createHome(tx, "Yes home");
+      const member = await createMember(tx, {
+        homeId: home.id,
+        phone: nextPhone(),
+      });
+
+      const result = await recordInboundMessage(context(tx), {
+        providerSid: `SM${randomUUID()}`,
+        fromPhone: member.phone,
+        toPhone: "+15550100000",
+        body: "Yes",
+      });
+
+      expect(result.queued).toBe(true);
     });
   });
 });
@@ -534,6 +588,9 @@ describe("sendMessage", () => {
         async send() {
           throw new Error("provider unavailable");
         },
+        async priceOf() {
+          return null;
+        },
       };
       const ctx = context(tx, { sms: failing });
 
@@ -590,6 +647,38 @@ describe("updateMessageStatus", () => {
     });
   });
 
+  it("never moves a text's status backwards", async () => {
+    await withRollback(db, async (tx) => {
+      const home = await createHome(tx, "Late callback home");
+      const member = await createMember(tx, {
+        homeId: home.id,
+        phone: nextPhone(),
+      });
+      const ctx = context(tx, { sms: createSimulatorProvider() });
+      const sent = await sendMessage(ctx, {
+        homeId: home.id,
+        memberId: member.id,
+        body: "Booked",
+        kind: "reply",
+      });
+      const update = (status: "sent" | "delivered" | "failed") =>
+        updateMessageStatus(ctx, { providerSid: sent.providerSid, status });
+
+      expect(await update("delivered")).toMatchObject({ applied: true });
+      // Twilio's callbacks can arrive out of order, and "delivered" is final.
+      expect(await update("sent")).toMatchObject({ applied: false });
+      expect(await update("failed")).toMatchObject({ applied: false });
+
+      const stored = one(
+        await tx
+          .select({ deliveryStatus: messages.deliveryStatus })
+          .from(messages)
+          .where(eq(messages.id, sent.messageId)),
+      );
+      expect(stored.deliveryStatus).toBe("delivered");
+    });
+  });
+
   it("fails on an unknown provider ID", async () => {
     await withRollback(db, async (tx) => {
       await expect(
@@ -637,79 +726,141 @@ describe("recordUsageCost", () => {
     });
   });
 
-  it("raises one budget alert per member per month", async () => {
+  it("leaves the budget alone: that is checkPilotBudget's job", async () => {
     await withRollback(db, async (tx) => {
       const { home, member } = await costMember(tx);
-      const ctx = context(tx);
 
-      const under = await recordUsageCost(ctx, {
+      const recorded = await recordUsageCost(context(tx), {
         kind: "claude",
-        amountUsd: "60",
+        amountUsd: "120",
         refType: "agent_run",
         refId: randomUUID(),
         memberId: member.id,
         homeId: home.id,
       });
-      expect(under).toMatchObject({ alerted: false, monthToDateUsd: 60 });
 
-      const over = await recordUsageCost(ctx, {
-        kind: "claude",
-        amountUsd: "45",
-        refType: "agent_run",
-        refId: randomUUID(),
-        memberId: member.id,
-        homeId: home.id,
-      });
-      expect(over).toMatchObject({ alerted: true, monthToDateUsd: 105 });
-
-      const again = await recordUsageCost(ctx, {
-        kind: "claude",
-        amountUsd: "10",
-        refType: "agent_run",
-        refId: randomUUID(),
-        memberId: member.id,
-        homeId: home.id,
-      });
-      expect(again.alerted).toBe(false);
-
-      const raised = await tx
-        .select({ id: alerts.id, dedupeKey: alerts.dedupeKey })
-        .from(alerts)
-        .where(eq(alerts.memberId, member.id));
-      expect(raised).toHaveLength(1);
-      expect(raised[0]?.dedupeKey).toBe(
-        `member_over_budget:${member.id}:2026-09`,
-      );
-      expect(await eventsFor(tx, "alert", raised[0]!.id)).toHaveLength(1);
+      expect(recorded.recorded).toBe(true);
+      expect(await tx.select({ id: alerts.id }).from(alerts)).toHaveLength(0);
     });
   });
+});
 
-  it("counts the month in the home's timezone", async () => {
+describe("checkPilotBudget", () => {
+  /**
+   * The pilot's budget counts every cost there is, so these start from an
+   * empty month. The delete rolls back with the rest of the test.
+   */
+  async function emptyMonth(tx: Tx) {
+    await tx.delete(usageCosts);
+    await tx.delete(alerts);
+  }
+
+  async function costMember(tx: Tx) {
+    const home = await createHome(tx, "Budget home");
+    const member = await createMember(tx, {
+      homeId: home.id,
+      phone: nextPhone(),
+    });
+    return { home, member };
+  }
+
+  async function spend(tx: Tx, memberId: string, homeId: string, usd: string) {
+    await recordUsageCost(context(tx), {
+      kind: "claude",
+      amountUsd: usd,
+      refType: "agent_run",
+      refId: randomUUID(),
+      memberId,
+      homeId,
+    });
+  }
+
+  it("tells the team once when the pilot goes over budget", async () => {
     await withRollback(db, async (tx) => {
+      await emptyMonth(tx);
       const { home, member } = await costMember(tx);
-      const ctx = context(tx);
+      const sms = createSimulatorProvider();
+      const ctx = context(tx, { sms });
+      const teamPhones = ["+15550700001", "+15550700002"];
 
-      // 1 October 02:00 UTC is still 30 September in New York.
-      const septemberLate = new Date("2026-10-01T02:00:00Z");
-      await recordUsageCost(
-        { ...ctx, now: septemberLate },
-        {
-          kind: "claude",
-          amountUsd: "120",
-          refType: "agent_run",
-          refId: randomUUID(),
-          memberId: member.id,
-          homeId: home.id,
-        },
-      );
+      await spend(tx, member.id, home.id, "60");
+      const under = await checkPilotBudget(ctx, { teamPhones });
+      expect(under).toMatchObject({ totalUsd: 60, raised: false });
+      expect(sms.sent).toHaveLength(0);
+
+      await spend(tx, member.id, home.id, "45");
+      const over = await checkPilotBudget(ctx, { teamPhones });
+      expect(over).toMatchObject({ totalUsd: 105, raised: true });
+      // One text per team number, and no member is texted.
+      expect(sms.sent.map((text) => text.to)).toEqual(teamPhones);
+      expect(sms.sent[0]?.body).toContain("over the $100 budget");
+
+      await spend(tx, member.id, home.id, "10");
+      const again = await checkPilotBudget(ctx, { teamPhones });
+      expect(again.raised).toBe(false);
+      expect(sms.sent).toHaveLength(2);
 
       const raised = one(
         await tx
-          .select({ dedupeKey: alerts.dedupeKey })
+          .select({
+            dedupeKey: alerts.dedupeKey,
+            notifiedAt: alerts.notifiedAt,
+          })
           .from(alerts)
-          .where(eq(alerts.memberId, member.id)),
+          .where(eq(alerts.kind, "pilot_over_budget")),
       );
-      expect(raised.dedupeKey).toBe(`member_over_budget:${member.id}:2026-09`);
+      expect(raised.dedupeKey).toBe("over-budget:2026-09");
+      expect(raised.notifiedAt).not.toBeNull();
+    });
+  });
+
+  it("counts the pilot's month in UTC", async () => {
+    await withRollback(db, async (tx) => {
+      await emptyMonth(tx);
+      const { home, member } = await costMember(tx);
+      // 1 October 02:00 UTC is a new month, though it is still September in
+      // New York: the pilot's budget isn't tied to one home.
+      const october = new Date("2026-10-01T02:00:00Z");
+      const ctx = { ...context(tx), now: october };
+
+      await recordUsageCost(ctx, {
+        kind: "claude",
+        amountUsd: "120",
+        refType: "agent_run",
+        refId: randomUUID(),
+        memberId: member.id,
+        homeId: home.id,
+        occurredAt: october,
+      });
+      const checked = await checkPilotBudget(ctx);
+
+      expect(checked.month).toBe("2026-10");
+      expect(checked.raised).toBe(true);
+      const raised = one(
+        await tx.select({ dedupeKey: alerts.dedupeKey }).from(alerts),
+      );
+      expect(raised.dedupeKey).toBe("over-budget:2026-10");
+    });
+  });
+
+  it("raises the alert even when no team number is configured", async () => {
+    await withRollback(db, async (tx) => {
+      await emptyMonth(tx);
+      const { home, member } = await costMember(tx);
+      const ctx = context(tx);
+
+      await spend(tx, member.id, home.id, "150");
+      const checked = await checkPilotBudget(ctx, { teamPhones: [] });
+
+      expect(checked.raised).toBe(true);
+      const raised = one(
+        await tx
+          .select({ notifiedAt: alerts.notifiedAt })
+          .from(alerts)
+          .where(eq(alerts.kind, "pilot_over_budget")),
+      );
+      // Nobody to tell yet, so it stays waiting to be notified.
+      expect(raised.notifiedAt).toBeNull();
     });
   });
 });

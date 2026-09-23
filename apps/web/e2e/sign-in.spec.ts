@@ -26,6 +26,14 @@ test("answers an uninvited number exactly as an invited one", async ({
   // pilot: the answer is the same either way.
   await expect(page.getByText("is on the invite list")).toBeVisible();
   await expect(page.getByLabel("Six-digit code")).toBeVisible();
+
+  // Narrow widths use the short form (D-057), which is the same either way too.
+  await page.setViewportSize({ width: 390, height: 844 });
+  // Exact, or it also matches the (hidden) wide sentence, which ends the same.
+  await expect(
+    page.getByText("A code is on its way.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("is on the invite list")).toBeHidden();
 });
 
 test("the code step submits itself, with no button to press", async ({
@@ -126,16 +134,15 @@ test("draws the approved page at each of the three widths", async ({
   await page.goto("/sign-in");
   const panel = page.locator("div.bg-evergreen");
   const field = page.getByLabel("Mobile number");
-  // The invite note is written twice, once in the panel and once in the form
-  // column, and exactly one of the two is ever shown.
-  const notes = page.getByText("Housemate is invite-only");
+  // The invite note lives only in the panel, so it goes wherever the panel
+  // goes: the narrow boards drop it rather than moving it (D-057).
+  const note = page.getByText("Housemate is currently invite-only");
 
   // Wide (D-036): the 600px story panel, full height.
   await expect(panel).toBeVisible();
   await expect(panel).toHaveCSS("width", "600px");
-  await expect(notes).toHaveCount(2);
-  await expect(notes.first()).toBeVisible();
-  await expect(notes.last()).toBeHidden();
+  await expect(note).toHaveCount(1);
+  await expect(note).toBeVisible();
   await expect(field).toHaveCSS("height", "40px");
 
   // A1 focuses the field on load, so evergreen is the state actually drawn
@@ -154,11 +161,10 @@ test("draws the approved page at each of the three widths", async ({
   await expect(panel).toHaveCSS("width", "400px");
   await expect(panel.locator("li")).toHaveCount(3);
 
-  // Narrow (D-056): one column, and the invite note moves out of the panel.
+  // Narrow (D-056, D-057): one column, and no invite note at all.
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(panel).toBeHidden();
-  await expect(notes.first()).toBeHidden();
-  await expect(notes.last()).toBeVisible();
+  await expect(note).toBeHidden();
   await expect(field).toHaveCSS("width", "342px"); // 390 less the 24px gutters
 });
 

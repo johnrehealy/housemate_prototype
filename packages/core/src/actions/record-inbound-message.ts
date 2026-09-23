@@ -2,7 +2,13 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { expectRow, firstRow } from "../db/rows";
 import { members, messages } from "../db/schema";
-import { enqueueJob, QUEUES } from "../queue/jobs";
+import {
+  costLookupDelaySeconds,
+  enqueueJob,
+  type InboundMessageJob,
+  type MessageCostJob,
+  QUEUES,
+} from "../queue/jobs";
 import { defineAction } from "./define-action";
 import { e164Phone } from "./shared";
 
@@ -16,16 +22,22 @@ export const recordInboundMessageInput = z.object({
     .array(z.object({ url: z.url(), contentType: z.string().min(1) }))
     .default([]),
   receivedAt: z.coerce.date().optional(),
+  /**
+   * An opt-out keyword. Twilio has already answered it (D-051), so the text is
+   * stored but never queued: nothing of ours replies to STOP or HELP.
+   */
+  optOut: z.enum(["stop", "help"]).optional(),
 });
 
 /**
- * Stores a text from a member. Texts from numbers that aren't invited are
- * stored without a home (staff-only) and don't reach the agent.
+ * Stores a text and queues it for the worker. Texts from numbers that aren't
+ * invited are stored without a home (staff-only); they're queued too, but only
+ * for D-050's invite-only reply, never for the agent.
  */
 export const recordInboundMessage = defineAction({
   name: "recordInboundMessage",
   input: recordInboundMessageInput,
-  handler: async ({ input, tx, record, now }) => {
+  handler: async ({ input, tx, ctx, record, now }) => {
     const existing = firstRow(
       await tx
         .select({
@@ -90,14 +102,29 @@ export const recordInboundMessage = defineAction({
         fromPhone: message.fromPhone,
         body: message.body,
         memberId: message.memberId,
+        ...(input.optOut ? { optOut: input.optOut } : {}),
       },
     });
 
-    if (!known) {
+    // A text costs money whoever sent it, so this is queued before the
+    // opt-out check below returns.
+    await enqueueJob(
+      tx,
+      QUEUES.messageCosts,
+      {
+        messageId: message.id,
+        providerSid: input.providerSid,
+      } satisfies MessageCostJob,
+      costLookupDelaySeconds(ctx.services.sms.name),
+    );
+
+    const homeId = known?.homeId ?? null;
+    const memberId = known?.id ?? null;
+    if (input.optOut) {
       return {
         messageId: message.id,
-        homeId: null,
-        memberId: null,
+        homeId,
+        memberId,
         duplicate: false,
         queued: false,
       };
@@ -105,14 +132,14 @@ export const recordInboundMessage = defineAction({
 
     await enqueueJob(tx, QUEUES.inboundMessages, {
       messageId: message.id,
-      homeId: known.homeId,
-      memberId: known.id,
-    });
+      homeId,
+      memberId,
+    } satisfies InboundMessageJob);
 
     return {
       messageId: message.id,
-      homeId: known.homeId,
-      memberId: known.id,
+      homeId,
+      memberId,
       duplicate: false,
       queued: true,
     };

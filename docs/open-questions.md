@@ -19,12 +19,13 @@ Everything waiting on the user is also a Linear issue in the "Checklist" project
 **21. Is D-008 approved?** D-008 keeps access codes, alarm codes, addresses and interior photos out of logs, seed data, test fixtures and commits. The user asked to discuss it further rather than approving it.
 *Default:* Follow it. It's also product invariant 6 in `CLAUDE.md`, and it's followed throughout the build. (HOU-23)
 
-**22. Is the $100 budget per member or for the whole pilot?** D-030 records $100 per member per month.
-*Default:* Per member. Cost tracking and the over-budget alert are built to that. If it means the whole pilot, only the alert threshold changes. (HOU-24)
+**23. Should Housemate's per-task browser sandbox run on Sprites?** Slice 5 gives each booking task its own browser sandbox. Fly.io Sprites are a candidate: one hardware-isolated microVM per task, checkpoints for a clean browser image, a network policy per task, and per-second billing that stops while idle. To check then: whether a new Sprite can be made from a checkpoint (the docs don't say), how long one takes to start, and how D-025's card fill from worker code and the screenshot redaction fit. One Sprite per coding task (D-059) is the same question for development, deferred until the single dev Sprite has been used.
+*Default:* Decide in the Slice 5 plan. The worker itself stays on Fly.io as D-055 says.
 
 ## Connectors
 
-As of 2026-09-21 the MCPs for Linear, Paper, Supabase, Vercel, Stripe, Twilio, Mobbin, Lucid, Google Drive and Chrome are all connected (HOU-6, HOU-8 to HOU-10, HOU-14, HOU-26, HOU-30 are closed). Two caveats:
+As of 2026-09-21 the MCPs for Linear, Paper, Supabase, Vercel, Stripe, Twilio, Mobbin, Lucid, Google Drive and Chrome are all connected (HOU-6, HOU-8 to HOU-10, HOU-14, HOU-26, HOU-30 are closed). Three caveats:
 
 - **Twilio's MCP is documentation-only.** It searches and retrieves Twilio's docs; it can't create an account, a number, a Messaging Service or a Verify service. Account setup is manual, by the user (HOU-5).
+- **The Sprites MCP isn't connected yet** (HOU-41). Until it is, nothing on the dev Sprite (D-059) can be created or changed.
 - **GitHub's MCP doesn't connect.** Its endpoint returns HTTP 400. The `gh` CLI is used instead, which is allowed by the CLAUDE.md rule that a CLI or direct API call may stand in for a missing MCP.

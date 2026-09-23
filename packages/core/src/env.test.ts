@@ -6,6 +6,7 @@ const localEnv = {
   PUBLIC_BASE_URL: "http://localhost:3000",
   DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
   SMS_PROVIDER: "simulator",
+  TWILIO_AUTH_TOKEN: "local-test-token",
 };
 
 describe("loadServerEnv", () => {
@@ -44,6 +45,12 @@ describe("loadServerEnv", () => {
   it("requires Twilio credentials when Twilio is the provider", () => {
     expect(() =>
       loadServerEnv({ ...localEnv, SMS_PROVIDER: "twilio" }),
+    ).toThrow(/TWILIO_ACCOUNT_SID/);
+  });
+
+  it("requires the webhook token even with the simulator", () => {
+    expect(() =>
+      loadServerEnv({ ...localEnv, TWILIO_AUTH_TOKEN: undefined }),
     ).toThrow(/TWILIO_AUTH_TOKEN/);
   });
 

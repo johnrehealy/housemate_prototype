@@ -81,7 +81,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except static assets and image optimization. Auth routes run
-  // through here too, so a signed-out visitor can never reach app data.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Everything except static assets, image optimization and Twilio's
+  // webhooks. Auth routes run through here too, so a signed-out visitor can
+  // never reach app data. The webhooks have no session and prove themselves
+  // with Twilio's signature instead; sent through here, they'd be redirected
+  // to sign-in, and each would pay for a Supabase auth round trip.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/twilio/).*)"],
 };

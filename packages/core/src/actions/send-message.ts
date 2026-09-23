@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { expectRow, firstRow } from "../db/rows";
-import { homes, members, messages } from "../db/schema";
+import { firstRow } from "../db/rows";
+import { homes, members } from "../db/schema";
 import {
   isWithinQuietHours,
   QUIET_HOURS_END_HOUR,
@@ -10,6 +10,7 @@ import {
 import type { ActionContext } from "./context";
 import { defineAction } from "./define-action";
 import { ActionError } from "./errors";
+import { deliver, findByIdempotencyKey, insertOutbound } from "./outbound";
 
 export const sendMessageInput = z.object({
   homeId: z.uuid(),
@@ -19,9 +20,33 @@ export const sendMessageInput = z.object({
   kind: z.enum(["reply", "proactive"]),
   conversationId: z.uuid().optional(),
   channel: z.enum(["sms", "web"]).default("sms"),
+  /** "system" for automatic texts that aren't the agent speaking. */
+  author: z.enum(["agent", "system"]).default("agent"),
+  /**
+   * Sends at most once per key (D-058). A retried job passes the same key, and
+   * finds the text it already saved instead of sending another.
+   */
+  idempotencyKey: z.string().min(1).optional(),
 });
 
 export type SendMessageInput = z.input<typeof sendMessageInput>;
+
+export type SentMessage = {
+  duplicate: false;
+  messageId: string;
+  providerSid: string;
+};
+
+/**
+ * A text already saved under the same idempotency key. Nothing was sent. Its
+ * providerSid is null if the earlier attempt never heard back from the
+ * provider; it is not resent, because a duplicate text is worse than a gap.
+ */
+export type DuplicateMessage = {
+  duplicate: true;
+  messageId: string;
+  providerSid: string | null;
+};
 
 /** Saves the outgoing text as queued. Quiet hours are enforced here, not in the prompt. */
 const queueOutboundMessage = defineAction({
@@ -54,6 +79,17 @@ const queueOutboundMessage = defineAction({
         "sendMessage: that member was removed.",
       );
     }
+
+    // Before quiet hours: a retry of a text already saved is not a new text.
+    const earlier = await findByIdempotencyKey(tx, input.idempotencyKey);
+    if (earlier) {
+      return {
+        duplicate: true as const,
+        messageId: earlier.id,
+        providerSid: earlier.providerSid,
+      };
+    }
+
     if (
       input.kind === "proactive" &&
       isWithinQuietHours(now, recipient.timezone)
@@ -64,54 +100,46 @@ const queueOutboundMessage = defineAction({
       );
     }
 
-    const message = expectRow(
-      await tx
-        .insert(messages)
-        .values({
-          homeId: input.homeId,
-          memberId: recipient.id,
-          conversationId: input.conversationId ?? null,
-          direction: "outbound",
-          channel: input.channel,
-          author: "agent",
-          outboundKind: input.kind,
-          body: input.body,
-          toPhone: recipient.phone,
-          deliveryStatus: "queued",
-          createdAt: now,
-        })
-        .returning(),
-      "the queued message",
-    );
+    const saved = await insertOutbound(tx, {
+      homeId: input.homeId,
+      memberId: recipient.id,
+      conversationId: input.conversationId ?? null,
+      direction: "outbound",
+      channel: input.channel,
+      author: input.author,
+      outboundKind: input.kind,
+      body: input.body,
+      toPhone: recipient.phone,
+      deliveryStatus: "queued",
+      idempotencyKey: input.idempotencyKey ?? null,
+      createdAt: now,
+    });
+    if (!saved.inserted) {
+      return {
+        duplicate: true as const,
+        messageId: saved.id,
+        providerSid: saved.providerSid,
+      };
+    }
 
     await record({
       entityType: "message",
-      entityId: message.id,
-      homeId: message.homeId,
+      entityId: saved.row.id,
+      homeId: saved.row.homeId,
       action: "queued",
-      after: { body: message.body, kind: input.kind, toPhone: message.toPhone },
+      after: {
+        body: saved.row.body,
+        kind: input.kind,
+        toPhone: saved.row.toPhone,
+      },
     });
 
-    return { messageId: message.id, to: recipient.phone };
-  },
-});
-
-/** Records the provider's outcome. Delivery state lives on the message row. */
-const setDeliveryResult = defineAction({
-  name: "setDeliveryResult",
-  input: z.object({
-    messageId: z.uuid(),
-    providerSid: z.string().min(1).optional(),
-    status: z.enum(["sent", "failed"]),
-  }),
-  handler: async ({ input, tx }) => {
-    await tx
-      .update(messages)
-      .set({
-        deliveryStatus: input.status,
-        ...(input.providerSid ? { providerSid: input.providerSid } : {}),
-      })
-      .where(eq(messages.id, input.messageId));
+    return {
+      duplicate: false as const,
+      messageId: saved.row.id,
+      to: recipient.phone,
+      body: input.body,
+    };
   },
 });
 
@@ -119,20 +147,21 @@ const setDeliveryResult = defineAction({
  * Sends a text to a member: saves it first, then hands it to the provider, so
  * nothing is sent that isn't recorded.
  */
-export async function sendMessage(ctx: ActionContext, input: SendMessageInput) {
-  const { messageId, to } = await queueOutboundMessage(ctx, input);
+export async function sendMessage(
+  ctx: ActionContext,
+  input: SendMessageInput & { idempotencyKey?: undefined },
+): Promise<SentMessage>;
+export async function sendMessage(
+  ctx: ActionContext,
+  input: SendMessageInput,
+): Promise<SentMessage | DuplicateMessage>;
+export async function sendMessage(
+  ctx: ActionContext,
+  input: SendMessageInput,
+): Promise<SentMessage | DuplicateMessage> {
+  const queued = await queueOutboundMessage(ctx, input);
+  if (queued.duplicate) return queued;
 
-  try {
-    const { providerSid } = await ctx.services.sms.send({
-      to,
-      body: sendMessageInput.parse(input).body,
-    });
-    await setDeliveryResult(ctx, { messageId, providerSid, status: "sent" });
-    return { messageId, providerSid };
-  } catch (error) {
-    await setDeliveryResult(ctx, { messageId, status: "failed" }).catch(
-      () => {},
-    );
-    throw error;
-  }
+  const { providerSid } = await deliver(ctx, queued);
+  return { duplicate: false, messageId: queued.messageId, providerSid };
 }

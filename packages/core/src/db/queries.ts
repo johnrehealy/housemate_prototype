@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { desc, eq, or } from "drizzle-orm";
 import type { Db } from "./client";
 import { firstRow } from "./rows";
-import { members } from "./schema";
+import { members, messages } from "./schema";
 
 /** Anything that can run a select: the connection, or an open transaction. */
 type Queryable = Pick<Db, "select">;
@@ -37,3 +37,27 @@ export async function getMemberByUserId(db: Queryable, userId: string) {
 export type MemberSummary = NonNullable<
   Awaited<ReturnType<typeof getMemberByUserId>>
 >;
+
+/**
+ * The latest texts to and from one phone number, oldest first, including texts
+ * from numbers that aren't invited. For the SMS simulator only, which is why it
+ * reads by phone rather than by home: it's how a developer watches both sides
+ * of a simulated thread.
+ */
+export async function getSmsThread(db: Queryable, phone: string, limit = 50) {
+  const latest = await db
+    .select({
+      id: messages.id,
+      direction: messages.direction,
+      body: messages.body,
+      media: messages.media,
+      deliveryStatus: messages.deliveryStatus,
+      homeId: messages.homeId,
+      createdAt: messages.createdAt,
+    })
+    .from(messages)
+    .where(or(eq(messages.fromPhone, phone), eq(messages.toPhone, phone)))
+    .orderBy(desc(messages.createdAt))
+    .limit(limit);
+  return latest.reverse();
+}

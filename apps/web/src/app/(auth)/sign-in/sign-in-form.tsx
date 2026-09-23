@@ -66,11 +66,21 @@ export function SignInForm() {
          * was sent, or to which number.
          */}
         <p id="sign-in-helper" className="text-label text-muted">
-          {phone
-            ? // Never confirms that the number is invited: the same sentence
-              // is shown whether or not it is (D-050).
-              `If ${formatUsPhone(phone)} is on the invite list, a code is on its way.`
-            : "We'll text a code to your mobile number."}
+          {phone ? (
+            // Never confirms that the number is invited: the same sentence is
+            // shown whether or not it is (D-050). Narrow widths use the short
+            // form the user chose for them (D-057). The hidden one is
+            // display:none, so a screen reader only ever reads one.
+            <>
+              <span className="lg:hidden">A code is on its way.</span>
+              <span className="hidden lg:inline">
+                If {formatUsPhone(phone)} is on the invite list, a code is on
+                its way.
+              </span>
+            </>
+          ) : (
+            "We'll text a code to your mobile number."
+          )}
         </p>
       </div>
 

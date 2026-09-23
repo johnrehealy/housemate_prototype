@@ -21,17 +21,17 @@ const ROWS = [
   {
     icon: DeviceMobile,
     title: "Text Housemate anytime",
-    body: "Your phone number is how Housemate knows you, so texting never needs a sign-in.",
+    body: "Need a plumber, a handyman, or your dry cleaning picked up? Send a message like you would to a person.",
   },
   {
     icon: Wrench,
     title: "Housemate takes it from there",
-    body: "It books, follows up and reminds you, and checks with you before anything costs money.",
+    body: "Whether it’s coordinating vendors, managing payments, or running an errand, if it’s part of running your home, Housemate can do it too.",
   },
   {
     icon: CheckCircle,
     title: "Everything shows up here",
-    body: "Your conversations, schedule and records, and a way to correct anything Housemate got wrong.",
+    body: "Appointments, records, reminders and past work all live in the app, so you always know what’s going on.",
   },
 ] as const;
 
@@ -57,11 +57,11 @@ export function StoryPanel() {
            * would suggest a structure this page doesn't have.
            */}
           <p className="max-w-[480px] text-display">
-            Your home, taken care of by text.
+            Every home needs a Housemate.
           </p>
           <p className="max-w-[420px] text-lead text-on-evergreen/74">
-            Housemate handles repairs, services, errands and reminders. This is
-            where you see what it did.
+            Repairs, services, errands and upkeep, all in one place. Tell
+            Housemate what you need and it gets to work.
           </p>
         </div>
 
@@ -93,8 +93,7 @@ export function StoryPanel() {
       </div>
 
       <p className="max-w-[420px] text-xs text-on-evergreen/62">
-        Housemate is invite-only while we try it out with a small group of
-        homes.
+        Housemate is currently invite-only
       </p>
     </div>
   );

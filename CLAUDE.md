@@ -36,6 +36,7 @@ These hold regardless of channel or provider. Changing one requires an approved 
 | Payments | Stripe (single-use Issuing cards, D-025) |
 | Agent | Claude (`claude-opus-5`) via the Anthropic TypeScript SDK |
 | Agent worker hosting | Container host (proposed: Fly.io) |
+| Coding-agent environment | Fly.io Sprite `mcp-housemate-dev` (D-059) |
 | Code | GitHub |
 | Backlog | Linear |
 | High-fidelity design | Paper desktop, through its MCP. Mockups are built and approved there (D-034); written specs live in `docs/design.md` |
@@ -60,6 +61,7 @@ TypeScript throughout (D-026): Next.js (App Router) on Vercel for the web app an
 | `pnpm db:reset` | Rebuild the local database from migrations. Outside the sandbox. |
 | `pnpm db:generate` | Generate a migration from the Drizzle schema |
 | `pnpm db:seed` | Fill the local database with obviously fake data |
+| `pnpm sms "text"` | Text Housemate through the local SMS simulator, as the seeded member or `--from` any number. Needs the web app running. The page is `/dev/sms`. |
 
 Run TypeScript entry points with `node --import tsx/esm <file>`, not the `tsx` command; see `tasks/lessons.md`.
 
@@ -67,7 +69,7 @@ Run TypeScript entry points with `node --import tsx/esm <file>`, not the `tsx` c
 
 This section governs how Claude operates on external services, not how the app integrates with them. App code calls provider APIs through their SDKs as normal.
 
-- **Remote changes go through MCP.** Create, update, or delete resources in Twilio, remote Supabase projects, Vercel, Stripe, Linear, or GitHub only through that service's MCP. If the MCP is missing or lacks the operation, try the CLI or direct API call, if that fails stop and ask. Don't fall back to the browser.
+- **Remote changes go through MCP.** Create, update, or delete resources in Twilio, remote Supabase projects, Vercel, Stripe, Linear, GitHub, or Fly.io Sprites only through that service's MCP. If the MCP is missing or lacks the operation, try the CLI or direct API call, if that fails stop and ask. Don't fall back to the browser.
 - **Local work uses native tools.** Editing files, running tests, the local Supabase stack, local dev servers, and local git are all fine.
 - **Deploys go through git.** Vercel deploys from GitHub. No CLI deploys.
 - **Uncertain writes.** If an MCP write's result is unclear, inspect the resource through MCP before retrying. If it's still unknown, stop and report it rather than risk a duplicate.
@@ -75,6 +77,17 @@ This section governs how Claude operates on external services, not how the app i
 - **Sandbox (D-032).** Shell commands run in Claude Code's sandbox, configured in `.claude/settings.json`.
   - Add a network domain or write path only when a task needs it, and say so when you do.
   - Docker and Supabase CLI commands need the Docker socket, so run them outside the sandbox one at a time, each through the permission check.
+
+## The dev Sprite
+
+Coding agents can also work on a Fly.io Sprite, `mcp-housemate-dev` (D-059): a persistent Linux VM with Claude Code, the repo at `~/housemate`, and local Supabase.
+
+- **Open it:** `sprite console -s mcp-housemate-dev`, then `cd ~/housemate && claude`. Detach with `Ctrl+\`.
+- **It only sees what's pushed.** Start each task on its own branch from GitHub, push it, and open a PR. The Mac and the Sprite never work on the same branch at the same time.
+- **Outbound traffic is an allowlist,** `scripts/sprite/network-policy.json`, applied through the Sprites MCP. A lookup refused on the Sprite means the host isn't on it: add the host to the file and reapply, rather than working around it.
+- **Only generated data.** Staging and production credentials never go on the Sprite.
+- **Hold it awake for unattended work.** A Sprite sleeps when idle, and console sessions stop with it. Before leaving an agent running: `curl --unix-socket /.sprite/api.sock -H "Content-Type: application/json" -X POST http://sprite/v1/tasks -d '{"name":"agent","expire":"2h"}'`.
+- **Setup and reset:** `scripts/sprite/bootstrap.sh` sets it up and is safe to rerun. A broken box goes back to the `base` checkpoint.
 
 ## How to work
 
@@ -117,8 +130,9 @@ In plans and summaries, label what is **evidence** (observed or tested), **assum
 
 - **The project docs are mirrored in Linear (D-038)**, as documents in the Linear project "Key Docs". `docs/linear-docs.json` lists each mirrored file, its Linear document, and the version last copied. The repo file is the source of truth.
 - **Copy every change in the same turn.** When a mirrored file changes, however it changed, save the whole file to its document with the Linear MCP's `save_document`, under a first line saying which repo file it mirrors. Then run `scripts/linear-docs.sh mark <path> <id> <url> <updatedAt>`.
-- **Before finishing a turn that touched docs,** run `scripts/linear-docs.sh check`. It lists every copy that's out of date.
-- **Don't overwrite the user's edits.** Before saving, compare the document's `updatedAt` with the manifest's `linearUpdatedAt`. Linear bumps `updatedAt` a few seconds after each save, so record the value from a `get_document` after saving. If Linear's is more than a minute newer, read the copy and compare it with the repo file: the user may have edited it there, and opening a document can also bump the timestamp on its own. Copy any real edit into the repo file first. Linear rewrites some markdown (`*` bullets, extra blank lines), so carry the edit over by hand rather than replacing the file. Check the whole project for such edits at the start of each session too.
+- **The procedure is the `mirror-docs` skill**, and the copying is delegated to the `linear-doc-mirror` subagent, which follows it on Sonnet. Copying tens of kilobytes of markdown through the main conversation spends context on text it just wrote, and on a long session it is what runs the rate limit down. Spawn the subagent whenever `check` reports a stale copy; do the copying inline only if it's unavailable. It reports any file it held back because the user may have edited it in Linear — carrying that edit into the repo is the main conversation's job.
+- **Before finishing a turn that touched docs,** run `scripts/linear-docs.sh check`. It lists every copy that's out of date. This is the main conversation's check, not the subagent's: the turn isn't finished until it's clean.
+- **Don't overwrite the user's edits.** Before saving, compare the document's `updatedAt` with the manifest's `linearUpdatedAt`. Linear bumps `updatedAt` a few seconds after each save, and the value in the `save_document` response is close enough to record. If Linear's is more than a minute newer, read the copy and compare it with the repo file: the user may have edited it there, and opening a document can also bump the timestamp on its own. Copy any real edit into the repo file first. Linear rewrites some markdown (`*` bullets, extra blank lines), so carry the edit over by hand rather than replacing the file. Check the whole project for such edits at the start of each session too.
 - **To mirror a new file,** add it to `docs/linear-docs.json` with a title.
 
 ### Subagents

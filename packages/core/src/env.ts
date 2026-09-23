@@ -30,7 +30,6 @@ const optionalString = z
 
 const TWILIO_KEYS = [
   "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
   "TWILIO_MESSAGING_SERVICE_SID",
 ] as const;
 
@@ -41,7 +40,14 @@ export const serverEnvSchema = z
     DATABASE_URL: z.url(),
     SMS_PROVIDER: z.enum(["simulator", "twilio"]),
     TWILIO_ACCOUNT_SID: optionalString,
-    TWILIO_AUTH_TOKEN: optionalString,
+    /**
+     * Required everywhere: the Twilio webhooks check every request against it,
+     * and the simulator signs with it. Locally it's a fake value.
+     */
+    TWILIO_AUTH_TOKEN: z
+      .string({ error: "Required: the Twilio webhooks are checked against it" })
+      .trim()
+      .min(1, "Required: the Twilio webhooks are checked against it"),
     TWILIO_MESSAGING_SERVICE_SID: optionalString,
     TWILIO_PHONE_NUMBER: optionalString.pipe(e164Phone.optional()),
     /** Supabase project URL and secret key, used to create sign-in accounts. */

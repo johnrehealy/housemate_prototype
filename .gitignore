@@ -31,3 +31,6 @@ supabase/.branches/
 
 # OS
 .DS_Store
+
+# Git worktrees for parallel sessions; the parent directory is not writable here
+.worktrees/
