@@ -11,6 +11,7 @@ export { mapDbError } from "./db-errors";
 export { activateMember, activateMemberInput } from "./activate-member";
 export type { ActivateMemberInput } from "./activate-member";
 export { inviteMember, inviteMemberInput } from "./invite-member";
+export { joinWaitlist, joinWaitlistInput } from "./join-waitlist";
 export type { InviteMemberInput } from "./invite-member";
 export {
   recordInboundMessage,

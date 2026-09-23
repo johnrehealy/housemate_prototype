@@ -22,6 +22,20 @@
       "when": 1789514706610,
       "tag": "20260915232506_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790120053426,
+      "tag": "20260922233413_waitlist_signups",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790120100000,
+      "tag": "20260922233500_waitlist_security",
+      "breakpoints": true
     }
   ]
 }

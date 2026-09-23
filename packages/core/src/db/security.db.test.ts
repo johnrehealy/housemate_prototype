@@ -10,6 +10,7 @@ import {
   members,
   messages,
   usageCosts,
+  waitlistSignups,
 } from "./schema";
 import {
   actAs,
@@ -122,7 +123,13 @@ describe("row-level security", () => {
       await twoHomes(tx);
       await actAsAnon(tx);
 
-      for (const table of [homes, members, conversations, messages]) {
+      for (const table of [
+        homes,
+        members,
+        conversations,
+        messages,
+        waitlistSignups,
+      ]) {
         await expectDbError(
           tx,
           (sp) => sp.select().from(table),
@@ -215,6 +222,36 @@ describe("row-level security", () => {
       );
       expect(costIds).toContain(cost.id);
       expect(alertIds).toContain(alert.id);
+    });
+  });
+
+  it("keeps the waitlist staff-only", async () => {
+    await withRollback(db, async (tx) => {
+      const { alice } = await twoHomes(tx);
+      const staff = await createMember(tx, {
+        homeId: null,
+        phone: nextPhone(),
+        role: "staff",
+      });
+      const signup = one(
+        await tx
+          .insert(waitlistSignups)
+          .values({ email: `someone-${randomUUID()}@example.com` })
+          .returning(),
+      );
+
+      // A waitlist address belongs to someone who isn't a member and has no
+      // home, so there is no member who should ever see one.
+      await tx.transaction(async (sp) => {
+        await actAs(sp, alice.userId);
+        expect(await sp.select().from(waitlistSignups)).toEqual([]);
+      });
+
+      await actAs(tx, staff.userId);
+      const ids = (
+        await tx.select({ id: waitlistSignups.id }).from(waitlistSignups)
+      ).map((row) => row.id);
+      expect(ids).toContain(signup.id);
     });
   });
 

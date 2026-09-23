@@ -9,6 +9,7 @@ import {
   members,
   messages,
   usageCosts,
+  waitlistSignups,
 } from "../db/schema";
 import {
   createHome,
@@ -23,6 +24,7 @@ import { activateMember } from "./activate-member";
 import type { ActionContext, AuthAdmin } from "./context";
 import { ActionError } from "./errors";
 import { inviteMember } from "./invite-member";
+import { joinWaitlist } from "./join-waitlist";
 import { recordInboundMessage } from "./record-inbound-message";
 import { recordUsageCost } from "./record-usage-cost";
 import { sendMessage } from "./send-message";
@@ -710,6 +712,90 @@ describe("recordUsageCost", () => {
           .where(eq(alerts.memberId, member.id)),
       );
       expect(raised.dedupeKey).toBe(`member_over_budget:${member.id}:2026-09`);
+    });
+  });
+});
+
+describe("joinWaitlist", () => {
+  const address = () => `Someone.${randomUUID()}@Example.COM`;
+
+  it("stores the address, lowercased, and records it", async () => {
+    await withRollback(db, async (tx) => {
+      const typed = address();
+
+      const result = await joinWaitlist(context(tx), { email: typed });
+
+      expect(result).toMatchObject({ joined: true });
+      const stored = one(
+        await tx
+          .select()
+          .from(waitlistSignups)
+          .where(eq(waitlistSignups.id, result.signupId!)),
+      );
+      // One address is one row however it was typed, so the comparison the
+      // unique index does has to be against a normalized value.
+      expect(stored.email).toBe(typed.trim().toLowerCase());
+      expect(stored.createdAt).toEqual(AFTERNOON);
+
+      const events = await eventsFor(tx, "waitlist_signup", result.signupId!);
+      expect(events).toEqual([
+        {
+          action: "joined",
+          actorType: "system",
+          sourceType: "system",
+          homeId: null,
+        },
+      ]);
+    });
+  });
+
+  it("treats joining twice as a no-op, whatever the casing", async () => {
+    await withRollback(db, async (tx) => {
+      const typed = address();
+      const first = await joinWaitlist(context(tx), { email: typed });
+
+      const second = await joinWaitlist(context(tx), {
+        email: `  ${typed.toUpperCase()}  `,
+      });
+
+      // No error and no second row: the page says the same thing either way,
+      // which is also what stops it being used to test whether an address is
+      // already on the list.
+      expect(second).toEqual({ joined: false });
+      const rows = await tx
+        .select({ id: waitlistSignups.id })
+        .from(waitlistSignups)
+        .where(eq(waitlistSignups.email, typed.trim().toLowerCase()));
+      expect(rows).toEqual([{ id: first.signupId }]);
+    });
+  });
+
+  it("refuses something that isn't an address", async () => {
+    await withRollback(db, async (tx) => {
+      const before = await tx
+        .select({ id: waitlistSignups.id })
+        .from(waitlistSignups);
+
+      for (const bad of [
+        "",
+        "someone",
+        "someone@",
+        "someone@example",
+        "a b@example.com",
+      ]) {
+        await expect(
+          joinWaitlist(context(tx), { email: bad }),
+          bad,
+        ).rejects.toBeInstanceOf(ActionError);
+      }
+
+      // Counted rather than compared against an empty table: a developer's
+      // local database has whatever they typed into the page themselves, and
+      // this test is about what the refusals didn't add.
+      const after = await tx
+        .select({ id: waitlistSignups.id })
+        .from(waitlistSignups);
+      expect(after).toHaveLength(before.length);
     });
   });
 });

@@ -255,3 +255,24 @@ export const alerts = pgTable("alerts", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   createdAt: createdAt(),
 }).enableRLS();
+
+/**
+ * Addresses collected by the landing page's waitlist (D-061). Nobody here is a
+ * member: a signup is a stranger asking to be told when there's room, so the
+ * row has no home, no member and nothing else about them.
+ */
+export const waitlistSignups = pgTable(
+  "waitlist_signups",
+  {
+    id: id(),
+    /** Lowercased and trimmed by the action, so one address is one row. */
+    email: text("email").notNull().unique(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    check(
+      "waitlist_signups_email",
+      sql`${table.email} ~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'`,
+    ),
+  ],
+).enableRLS();
