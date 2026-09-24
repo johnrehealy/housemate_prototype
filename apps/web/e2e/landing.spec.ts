@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 /**
  * The landing page. These start signed out; see playwright.config.ts, where
@@ -263,4 +263,156 @@ test("has nothing to scroll sideways at 390", async ({ page }) => {
       document.documentElement.clientWidth,
   );
   expect(overflows).toBe(false);
+});
+
+/*
+ * P1's demo video. Playwright's Chromium can't decode HEVC, so here it falls
+ * back to the H.264 file — which also shows the fallback works.
+ */
+
+/** Both cuts of the demo video; the breakpoint shows one and hides the other. */
+function demoCuts(page: Page) {
+  const panel = page.locator("#built");
+  return {
+    film: panel.locator('video:has(source[src$="/film-h264.mp4"])'),
+    phone: panel.locator('video:has(source[src$="/phone-h264.mp4"])'),
+  };
+}
+
+function playback(video: Locator) {
+  return video.evaluate((v: HTMLVideoElement) => ({
+    playing: !v.paused,
+    muted: v.muted,
+    file: v.currentSrc.split("/").pop(),
+  }));
+}
+
+/** Every demo file the page asks for, videos and posters, from here on. */
+function videoRequests(page: Page) {
+  const files: string[] = [];
+  page.on("request", (request) => {
+    const { pathname } = new URL(request.url());
+    if (pathname.startsWith("/site/demo/"))
+      files.push(pathname.split("/").pop()!);
+  });
+  return files;
+}
+
+const videos = (files: string[]) => files.filter((f) => f.endsWith(".mp4"));
+
+/** Lets an IntersectionObserver deliver what the last scroll changed. */
+async function settle(page: Page) {
+  await page.evaluate(
+    () =>
+      new Promise((done) =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => setTimeout(done)),
+        ),
+      ),
+  );
+}
+
+test("the demo video waits for its panel, then plays the film muted", async ({
+  page,
+}) => {
+  const requested = videoRequests(page);
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const { film, phone } = demoCuts(page);
+  await expect(film).toBeVisible();
+  await expect(phone).toBeHidden();
+  // A visitor who never reaches P1 never downloads it.
+  expect(videos(requested)).toEqual([]);
+
+  // A glimpse of the frame isn't enough: it waits for a quarter of it.
+  await film.evaluate((video) => {
+    const frame = video.parentElement!.getBoundingClientRect();
+    window.scrollBy(0, frame.top - window.innerHeight + frame.height * 0.1);
+  });
+  await settle(page);
+  expect((await playback(film)).playing).toBe(false);
+  expect(videos(requested)).toEqual([]);
+
+  await film.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => playback(film))
+    .toEqual({ playing: true, muted: true, file: "film-h264.mp4" });
+  expect(requested).toContain("film-poster.jpg");
+  // The phone cut, hidden at this width, is never fetched, poster included.
+  expect(requested.every((file) => file.startsWith("film-"))).toBe(true);
+});
+
+test("the demo video's controls pause it and turn the sound on", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const { film } = demoCuts(page);
+  await film.scrollIntoViewIfNeeded();
+  await expect.poll(async () => (await playback(film)).playing).toBe(true);
+
+  await page.getByRole("button", { name: "Pause the video" }).click();
+  await expect(
+    page.getByRole("button", { name: "Play the video" }),
+  ).toBeVisible();
+  expect((await playback(film)).playing).toBe(false);
+
+  // Scrolling away and back doesn't overrule the visitor's pause.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await settle(page);
+  await film.scrollIntoViewIfNeeded();
+  await settle(page);
+  expect((await playback(film)).playing).toBe(false);
+
+  await page.getByRole("button", { name: "Play the video" }).click();
+  await expect.poll(async () => (await playback(film)).playing).toBe(true);
+
+  await page.getByRole("button", { name: "Turn the sound on" }).click();
+  await expect(
+    page.getByRole("button", { name: "Turn the sound off" }),
+  ).toBeVisible();
+  expect((await playback(film)).muted).toBe(false);
+
+  // Scrolled away, it stops, so the music never plays off screen.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(async () => (await playback(film)).playing).toBe(false);
+});
+
+test("below md the phone cut plays instead", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const requested = videoRequests(page);
+  await page.goto("/");
+  const { film, phone } = demoCuts(page);
+  await expect(phone).toBeVisible();
+  await expect(film).toBeHidden();
+
+  await phone.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => playback(phone))
+    .toEqual({ playing: true, muted: true, file: "phone-h264.mp4" });
+  expect(requested.every((file) => file.startsWith("phone-"))).toBe(true);
+});
+
+test("under reduced motion the demo video waits for Play", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const requested = videoRequests(page);
+  await page.goto("/");
+  const { film } = demoCuts(page);
+  await film.scrollIntoViewIfNeeded();
+  await settle(page);
+  expect((await playback(film)).playing).toBe(false);
+  expect(videos(requested)).toEqual([]);
+  // The frame shows the poster instead.
+  await expect(film).toHaveAttribute("poster", "/site/demo/film-poster.jpg");
+
+  await page.getByRole("button", { name: "Play the video" }).click();
+  await expect.poll(async () => (await playback(film)).playing).toBe(true);
+});
+
+test("the demo video tells its story in words too", async ({ page }) => {
+  await page.goto("/");
+  const { film } = demoCuts(page);
+  await expect(film).toHaveAccessibleName("Housemate demo video");
+  await expect(film).toHaveAccessibleDescription(
+    /Just text your Housemate\..*So you always stay in control\./,
+  );
 });
