@@ -101,8 +101,8 @@
   --text-hero-narrow: min(32px, 8.5vw);
   --text-close: 52px;
   --text-close-narrow: 34px;
-  --text-panel: 32px;
-  --text-panel-narrow: 26px;
+  --text-panel: 40px;
+  --text-panel-narrow: 28px;
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-bold: 700;
@@ -157,8 +157,8 @@
   --text-close-narrow--line-height: 42px;
   --text-close-narrow--letter-spacing: -0.01em;
   --text-close-narrow--font-weight: 400;
-  --text-panel--line-height: 40px;
-  --text-panel--letter-spacing: -0.01em;
+  --text-panel--line-height: 46px;
+  --text-panel--letter-spacing: -0.015em;
   --text-panel--font-weight: 400;
   --text-panel-narrow--line-height: 34px;
   --text-panel-narrow--letter-spacing: -0.01em;
@@ -201,6 +201,16 @@
   /* Elevation, from docs/design.md §1 Metrics (not in the token register) */
   --shadow-selected: 0 1px 2px rgba(20, 52, 47, 0.05);
   --shadow-composer: 0 1px 3px rgba(20, 52, 47, 0.05);
+
+  /*
+   * The landing page's two depths (round-4 boards). Float is what a visual
+   * sits on; lift is the one thing in it that is being pointed at, so it is
+   * closer and darker. Nothing else uses them.
+   */
+  --shadow-float:
+    0 40px 80px -32px rgba(20, 52, 47, 0.22), 0 2px 8px rgba(20, 52, 47, 0.05);
+  --shadow-lift:
+    0 28px 56px -14px rgba(20, 52, 47, 0.34), 0 4px 12px rgba(20, 52, 47, 0.08);
 }
 
 @theme inline {
@@ -327,7 +337,7 @@
 
 /* The same arrival without the move, for reduced motion. Whether the button is
  * there is about where you are on the page, not about motion, so it still
- * waits for P1; it just doesn't rise. */
+ * waits for the hero to leave; it just doesn't rise. */
 @keyframes hm-ribbon-late-still {
   from {
     visibility: hidden;
@@ -339,6 +349,19 @@
   to {
     visibility: visible;
     opacity: 1;
+  }
+}
+
+/* The button leaving again as the close arrives. No move: it is making way
+ * for the close's own button, not going anywhere. */
+@keyframes hm-ribbon-leave {
+  from {
+    visibility: visible;
+    opacity: 1;
+  }
+  to {
+    visibility: hidden;
+    opacity: 0;
   }
 }
 
@@ -356,40 +379,50 @@
 }
 
 @supports (animation-timeline: view()) {
-  /* A · the ribbon's waitlist button arrives once P1 is fully on screen.
+  /* A · the ribbon's waitlist button, only while no other ask is on screen.
    *
-   * The user's rule: the button isn't in the bar while any of the hero's own
-   * call to action could be, only once the page is fully on the first panel.
-   * P1 publishes a view timeline, with its top edge inset by the bar so "fully
-   * on" means fully below the bar. `timeline-scope` on the site wrapper lets the
-   * ribbon, which isn't inside P1, see it.
+   * The user's rule: the page never pushes the same action twice on one
+   * screen. The hero carries the waitlist and so does the close, so the
+   * button shows only between them — once the hero has fully left, and until
+   * the close starts to arrive. Both sections publish a view timeline, inset
+   * by the bar so "left" means gone under it, and `timeline-scope` on the site
+   * wrapper lets the ribbon, which is in neither, see them.
    *
-   * The fade ends exactly at "fully on" rather than starting there, because
-   * "Learn more" lands P1 at precisely that point (its `scroll-margin-top` is
-   * the bar), and a fade that started there would leave the button missing
-   * after the jump. It covers the last 48px of scroll before P1 settles.
+   * The arrival ends exactly as the hero's last pixel goes, rather than
+   * starting there, because "Learn more" lands P1 at precisely that point (its
+   * `scroll-margin-top` is the bar), and a fade that started there would leave
+   * the button missing after the jump. It covers the last 48px of the hero.
    *
-   * A browser with scroll timelines but no `timeline-scope` finds no timeline
-   * by that name, so the animation never applies and the button simply shows,
-   * as it does in Firefox. */
+   * The leaving animation fills forwards only, so before the close is near it
+   * has no effect and the arrival's value stands. After, being later in the
+   * list, it wins. */
   .hm-site {
-    timeline-scope: --hm-first-panel;
+    timeline-scope: --hm-hero, --hm-close;
   }
 
-  .hm-first-panel {
-    view-timeline: --hm-first-panel block;
+  .hm-hero {
+    view-timeline: --hm-hero block;
+    view-timeline-inset: var(--spacing-bar) 0;
+  }
+
+  .hm-close {
+    view-timeline: --hm-close block;
     view-timeline-inset: var(--spacing-bar) 0;
   }
 
   .hm-ribbon-late {
-    animation: hm-ribbon-late linear both;
-    animation-timeline: --hm-first-panel;
-    animation-range: entry calc(100% - 48px) entry 100%;
+    animation:
+      hm-ribbon-late linear both,
+      hm-ribbon-leave linear forwards;
+    animation-timeline: --hm-hero, --hm-close;
+    animation-range:
+      exit calc(100% - 48px) exit 100%,
+      entry 0% entry 48px;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hm-ribbon-late {
-      animation-name: hm-ribbon-late-still;
+      animation-name: hm-ribbon-late-still, hm-ribbon-leave;
     }
   }
 
@@ -417,7 +450,7 @@
 
     /* C · the thread fills. One bubble after another as the phone comes in.
      *
-     * The ranges are in `entry`, not `cover`: the phone is 680px tall, so its
+     * The ranges are in `entry`, not `cover`: the phone is 700px tall, so its
      * cover range is most of a screen of scrolling and the last bubble would
      * still be arriving once the panel had settled. In `entry` the whole
      * thread is filled by the time the phone is fully on screen. */
@@ -477,6 +510,16 @@
       animation-timeline: scroll();
       animation-range: 0 120px;
     }
+  }
+}
+
+/* Without scroll timelines or `timeline-scope`, the button's animations find
+ * nothing to run on and it would sit in the bar over the hero, beside the
+ * hero's own ask. Leaving it out is the lesser loss: the hero and the close
+ * still carry the waitlist, and this is only a shortcut to it. */
+@supports not ((animation-timeline: view()) and (timeline-scope: none)) {
+  .hm-ribbon-late {
+    display: none;
   }
 }
 

@@ -32,6 +32,14 @@ export const HERO = {
   learnMore: "Learn more",
 } as const;
 
+/*
+ * `column` and `measure` are the round-4 boards' widths, in px, for the copy
+ * beside a visual on a wide screen: the column sets where the visual starts,
+ * and the measure is how wide the heading and body run, which on some boards
+ * is a little wider than the column so the copy breaks into full lines. A
+ * centred panel has only a measure. `bleed` runs the visual to the edge of the
+ * page (P4's photograph).
+ */
 export const PANELS = [
   {
     id: "built",
@@ -39,6 +47,7 @@ export const PANELS = [
     body: "Tell your Housemate what needs doing and it handles the rest, from scheduling the HVAC tune-up to dropping off your dry-cleaning. See what Housemate can do for you.",
     ground: "canvas",
     layout: "centered",
+    measure: 720,
   },
   {
     id: "familiar",
@@ -46,6 +55,8 @@ export const PANELS = [
     body: "Communicate with your Housemate the way you would anyone else. Send a request over text, share a photo of the leak, or send a voice note about that weird noise.",
     ground: "nav",
     layout: "visual-first",
+    column: 493,
+    measure: 493,
   },
   {
     id: "equipped",
@@ -53,6 +64,8 @@ export const PANELS = [
     body: "Every Housemate runs on its own secure computer in the cloud, with a full browser it uses to get real work done. Hand off a task and it can compare quotes, book appointments and chase down that contractor who hasn't called you back, without you having to hold its hand.",
     ground: "canvas",
     layout: "copy-first",
+    column: 460,
+    measure: 504,
   },
   {
     id: "people",
@@ -60,6 +73,9 @@ export const PANELS = [
     body: "Some jobs need more than a browser. Housemate's local team handles the physical stuff, like dropping off a package return, or meeting a contractor at your door while you're at work. Your AI plans it and your team gets it done.",
     ground: "nav",
     layout: "visual-first",
+    column: 460,
+    measure: 460,
+    bleed: true,
   },
   {
     id: "control",
@@ -67,6 +83,8 @@ export const PANELS = [
     body: "Approve anything that matters before it happens, like booking a service, sending a message on your behalf, or spending money. Everything Housemate has done, and everything it's planning to do, lives in one clear timeline in the app. Nothing happens without your say-so.",
     ground: "canvas",
     layout: "copy-first",
+    column: 460,
+    measure: 523,
   },
   {
     id: "private",
@@ -74,6 +92,8 @@ export const PANELS = [
     body: "Your logins go into a secure credential store Housemate can't see, and purchases use a one-time card number so your real card stays private. Housemate never sells your data, never takes referral fees to steer your choices, and never shows you ads.",
     ground: "nav",
     layout: "visual-first",
+    column: 460,
+    measure: 481,
   },
 ] as const;
 
