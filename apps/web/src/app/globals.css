@@ -91,7 +91,7 @@
    *
    * The hero is sized to fit its longest rotating phrase (board H4 r3, option
    * A), not set at one size. From md up the phrase stays on one line, and
-   * 4.35vw keeps "someone to keep track of maintenance." inside the content
+   * 4.35vw keeps "someone to keep track of maintenance" inside the content
    * width at every window from 768 up: 63px at 1440, 56px at 1280, 45px at
    * 1024, never past the approved 70px. Below md every phrase fits two lines
    * at 32px, so long as the column is at least 303px wide; 8.5vw shrinks it
@@ -100,7 +100,9 @@
   --text-hero: min(70px, 4.35vw);
   --text-hero-narrow: min(32px, 8.5vw);
   --text-close: 52px;
-  --text-close-narrow: 34px;
+  /* On phones narrower than ~380px, 9vw keeps "Every home deserves" on the
+   * close's first line; at 34px it breaks at 320. */
+  --text-close-narrow: min(34px, 9vw);
   --text-panel: 40px;
   --text-panel-narrow: 28px;
   --font-weight-light: 300;
