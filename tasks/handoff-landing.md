@@ -8,16 +8,22 @@ conflict. The landing work keeps its own file instead. Fold this into
 `tasks/handoff.md` once slice 0 has rebased onto `main`.
 
 Two lessons below (the blank full-page captures, and `cover` ranges that never
-finish) belong in `tasks/lessons.md`, and so does a third: **reproduce a failed
+finish) belong in `tasks/lessons.md`, and so do two more: **reproduce a failed
 build before diagnosing it** — an error code alone produced a wrong diagnosis here
-(see "Going live"). They are held here for the same reason: that file is mirrored
-and the other session appends to it too.
+(see "Going live") — and **this theme resets Tailwind's colour and radius
+scales** (`--color-*: initial`, `--radius-*: initial` in `globals.css`), so
+`text-white`, `rounded-2xl` or `rounded-3xl` compile to nothing, with no build or
+lint error: round 4 shipped white-less bubbles and square cards until a capture
+showed them. Use tokens or arbitrary values, and look at a render. They are held
+here for the same reason: that file is mirrored and the other session appends to
+it too.
 
 ## Where things stand
 
 **The page is live at `https://myhousemate.co`.** DNS points at Vercel, and TLS
-is issued (HOU-49, closed). Tracked as HOU-46; going live as HOU-61, which stays
-open until the Supabase sign-up setting and the waitlist check are done.
+is issued (HOU-49, closed). Tracked as HOU-46; going live was HOU-61, closed
+2026-09-23: sign-ups are off, and the user's own live waitlist sign-up stored its
+row and its `activity_events` entry (checked read-only on production).
 
 - [PR #1](https://github.com/johnrehealy/housemate_prototype/pull/1) (slice 0's
   sign-in and app shell) merged as `acce099`, then
@@ -28,6 +34,13 @@ open until the Supabase sign-up setting and the waitlist check are done.
   `dpl_5uToRFEB5jcvVVGgSKyw3mx94gcR`, is **READY** and aliased to
   `myhousemate.co` and `www.myhousemate.co`. It is the first build with all five
   secrets, and production's title reads "Housemate" (checked at the edge).
+- [PR #4](https://github.com/johnrehealy/housemate_prototype/pull/4) (ribbon
+  order, ribbon timing, the H4 r3 rotation) merged as `7116d6b`. Its production
+  deploy, `dpl_7Pzc5yivUVskwwmXfchtXgvm2dQb`, is **READY** and aliased to both
+  domains. Checked live in headless Chromium, with and without reduced motion:
+  the six phrases, "Sign in" last, the ribbon button hidden at 0 and 200px and
+  shown after "Learn more", every phrase fitting at 390/768/1024/1440, h1
+  62.64px at 1440. No form was submitted.
 - Production database: schema applied and verified.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
@@ -37,41 +50,47 @@ exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Worktree `.worktrees/landing`, on **`site/landing-ribbon-rotation`**, branched
-from `main` @ `05ecd06` (PR #3, the title fix, is merged). **Uncommitted, not
-pushed** — the user's 2026-09-23 feedback, items 1 and 2:
+Worktree `.worktrees/landing`, on **`site/landing-round-4`**, branched from
+`main` @ `7116d6b`. **Round 4 is complete, verified and being shipped** — the
+user's ten notes of 2026-09-24, and the round-4 boards, which the user edited
+directly in Paper and then approved with the **evergreen hero** and the new P3
+wording (HOU-67).
 
-- `ribbon.tsx` — "Join the waitlist" now comes before "Sign in", so "Sign in"
-  holds the bar's right edge. The hidden button keeps its space, and with "Sign
-  in" first that space sat outside it, which is why it looked like it hovered.
-  At rest this now matches board H3.
-- `globals.css`, `panel.tsx`, `page.tsx`, `(site)/layout.tsx` — the ribbon's
-  waitlist button waits until P1 is fully on screen. P1 (`.hm-first-panel`)
-  publishes a view timeline `--hm-first-panel`, inset by the bar;
-  `timeline-scope` on `.hm-site` lets the ribbon see it. The fade covers the
-  last 48px before `entry 100%`, so "Learn more" (which lands P1 exactly there)
-  arrives with the button present. Reduced motion keeps the timing and drops the
-  8px rise (`hm-ribbon-late-still`).
-- `copy.ts`, `hero.tsx`, `globals.css` — item 3, the rotation (HOU-62, decided:
-  option A, 2s hold unchanged). New phrases in `HERO.phrases`. `--text-hero` is
-  `min(70px, 4.35vw)` (one line from md up: 63px at 1440, 45px at 1024) and
-  `--text-hero-narrow` is `min(32px, 8.5vw)` (two lines below md). The slot is
-  `h-[2lh] md:h-[1lh]`, the phrases `md:whitespace-nowrap`, and the hero's
-  600px column is gone because the longest phrase needs the full width.
-- `landing.spec.ts` — the ribbon test, run with and without reduced motion:
-  hidden at 0 and at 200px, visible after "Learn more", "Sign in" last. And a
-  fit test: every phrase inside its slot at ten widths from 320 to 1920. 12/12
-  pass against a production build on :3002.
-- This file.
+- **Item 2, the ribbon's guardrail.** The user's rule: never push the same
+  action twice on one screen. The ribbon's "Join the waitlist" shows only
+  between the hero and the close: it arrives over the hero's last 48px
+  (`--hm-hero`, `exit calc(100% - 48px)` to `exit 100%`) and leaves as the
+  close arrives (`--hm-close`, `entry 0%` to `entry 48px`, `hm-ribbon-leave`,
+  fill forwards so it only applies once reached). `timeline-scope` names both.
+  Without scroll timelines or `timeline-scope` (Firefox) the button is not
+  shown at all.
+- **Item 7, the 70% line rule.** `text-balance` plus
+  `_components/fit-copy.tsx`, which narrows each `data-fit-copy` paragraph 4px
+  at a time until every line is ≥70% of its width (never below 60% of the
+  column). The page's first client script beyond the form.
+- **Items 3, 4 and the hero board.** Mark 56px lg / 36px narrow; mark → headline
+  48 / 36; headline → button 56 / 44. "Learn more" pinned `bottom-8` / `bottom-6`,
+  15px at 74%. From lg the content is centred on the whole screen, bar included
+  (extra bottom padding = the bar), which puts the mark at y 274 as on the board.
+- **Items 1, 5, 6, 8, 9, the panels (boards "r4 · P1–P6").** Headings 40/46
+  −0.015em in evergreen (narrow 28/34). Tokens `--shadow-float` and
+  `--shadow-lift` in `globals.css`. Phones are a hairline + float shadow,
+  372×700, radius 48, iOS SMS colours (`#34C759`/white sent, `#E9E9EB`/`#1C1C1E`
+  received — the platform's, deliberately not tokens). P2's photo breaks out
+  84px right; P3 is `browser-window.tsx` (was `browser-thread.tsx`) with a text
+  notification; P4 bleeds (`bleed` in `copy.ts`); P5's approval card sits
+  outside the phone, anchored 40px above its foot; P6 is a lone card with the
+  one-time card lifted 56/44px.
+- **Layout.** Copy and visual sit side by side from **xl (1280)**, not lg: the
+  wider visuals don't fit beside the copy at 1024. Each panel carries the
+  board's `column` and `measure` (`copy.ts`); the copy runs to the measure only
+  from 1440, because at 1280 P5's card came within 7px of its copy.
 
-Measured in the browser pane: hidden until 48px before P1 lands, 0.50 at 24px,
-1.00 on landing, at 1024×768 (P1 taller than the view) and 1440×1200 (P1
-shorter, so "fully on" means fully visible). Paper's P1–P7 ribbons are reordered
-to match, and M1 row A is rewritten.
-
-Screenshots with the rotation frozen, at 1440, 1024, 390 and 320, match the H4 r3
-board, which now records the decision. Waiting on the go-ahead to commit, push,
-PR and merge all three items.
+**Verified (evidence).** Typecheck, lint, prettier, 45 unit tests; `next build`;
+landing spec **13/13 against the production build** (`next start -p 3002`);
+no sideways scroll at any width 320–1920 (10px steps); at 1440 the mark and
+every panel heading land on the board's coordinates; captures at 1440, 1280,
+1024 and 390 reviewed.
 
 `site/landing` carries two unpushed handoff-only commits (`9da2dfb`, `d410bc8`).
 This file supersedes both, so that branch can be deleted.
@@ -118,6 +137,10 @@ unpushed migrations after the waitlist pair (HOU-59).
 - **zsh doesn't word-split `$VAR`**, so a string of `--resolve` flags in one
   variable reaches curl as a single argument. Use a bash script or an array.
   macOS's `openssl x509` has no `-ext`; use `-text` and grep.
+- **The Vercel connector can list and read deployments but not their build
+  logs** (403 on the `housemate` scope, HOU-47). A preview build fails with
+  `BUILD_UTILS_SPAWN_1` in `buildStep` after ~20s because previews have no
+  environment; compare against an earlier preview rather than guessing.
 - **Supabase's public auth settings** are readable with the publishable key:
   `GET https://xowuqiewsstnxtpwfrke.supabase.co/auth/v1/settings` with an
   `apikey` header. It shows `disable_signup` and which providers are on. It does
@@ -141,16 +164,19 @@ unpushed migrations after the waitlist pair (HOU-59).
 
 ## What's next
 
-1. On the go-ahead: commit the three changes (ribbon order, ribbon timing,
-   rotation), push, PR to `main`, merge (merge commit), then check production:
-   the title, the new phrases, and the ribbon at the edge.
-2. HOU-62 is closed. If a phrase is ever added or lengthened, re-measure it
-   against `--text-hero`; the fit test will catch it if not.
-3. Submit **one** waitlist address the user chooses, and confirm a row plus its
-   `activity_events` entry. That is production data, so no test addresses. Asked;
-   waiting on the address. Status is on HOU-61.
-4. HOU-59 is now slice 0's to finish. See above.
-5. The Impeccable finish review's design-level findings are HOU-60.
+1. Open the PR for `site/landing-round-4`, merge it (merge commit), and check
+   production at 1440 and 390 once Vercel reports READY. Don't submit the form.
+2. The decision "never the same action twice on one screen" goes into
+   `docs/decisions.md` once slice 0 has rebased (that file is mirrored and the
+   other session edits it). So do the new marketing values in `docs/design.md`
+   §1 — panel headings 40/46 and 28/34, the two shadows, the iOS bubble colours
+   — which is HOU-59's doc carry-over.
+3. The round-4 boards are still named "Proposed" in Paper.
+
+Muse captures are in the session scratchpad (`muse/`), not the repo.
+
+Older items: HOU-59 is slice 0's; HOU-60 holds the finish review's design
+findings.
 
 ## Going live — the state on 2026-09-23
 
@@ -229,8 +255,6 @@ team-scoped ones (build logs, authenticated fetch) 403.
 
 ## Waiting on the user
 
-- **The go-ahead to ship** the ribbon and rotation changes (see "Repo state").
-- **Which address to use** for the one production waitlist check.
 - **HOU-5 — Twilio carrier registration (10DLC).** The credentials are in, which is
   all the waitlist needs; texting real numbers still waits on registration.
 - **Production sign-in doesn't work yet, by design.** It texts a code through

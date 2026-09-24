@@ -140,7 +140,7 @@ test("the hero's cue goes to the first panel", async ({ page }) => {
 // Whether the button is there is about where you are on the page, so reduced
 // motion changes how it arrives, not when.
 for (const reducedMotion of ["no-preference", "reduce"] as const) {
-  test(`the ribbon's waitlist button waits for the first panel (${reducedMotion})`, async ({
+  test(`the ribbon never repeats an ask that's already on screen (${reducedMotion})`, async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion });
@@ -148,22 +148,82 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     const ribbon = page.getByRole("navigation", { name: "Site" });
     const ribbonJoin = ribbon.getByRole("link", { name: "Join the waitlist" });
 
-    // On the hero, the hero's own call to action is the only one — including
-    // part way down it, where the button used to arrive.
+    // While any of the hero is on screen, its own call to action is the only
+    // one — including its last 60px, just before it leaves.
     await expect(ribbonJoin).toBeHidden();
-    await page.evaluate(() => window.scrollTo(0, 200));
-    await expect(ribbonJoin).toBeHidden();
+    for (const offset of [200, 60]) {
+      await page.evaluate((offset) => {
+        const hero = document.querySelector<HTMLElement>(".hm-hero")!;
+        window.scrollTo(0, hero.offsetHeight - offset);
+      }, offset);
+      await expect(ribbonJoin).toBeHidden();
+    }
 
-    // "Learn more" lands P1 exactly where it is fully on screen, so the button
-    // has to be there on arrival, not one scroll later.
+    // "Learn more" lands P1 exactly as the hero leaves, so the button has to
+    // be there on arrival, not one scroll later.
     await page.getByRole("link", { name: "Learn more" }).click();
     await expect(page).toHaveURL(/#built$/);
     await expect(ribbonJoin).toBeVisible();
 
-    // "Sign in" holds the bar's right edge, before and after.
+    // The close carries its own button, so this one makes way for it.
+    await page
+      .getByRole("heading", { name: "Let Housemate take it from here." })
+      .scrollIntoViewIfNeeded();
+    await expect(ribbonJoin).toBeHidden();
+
+    // "Sign in" holds the bar's right edge throughout.
     await expect(ribbon.getByRole("link").last()).toHaveText("Sign in");
   });
 }
+
+test("no line of a panel's copy stops short of 70% of the measure", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // The user's rule: a short last line reads as a mistake. Every width from a
+  // small phone to a wide desktop, because the narrow layouts are fluid and a
+  // rule checked at five widths holds at five widths.
+  const failures: string[] = [];
+  for (let width = 320; width <= 1920; width += 10) {
+    await page.setViewportSize({ width, height: 900 });
+    // The paragraphs are refitted on the frame after a resize.
+    await page.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => requestAnimationFrame(done)),
+          ),
+        ),
+    );
+    const short = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>("main h2 + p")].flatMap(
+        (copy) => {
+          const range = document.createRange();
+          range.selectNodeContents(copy);
+          const lines: { top: number; left: number; right: number }[] = [];
+          for (const rect of range.getClientRects()) {
+            const line = lines.find((l) => Math.abs(l.top - rect.top) < 4);
+            if (line) {
+              line.left = Math.min(line.left, rect.left);
+              line.right = Math.max(line.right, rect.right);
+            } else {
+              lines.push({ top: rect.top, left: rect.left, right: rect.right });
+            }
+          }
+          const ratios = lines.map(
+            (l) => ((l.right - l.left) / copy.clientWidth) * 100,
+          );
+          const label = copy.closest("section")!.id || "close";
+          return ratios.some((ratio) => ratio < 70)
+            ? [`${label}: ${ratios.map(Math.round).join("/")}`]
+            : [];
+        },
+      ),
+    );
+    failures.push(...short.map((line) => `${width}px ${line}`));
+  }
+  expect(failures).toEqual([]);
+});
 
 test("has nothing to scroll sideways at 390", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

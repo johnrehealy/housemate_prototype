@@ -24,10 +24,11 @@ export function Ribbon() {
       <nav aria-label="Site" className="flex items-center gap-2.5">
         {/*
          * The hero owns the waitlist, so this is a link to it rather than a
-         * second form. It stays away until P1 is fully on screen, so the hero's
-         * own call to action is never on screen beside it. At narrow widths the
-         * hero is a screen away, not a page away, which is why it's dropped
-         * there altogether.
+         * second form. The page never asks for the same thing twice on one
+         * screen, so it shows only between the two evergreen sections that
+         * carry their own ask: once the hero has fully left, and until the
+         * close arrives. At narrow widths the hero is a screen away, not a
+         * page away, which is why it's dropped there altogether.
          */}
         <a
           href="#waitlist"

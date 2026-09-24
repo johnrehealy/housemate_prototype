@@ -13,7 +13,7 @@ export function Close() {
     <>
       <section
         aria-labelledby="close-heading"
-        className="flex flex-col items-center gap-10 bg-evergreen px-6 py-20 lg:px-30 lg:py-28"
+        className="hm-close flex flex-col items-center gap-10 bg-evergreen px-6 py-20 lg:px-30 lg:py-28"
       >
         <Mark className="hm-rise h-10 w-auto text-on-evergreen" label={null} />
         <h2
@@ -23,7 +23,10 @@ export function Close() {
           <span className="block text-on-evergreen/74">{CLOSE.firstLine}</span>
           {CLOSE.secondLine}
         </h2>
-        <p className="hm-rise max-w-[560px] text-center text-base text-pretty text-on-evergreen/72 lg:text-lead">
+        <p
+          data-fit-copy
+          className="hm-rise max-w-[560px] text-center text-base text-balance text-on-evergreen/72 lg:text-lead"
+        >
           {CLOSE.lead}
         </p>
         <a
