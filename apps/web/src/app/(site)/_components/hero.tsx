@@ -16,7 +16,7 @@ import { HERO } from "./copy";
  * JavaScript, re-renders, or differs between the server and the first paint.
  *
  * What a screen reader gets is one steady heading, "Every home needs a
- * Housemate.": the animated spans are aria-hidden and the real second line is
+ * Housemate": the animated spans are aria-hidden and the real second line is
  * visually hidden next to them. The loop runs past five seconds with no way to
  * pause it, which is a known exception to D-037 (WCAG 2.2.2) that the user
  * approved on the board; `prefers-reduced-motion` still holds it on the first

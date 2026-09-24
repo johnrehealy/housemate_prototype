@@ -39,7 +39,7 @@ test("shows a signed-out visitor the page, not sign-in", async ({ page }) => {
   // The heading reads as one steady line however long the rotation runs.
   const heading = page.getByRole("heading", { level: 1 });
   await expect(heading).toContainText("Every home needs");
-  await expect(heading).toContainText("a Housemate.");
+  await expect(heading).toContainText("a Housemate");
 });
 
 test("every rotating phrase fits its slot, at every width", async ({
@@ -71,7 +71,7 @@ test("carries every panel on one page", async ({ page }) => {
     await expect(page.getByRole("heading", { name: heading })).toBeAttached();
   }
   await expect(
-    page.getByRole("heading", { name: "Let Housemate take it from here." }),
+    page.getByRole("heading", { name: "Every home deserves a Housemate" }),
   ).toBeAttached();
 });
 
@@ -167,7 +167,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
 
     // The close carries its own button, so this one makes way for it.
     await page
-      .getByRole("heading", { name: "Let Housemate take it from here." })
+      .getByRole("heading", { name: "Every home deserves a Housemate" })
       .scrollIntoViewIfNeeded();
     await expect(ribbonJoin).toBeHidden();
 
@@ -223,6 +223,35 @@ test("no line of a panel's copy stops short of 70% of the measure", async ({
     failures.push(...short.map((line) => `${width}px ${line}`));
   }
   expect(failures).toEqual([]);
+});
+
+test("the close's heading is one line wherever it fits", async ({ page }) => {
+  await page.goto("/");
+  const heading = page.getByRole("heading", {
+    name: "Every home deserves a Housemate",
+  });
+  // The user's note: one line. From sm up it fits at every width; below
+  // that it takes two, broken where the tones change.
+  for (const [width, expected] of [
+    [320, 2],
+    [390, 2],
+    [640, 1],
+    [768, 1],
+    [1023, 1],
+    [1024, 1],
+    [1280, 1],
+    [1440, 1],
+    [1920, 1],
+  ] as const) {
+    await page.setViewportSize({ width, height: 900 });
+    const lines = await heading.evaluate((h2) =>
+      Math.round(
+        h2.getBoundingClientRect().height /
+          parseFloat(getComputedStyle(h2).lineHeight),
+      ),
+    );
+    expect(lines, `at ${width}px`).toBe(expected);
+  }
 });
 
 test("has nothing to scroll sideways at 390", async ({ page }) => {

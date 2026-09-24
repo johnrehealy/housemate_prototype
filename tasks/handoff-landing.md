@@ -41,6 +41,14 @@ row and its `activity_events` entry (checked read-only on production).
   the six phrases, "Sign in" last, the ribbon button hidden at 0 and 200px and
   shown after "Learn more", every phrase fitting at 390/768/1024/1440, h1
   62.64px at 1440. No form was submitted.
+- [PR #5](https://github.com/johnrehealy/housemate_prototype/pull/5) (round 4:
+  the user's ten notes and the round-4 boards) merged as `440c6db`. Production
+  deploy `dpl_9bv2YuiH54njK6oH3aMk4wGh7KMH` is **READY** and aliased to both
+  domains. Checked live in headless Chromium at 1440 and 390, with and without
+  reduced motion: panel headings 40px / 28px in evergreen, green sent bubbles,
+  the P3 browser window, no sideways scroll, and the ribbon button hidden over
+  the hero and shown after "Learn more" (at 390 it never shows: it is `sm` and
+  up). No form was submitted. HOU-67 closed.
 - Production database: schema applied and verified.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
@@ -50,11 +58,26 @@ exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Worktree `.worktrees/landing`, on **`site/landing-round-4`**, branched from
-`main` @ `7116d6b`. **Round 4 is complete, verified and being shipped** — the
-user's ten notes of 2026-09-24, and the round-4 boards, which the user edited
-directly in Paper and then approved with the **evergreen hero** and the new P3
-wording (HOU-67).
+Worktree `.worktrees/landing`, on **`site/landing-next`**, branched from `main`
+@ `440c6db` (PR #5 merged, production READY and checked live). `site/landing-round-4`
+is merged and can be deleted.
+
+**Shipping** (the user said ship, 2026-09-24) — two nits from 2026-09-24,
+committed on this branch and going out as a PR the same way as PR #5:
+
+- The six rotating hero phrases lose their full stops (`copy.ts`).
+- The close reads "Every home deserves a Housemate" — the hero's two tones, on
+  one line from sm up and two below — with the alpha lead removed, so the
+  button follows the heading. `--text-close-narrow` is now `min(34px, 9vw)` so
+  "Every home deserves" holds one line down to 320. A new test checks the line
+  count at 320–1920. Paper's P7 and "Hero r4 · H3 · Evergreen" boards are
+  updated to match.
+- Verified: typecheck, lint, prettier, 45 unit tests, `next build`, landing
+  spec 14/14 against the production build (`next start -p 3002`).
+
+What round 4 built, for reference (the user's ten notes of 2026-09-24, and the
+round-4 boards they edited in Paper and approved with the **evergreen hero**
+and the new P3 wording):
 
 - **Item 2, the ribbon's guardrail.** The user's rule: never push the same
   action twice on one screen. The ribbon's "Join the waitlist" shows only
@@ -77,20 +100,18 @@ wording (HOU-67).
   `--shadow-lift` in `globals.css`. Phones are a hairline + float shadow,
   372×700, radius 48, iOS SMS colours (`#34C759`/white sent, `#E9E9EB`/`#1C1C1E`
   received — the platform's, deliberately not tokens). P2's photo breaks out
-  84px right; P3 is `browser-window.tsx` (was `browser-thread.tsx`) with a text
-  notification; P4 bleeds (`bleed` in `copy.ts`); P5's approval card sits
-  outside the phone, anchored 40px above its foot; P6 is a lone card with the
-  one-time card lifted 56/44px.
+  84px right; P3 is `browser-window.tsx` with a text notification; P4 bleeds
+  (`bleed` in `copy.ts`); P5's approval card sits outside the phone, anchored
+  40px above its foot; P6 is a lone card with the one-time card lifted 56/44px.
 - **Layout.** Copy and visual sit side by side from **xl (1280)**, not lg: the
   wider visuals don't fit beside the copy at 1024. Each panel carries the
   board's `column` and `measure` (`copy.ts`); the copy runs to the measure only
   from 1440, because at 1280 P5's card came within 7px of its copy.
 
-**Verified (evidence).** Typecheck, lint, prettier, 45 unit tests; `next build`;
-landing spec **13/13 against the production build** (`next start -p 3002`);
-no sideways scroll at any width 320–1920 (10px steps); at 1440 the mark and
-every panel heading land on the board's coordinates; captures at 1440, 1280,
-1024 and 390 reviewed.
+**Verified before merge (evidence).** Typecheck, lint, prettier, 45 unit tests;
+`next build`; landing spec 13/13 against the production build; no sideways
+scroll at any width 320–1920; at 1440 the mark and every panel heading land on
+the board's coordinates; captures at 1440, 1280, 1024 and 390 reviewed.
 
 `site/landing` carries two unpushed handoff-only commits (`9da2dfb`, `d410bc8`).
 This file supersedes both, so that branch can be deleted.
@@ -164,14 +185,15 @@ unpushed migrations after the waitlist pair (HOU-59).
 
 ## What's next
 
-1. Open the PR for `site/landing-round-4`, merge it (merge commit), and check
-   production at 1440 and 390 once Vercel reports READY. Don't submit the form.
-2. The decision "never the same action twice on one screen" goes into
+Merge the nits' PR once its checks pass, then check production read-only.
+Carried over:
+
+1. The decision "never the same action twice on one screen" goes into
    `docs/decisions.md` once slice 0 has rebased (that file is mirrored and the
    other session edits it). So do the new marketing values in `docs/design.md`
    §1 — panel headings 40/46 and 28/34, the two shadows, the iOS bubble colours
    — which is HOU-59's doc carry-over.
-3. The round-4 boards are still named "Proposed" in Paper.
+2. The round-4 boards are still named "Proposed" in Paper.
 
 Muse captures are in the session scratchpad (`muse/`), not the repo.
 

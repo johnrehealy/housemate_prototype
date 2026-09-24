@@ -13,21 +13,23 @@ export const HERO = {
   staticLine: "Every home needs",
   /**
    * The rotating line (board H4 r3). It loops, about 2s a phrase, and passes
-   * through "a Housemate." each time round rather than stopping on it.
+   * through "a Housemate" each time round rather than stopping on it. No
+   * phrase ends in a full stop: the line never finishes, so none of them is
+   * the end of a sentence.
    *
    * Only the first is read aloud: the heading a screen reader hears is "Every
-   * home needs a Housemate.", steady, however long the page is open.
+   * home needs a Housemate", steady, however long the page is open.
    *
    * The hero's type is sized so the longest of these fits (see --text-hero in
    * globals.css). A longer phrase needs that sizing re-measured.
    */
   phrases: [
-    "a Housemate.",
-    "someone to call the plumber.",
-    "someone to pick up the dry cleaning.",
-    "someone to pay the handyman.",
-    "someone to drop off returns.",
-    "someone to keep track of maintenance.",
+    "a Housemate",
+    "someone to call the plumber",
+    "someone to pick up the dry cleaning",
+    "someone to pay the handyman",
+    "someone to drop off returns",
+    "someone to keep track of maintenance",
   ],
   learnMore: "Learn more",
 } as const;
@@ -98,9 +100,13 @@ export const PANELS = [
 ] as const;
 
 export const CLOSE = {
-  firstLine: "Let Housemate take it",
-  secondLine: "from here.",
-  lead: "Housemate is invite-only while we're in alpha. Join the waitlist and we'll be in touch when there's room.",
+  /*
+   * One line where it fits, with the same two tones as the hero: the page
+   * ends by answering how it began. No lead under it — the button follows the
+   * heading directly (the user's note of 2026-09-24).
+   */
+  headingStart: "Every home deserves",
+  headingEnd: "a Housemate",
   /*
    * No privacy, terms or contact link. The boards draw them, but none of those
    * pages exists and D-061 says there is no link until one does (HOU-50).
