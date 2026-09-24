@@ -49,6 +49,15 @@ row and its `activity_events` entry (checked read-only on production).
   the P3 browser window, no sideways scroll, and the ribbon button hidden over
   the hero and shown after "Learn more" (at 390 it never shows: it is `sm` and
   up). No form was submitted. HOU-67 closed.
+- [PR #7](https://github.com/johnrehealy/housemate_prototype/pull/7) (two nits:
+  the hero phrases lose their full stops; the close reads "Every home deserves a
+  Housemate" with no alpha line) merged as `c644362`. Production deploy
+  `dpl_6WN29iNiNGvbJvYJSPkQjsm6Myni` is **READY** and aliased to both domains.
+  Checked live in headless Chromium: the close heading is one line at 640, 1024
+  and 1440 (52px from lg), two at 320 (28.8px) and 390 (34px), "Join the
+  waitlist" follows it, no "alpha" in the close, no full stops on the phrases,
+  no sideways scroll. No form was submitted. Its preview failed with
+  `BUILD_UTILS_SPAWN_1`, as every preview does (no preview environment).
 - Production database: schema applied and verified.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
@@ -58,12 +67,34 @@ exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Worktree `.worktrees/landing`, on **`site/landing-next`**, branched from `main`
-@ `440c6db` (PR #5 merged, production READY and checked live). `site/landing-round-4`
-is merged and can be deleted.
+Worktree `.worktrees/landing`, on **`site/landing-next-2`**, branched from `main`
+@ `c644362` (PR #7 merged, production READY and checked live). The branch also
+records PR #7 in this file. The only change
+`site/landing-round-4` and `site/landing-next` are merged and can be deleted.
 
-**Shipping** (the user said ship, 2026-09-24) — two nits from 2026-09-24,
-committed on this branch and going out as a PR the same way as PR #5:
+**Shipping** (the user said ship, 2026-09-24) — two more nits from 2026-09-24,
+going out as a PR the same way as PR #7:
+
+- The hero's rotation drops "a Housemate" and cycles through the five jobs
+  only (`copy.ts`). A screen reader's heading, and reduced motion's still
+  frame, are now "Every home needs someone to call the plumber".
+- **The `hm-phrase` keyframes were written for exactly six phrases** (4/6/15/17%
+  of a count × 2.45s cycle), despite a comment saying the list could change
+  length freely. They are rescaled for five (4.8/7.2/18/20.4%), which keeps
+  the live rhythm to the millisecond, and the comment now says a new count
+  needs rescaling. Sampled through the Web Animations API: five phrases in
+  order, 1.62s each above half opacity, no overlap. That rhythm (≈1.3s hold,
+  0.3s fades, a 0.54s empty line) is not the H4 board's "2s hold, 450ms
+  swap"; it has been that way since the first build and wasn't changed here.
+- P4's last sentence no longer mentions AI: "Your Housemate plans it and the
+  local team gets it done."
+- Paper: hero r4 (rotating line), r4 P4 (body) and H4 r3 (the sequence, now
+  five with no full stops, the loop and reduced-motion notes, and the 390
+  examples) updated.
+- Verified: typecheck, lint, prettier, unit tests, `next build`, landing spec
+  14/14 against the production build (`next start -p 3002`).
+
+What PR #7 shipped (the user's two nits of 2026-09-24):
 
 - The six rotating hero phrases lose their full stops (`copy.ts`).
 - The close reads "Every home deserves a Housemate" — the hero's two tones, on

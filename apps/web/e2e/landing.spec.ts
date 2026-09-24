@@ -37,9 +37,9 @@ test("shows a signed-out visitor the page, not sign-in", async ({ page }) => {
   await expect(page).toHaveTitle("Housemate");
 
   // The heading reads as one steady line however long the rotation runs.
-  const heading = page.getByRole("heading", { level: 1 });
-  await expect(heading).toContainText("Every home needs");
-  await expect(heading).toContainText("a Housemate");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(
+    "Every home needs someone to call the plumber",
+  );
 });
 
 test("every rotating phrase fits its slot, at every width", async ({

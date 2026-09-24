@@ -243,21 +243,26 @@
  * =========================================================================== */
 
 /* The hero's rotating line (board H4). Time-based, not scroll-based: it is the
- * one thing on the page that moves while you sit still. Each phrase holds
- * ~2s and swaps in 450ms, and the cycle length follows --phrase-count so the
- * list can grow without retiming anything. */
+ * one thing on the page that moves while you sit still. Each phrase gets a
+ * 2.45s turn: it rises in over 0.3s, holds 1.3s, lifts out over 0.3s, and the
+ * line stays empty for half a second before the next.
+ *
+ * The percentages are one turn out of a cycle of FIVE phrases (the cycle is
+ * --phrase-count × 2.45s). They can't follow the count on their own, so a list
+ * of another length needs them rescaled by 5/count, or the empty pause grows
+ * or the phrases overlap. Six phrases ran on 4/6/15/17%. */
 @keyframes hm-phrase {
   0%,
-  4% {
+  4.8% {
     opacity: 0;
     transform: translateY(18px);
   }
-  6%,
-  15% {
+  7.2%,
+  18% {
     opacity: 1;
     transform: translateY(0);
   }
-  17%,
+  20.4%,
   100% {
     opacity: 0;
     transform: translateY(-18px);
@@ -527,7 +532,7 @@
 
 /* The hero's rotating line is time-based, so it is switched off here rather
  * than inside the @supports block: reduced motion holds it on the first
- * phrase, which is the real second line of the heading. */
+ * phrase, which is also what a screen reader hears. */
 @media (prefers-reduced-motion: reduce) {
   .hm-phrase {
     animation: none;
