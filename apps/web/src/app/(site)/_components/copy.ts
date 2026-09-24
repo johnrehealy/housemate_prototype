@@ -12,19 +12,20 @@ export const HERO = {
   /** Stays still while the second line rotates. */
   staticLine: "Every home needs",
   /**
-   * The rotating line (board H4 r3). It loops, about 2s a phrase, and passes
-   * through "a Housemate" each time round rather than stopping on it. No
-   * phrase ends in a full stop: the line never finishes, so none of them is
-   * the end of a sentence.
+   * The rotating line (board H4 r3). It loops through the jobs, about 2s a
+   * phrase, and never names Housemate: the close does that (the user's note of
+   * 2026-09-24). No phrase ends in a full stop: the line never finishes, so
+   * none of them is the end of a sentence.
    *
    * Only the first is read aloud: the heading a screen reader hears is "Every
-   * home needs a Housemate", steady, however long the page is open.
+   * home needs someone to call the plumber", steady, however long the page is
+   * open, and it is also the phrase reduced motion holds on.
    *
    * The hero's type is sized so the longest of these fits (see --text-hero in
-   * globals.css). A longer phrase needs that sizing re-measured.
+   * globals.css). A longer phrase needs that sizing re-measured, and a
+   * different number of phrases needs the hm-phrase keyframes rescaled.
    */
   phrases: [
-    "a Housemate",
     "someone to call the plumber",
     "someone to pick up the dry cleaning",
     "someone to pay the handyman",
@@ -72,7 +73,7 @@ export const PANELS = [
   {
     id: "people",
     heading: "Supported by real people",
-    body: "Some jobs need more than a browser. Housemate's local team handles the physical stuff, like dropping off a package return, or meeting a contractor at your door while you're at work. Your AI plans it and your team gets it done.",
+    body: "Some jobs need more than a browser. Housemate's local team handles the physical stuff, like dropping off a package return, or meeting a contractor at your door while you're at work. Your Housemate plans it and the local team gets it done.",
     ground: "nav",
     layout: "visual-first",
     column: 460,
@@ -102,8 +103,9 @@ export const PANELS = [
 export const CLOSE = {
   /*
    * One line where it fits, with the same two tones as the hero: the page
-   * ends by answering how it began. No lead under it — the button follows the
-   * heading directly (the user's note of 2026-09-24).
+   * ends by answering the hero's "Every home needs someone to…". No lead
+   * under it — the button follows the heading directly (the user's note of
+   * 2026-09-24).
    */
   headingStart: "Every home deserves",
   headingEnd: "a Housemate",

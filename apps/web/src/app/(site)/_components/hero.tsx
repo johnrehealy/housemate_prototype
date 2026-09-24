@@ -15,12 +15,12 @@ import { HERO } from "./copy";
  * stacking slot, and `--phrase-count` staggers them, so nothing here runs
  * JavaScript, re-renders, or differs between the server and the first paint.
  *
- * What a screen reader gets is one steady heading, "Every home needs a
- * Housemate": the animated spans are aria-hidden and the real second line is
- * visually hidden next to them. The loop runs past five seconds with no way to
- * pause it, which is a known exception to D-037 (WCAG 2.2.2) that the user
- * approved on the board; `prefers-reduced-motion` still holds it on the first
- * phrase and never moves.
+ * What a screen reader gets is one steady heading, "Every home needs someone
+ * to call the plumber": the animated spans are aria-hidden and the first
+ * phrase is repeated, visually hidden, next to them. The loop runs past five
+ * seconds with no way to pause it, which is a known exception to D-037 (WCAG
+ * 2.2.2) that the user approved on the board; `prefers-reduced-motion` still
+ * holds it on the first phrase and never moves.
  *
  * The slot never changes height, so nothing below it moves as the phrases
  * swap (H4 r3, option A). From md up it is one line and the phrases never
