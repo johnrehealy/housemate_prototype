@@ -13,6 +13,7 @@ import { Hero } from "./_components/hero";
 import { Panel } from "./_components/panel";
 import { Ribbon } from "./_components/ribbon";
 import { SavedLogins } from "./_components/saved-logins";
+import { SiteFooter } from "./_components/site-footer";
 import { TeamPhoto } from "./_components/team-photo";
 
 const DESCRIPTION =
@@ -85,6 +86,7 @@ export default async function LandingPage() {
         ))}
         <Close />
       </main>
+      <SiteFooter />
       <FitCopy />
     </>
   );
