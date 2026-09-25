@@ -725,7 +725,14 @@ describe("joinWaitlist", () => {
 
       const result = await joinWaitlist(context(tx), { email: typed });
 
-      expect(result).toMatchObject({ joined: true });
+      // What the waitlist alert copies: the stored address and time, not
+      // what was typed.
+      expect(result).toEqual({
+        joined: true,
+        signupId: expect.any(String),
+        email: typed.trim().toLowerCase(),
+        joinedAt: AFTERNOON,
+      });
       const stored = one(
         await tx
           .select()
