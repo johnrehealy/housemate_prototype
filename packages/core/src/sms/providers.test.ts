@@ -14,10 +14,13 @@ const config = {
   statusCallbackUrl: "https://housemate.test/api/twilio/status",
 };
 
-function fakeClient() {
+function fakeClient(message: Record<string, unknown> = {}) {
   const create = vi.fn().mockResolvedValue({ sid: "SM123" });
-  const client = { messages: { create } } as unknown as TwilioMessagesClient;
-  return { client, create };
+  const fetch = vi.fn().mockResolvedValue(message);
+  // twilio's `messages` is both a list (create) and a lookup (messages(sid)).
+  const messages = Object.assign(() => ({ fetch }), { create });
+  const client = { messages } as unknown as TwilioMessagesClient;
+  return { client, create, fetch };
 }
 
 describe("simulator provider", () => {
@@ -29,6 +32,43 @@ describe("simulator provider", () => {
     expect(first.providerSid).toMatch(/^SIM/);
     expect(first.providerSid).not.toBe(second.providerSid);
     expect(provider.sent.map((text) => text.body)).toEqual(["One", "Two"]);
+  });
+});
+
+describe("message prices", () => {
+  it("the simulator prices every text the same, obviously fake amount", async () => {
+    const provider = createSimulatorProvider();
+    await expect(provider.priceOf("SIM1")).resolves.toEqual({
+      amountUsd: 0.0079,
+    });
+  });
+
+  it("reads Twilio's price as a positive amount", async () => {
+    // Twilio reports what it charged as a negative number.
+    const { client, fetch } = fakeClient({
+      price: "-0.00790",
+      priceUnit: "USD",
+    });
+    const provider = createTwilioProvider(config, client);
+
+    await expect(provider.priceOf("SM123")).resolves.toEqual({
+      amountUsd: 0.0079,
+    });
+    expect(fetch).toHaveBeenCalled();
+  });
+
+  it("answers null while Twilio hasn't priced a text yet", async () => {
+    const { client } = fakeClient({ price: null, priceUnit: null });
+    const provider = createTwilioProvider(config, client);
+
+    await expect(provider.priceOf("SM123")).resolves.toBeNull();
+  });
+
+  it("refuses a price that isn't in dollars", async () => {
+    const { client } = fakeClient({ price: "-0.07", priceUnit: "EUR" });
+    const provider = createTwilioProvider(config, client);
+
+    await expect(provider.priceOf("SM123")).rejects.toThrow(/only USD/);
   });
 });
 
@@ -71,6 +111,7 @@ describe("createSmsProvider", () => {
     APP_ENV: "local",
     PUBLIC_BASE_URL: "http://localhost:3000",
     DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    TWILIO_AUTH_TOKEN: "local-test-token",
   };
 
   it("uses the simulator when configured", () => {

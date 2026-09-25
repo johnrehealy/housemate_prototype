@@ -278,11 +278,12 @@ max_frequency = "1s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Housemate: local sign-in uses fixed codes, so development and tests never send
-# a real text. The number is the seed member's, without the leading "+"
-# (packages/core/scripts/seed-local.ts). Staging and production use Twilio
-# Verify instead, configured in [auth.sms.twilio_verify].
+# a real text. The numbers are the seed member's and the seed staff member's,
+# without the leading "+" (packages/core/scripts/seed-local.ts). Staging and
+# production use Twilio Verify instead, configured in [auth.sms.twilio_verify].
 [auth.sms.test_otp]
 15550190001 = "123456"
+15550190002 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]

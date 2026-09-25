@@ -26,12 +26,40 @@
     {
       "idx": 3,
       "version": "7",
+      "when": 1790086911815,
+      "tag": "20260922142151_message_idempotency",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790086920395,
+      "tag": "20260922142200_dead_letter_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790100000000,
+      "tag": "20260922160000_message_costs_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790105584844,
+      "tag": "20260922193304_alert_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
       "when": 1790120053426,
       "tag": "20260922233413_waitlist_signups",
       "breakpoints": true
     },
     {
-      "idx": 4,
+      "idx": 8,
       "version": "7",
       "when": 1790120100000,
       "tag": "20260922233500_waitlist_security",

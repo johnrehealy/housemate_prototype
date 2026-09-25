@@ -1,0 +1,85 @@
+# One environment's deploy: apply the database migrations, then ship the worker
+# that expects them. Called by deploy.yml, once for staging and then for
+# production. The web app isn't here: Vercel deploys it from GitHub.
+#
+# Configured per GitHub environment (Settings → Environments):
+#   variable SUPABASE_PROJECT_REF   the project's ref, not a secret
+#   secret   SUPABASE_DB_PASSWORD   that project's database password
+#   secret   FLY_API_TOKEN          a deploy token for that environment's Fly app
+# and once for the repository:
+#   secret   SUPABASE_ACCESS_TOKEN  a Supabase personal access token
+#
+# Whatever isn't configured is skipped, and the run's summary says so.
+name: Deploy an environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      fly-config:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Database and worker
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 20
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: See what's configured
+        id: configured
+        run: |
+          database=true
+          worker=true
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_DB_PASSWORD" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then
+            database=false
+            echo "- **Database:** skipped. Set SUPABASE_ACCESS_TOKEN, and ${{ inputs.environment }}'s SUPABASE_DB_PASSWORD and SUPABASE_PROJECT_REF." >>"$GITHUB_STEP_SUMMARY"
+            echo "::notice::${{ inputs.environment }} database skipped: not configured"
+          fi
+          if [ -z "$FLY_API_TOKEN" ]; then
+            worker=false
+            echo "- **Worker:** skipped. Set ${{ inputs.environment }}'s FLY_API_TOKEN." >>"$GITHUB_STEP_SUMMARY"
+            echo "::notice::${{ inputs.environment }} worker skipped: not configured"
+          fi
+          echo "database=$database" >>"$GITHUB_OUTPUT"
+          echo "worker=$worker" >>"$GITHUB_OUTPUT"
+
+      - uses: supabase/setup-cli@v1
+        if: steps.configured.outputs.database == 'true'
+        with:
+          # The version the repo pins, so CI applies migrations exactly as
+          # `pnpm db:reset` does locally.
+          version: 2.117.0
+      - name: Apply migrations
+        if: steps.configured.outputs.database == 'true'
+        # --include-all: branches merge in any order, so a migration can arrive
+        # with an older timestamp than one already applied.
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push --include-all --yes
+          echo "- **Database:** migrations applied." >>"$GITHUB_STEP_SUMMARY"
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.configured.outputs.worker == 'true'
+      - name: Deploy the worker
+        if: steps.configured.outputs.worker == 'true'
+        # One machine: a second would only double the stuck-send sweep.
+        run: |
+          flyctl deploy . \
+            --config "${{ inputs.fly-config }}" \
+            --dockerfile apps/worker/Dockerfile \
+            --remote-only --ha=false --wait-timeout 5m
+          echo "- **Worker:** deployed." >>"$GITHUB_STEP_SUMMARY"

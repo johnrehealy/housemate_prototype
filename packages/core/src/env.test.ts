@@ -6,6 +6,7 @@ const localEnv = {
   PUBLIC_BASE_URL: "http://localhost:3000",
   DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
   SMS_PROVIDER: "simulator",
+  TWILIO_AUTH_TOKEN: "local-test-token",
 };
 
 describe("loadServerEnv", () => {
@@ -44,6 +45,12 @@ describe("loadServerEnv", () => {
   it("requires Twilio credentials when Twilio is the provider", () => {
     expect(() =>
       loadServerEnv({ ...localEnv, SMS_PROVIDER: "twilio" }),
+    ).toThrow(/TWILIO_ACCOUNT_SID/);
+  });
+
+  it("requires the webhook token even with the simulator", () => {
+    expect(() =>
+      loadServerEnv({ ...localEnv, TWILIO_AUTH_TOKEN: undefined }),
     ).toThrow(/TWILIO_AUTH_TOKEN/);
   });
 
@@ -95,6 +102,26 @@ describe("loadServerEnv", () => {
       SUPABASE_SECRET_KEY: "sb_secret_example",
     });
     expect(env.SUPABASE_URL).toBe("https://project.supabase.co");
+  });
+
+  it("takes a Vercel preview's own address when PUBLIC_BASE_URL is unset", () => {
+    const preview = {
+      ...localEnv,
+      PUBLIC_BASE_URL: "",
+      VERCEL_ENV: "preview",
+      VERCEL_URL: "housemate-abc123-housemate.vercel.app",
+    };
+    expect(loadServerEnv(preview).PUBLIC_BASE_URL).toBe(
+      "https://housemate-abc123-housemate.vercel.app",
+    );
+    expect(
+      loadServerEnv({ ...preview, PUBLIC_BASE_URL: "https://example.com" })
+        .PUBLIC_BASE_URL,
+    ).toBe("https://example.com");
+    // Production has a real address, and must say so.
+    expect(() =>
+      loadServerEnv({ ...preview, VERCEL_ENV: "production" }),
+    ).toThrow(/PUBLIC_BASE_URL/);
   });
 
   it("rejects the SMS simulator in production", () => {

@@ -63,8 +63,11 @@ export const sourceType = pgEnum("source_type", [
 ]);
 export const usageKind = pgEnum("usage_kind", ["claude", "twilio"]);
 export const alertKind = pgEnum("alert_kind", [
+  /** Kept for when budgets become per member; the pilot's is shared (D-063). */
   "member_over_budget",
+  "pilot_over_budget",
   "worker_error",
+  "send_stuck",
 ]);
 
 export const homes = pgTable("homes", {
@@ -160,6 +163,11 @@ export const messages = pgTable(
     /** Twilio or simulator message ID. Unique, so repeated webhooks are ignored. */
     providerSid: text("provider_sid").unique(),
     deliveryStatus: deliveryStatus("delivery_status").notNull(),
+    /**
+     * Makes a send happen at most once, however often the job behind it is
+     * retried: a second send with the same key finds this row and stops.
+     */
+    idempotencyKey: text("idempotency_key").unique(),
     createdAt: createdAt(),
   },
   (table) => [

@@ -91,6 +91,40 @@ Each outline is its fill mixed 30% toward its foreground.
 
 **Font:** Lato, which ships in weights 300, 400, 700 and 900 only. **Rule:** there is no 500 or 600, so hierarchy comes from size and color first. Bold is used only for tile headings and avatar initials.
 
+**Second family, the public site only (2026-09-22, the user's instruction).** The
+landing page's panel headings are set in **DM Serif Text**, which ships in one
+weight, 400, plus an italic. **Rule:** the serif is for headings on
+`myhousemate.co` and nowhere else. The app is Lato throughout, and a heading
+inside the product never turns serif. Two consequences worth knowing before
+using it:
+
+- **There is no bold DM Serif Text,** so the earlier "panel headlines are
+  semibold" note no longer applies to them. Weight can't carry emphasis in a
+  serif heading here; size and color do.
+- **Lato-700 headings and serif headings don't mix on one page.** A surface
+  picks one family for its headings.
+
+**Every heading on the landing page is the serif** (approved 2026-09-22): the
+hero's "Every home needs / a Housemate.", all seven panel headings, and the
+close. The hero was tried in Lato Light first and the user asked for the serif
+throughout, for consistency. Body copy, leads, buttons, chips, captions and
+every phone rendering stay Lato.
+
+**Marketing type scale.** These sizes exist only on the landing page and have
+no token in §2, because the app's scale tops out at `--text-display` (32px).
+
+| Role | Desktop 1440 | Narrow 390 | Family / weight |
+|---|---|---|---|
+| Hero headline | 70 / 78 | 40 / 48 | DM Serif Text 400 |
+| Close headline | 52 / 60 | 34 / 42 | DM Serif Text 400 |
+| Panel heading | 32 / 40 | 26 / 34 | DM Serif Text 400 |
+| Panel body | 17 / 26 | 16 / 24 | Lato 400 |
+
+- **Tracking is −0.01em** on every serif heading.
+- **Two-tone headlines.** The hero and the close set their first line in
+  on-evergreen at 74% and their second at full strength. With one weight
+  available, colour is what separates the two lines.
+
 | Token | Size / weight / line height / tracking | Use |
 |---|---|---|
 | `--text-display` | 32px / 400 / 52px / −0.022em | Greeting only (**Open Q1**: Errands also uses it for headlines) |
@@ -543,16 +577,21 @@ it used to carry the word "Housemate" set in Lato. Same 20px height, same place,
 so nothing else on the boards moved. The user asked for this directly, so the
 A1–A6 boards keep their "Approved r1" names rather than reopening D-036.
 
+**Copy changed 2026-09-22** (D-057): the user rewrote the story panel's
+headline, lead, row bodies and invite note on the boards, and shortened the
+narrow code-step helper. Layout, type and colour are untouched. A1 and A9 were
+moved to the Archive page; A2 now carries the phone step's copy.
+
 - **Layout:** two columns at 1440 × 900.
   - **Story panel:** 600px, filled `--color-evergreen`, 64px side padding. The lockup (§3 Logo, 20px tall) sits at the top, centered in the 64px bar height, and the invite note is 56px from the bottom.
   - **Form column:** 360px wide, centered on the canvas, with 32px between the heading group and the form.
 - **Story panel content:**
-  - **Headline:** `--text-display` in `--color-on-evergreen`: "Your home, taken care of by text."
-  - **Lead:** `--text-lead` in on-evergreen at 74%.
+  - **Headline:** `--text-display` in `--color-on-evergreen`: "Every home needs a Housemate."
+  - **Lead:** `--text-lead` in on-evergreen at 74%: "Repairs, services, errands and upkeep, all in one place. Tell Housemate what you need and it gets to work."
   - **Rows:** three, 40px below the lead, each 18px vertical padding between 1px hairlines of on-evergreen at 16%.
     - Each row has a 20px glyph in on-evergreen at 74% (`device-mobile`, `wrench`, `check-circle`) and a 16px gap.
     - The title is 14/700 in on-evergreen. The body is 14/400/20 at 74%.
-  - **Invite note:** 13/19 in on-evergreen at 62%.
+  - **Invite note:** 13/19 in on-evergreen at 62%: "Housemate is currently invite-only", with no closing full stop, as drawn.
   - **Measures:** the headline is capped at 480px and the row list at 472px, which is the panel's own inner width at 1440, so neither binds. The lead and the invite note are capped at **420px**, and that cap does bind — it is what sets their rag.
 - **Phone step (A1):**
   - The heading "Sign in" in `--text-display` `--color-heading`, with the helper in `--text-label` `--color-muted`.
@@ -561,7 +600,7 @@ A1–A6 boards keep their "Approved r1" names rather than reopening D-036.
 - **Phone error (A2):** the field's error state with the message "Enter a 10-digit mobile number."
 - **Code step (A3):**
   - The heading "Enter your code".
-  - The helper "If (number) is on the invite list, a code is on its way." It never confirms that the number is invited.
+  - The helper "If (number) is on the invite list, a code is on its way." It never confirms that the number is invited. Below `--breakpoint-lg` it is the shorter "A code is on its way." (A8, D-057), which is also the same whether or not the number is invited.
   - The "Six-digit code" field, focused, with the hint "You'll be signed in as soon as all six digits are in."
   - There is no submit button. A "Use a different number" text button with `arrow-left` sits below.
 - **Signing in (A4):** the sixth digit submits on its own. The field takes the disabled look, the hint becomes the working line "Signing you in…", and the text button is disabled in place.
@@ -580,9 +619,40 @@ Three widths, switching on the existing breakpoints. Nothing about the heading g
 | `--breakpoint-lg` to `--breakpoint-xl` | 400px | A9 |
 | `--breakpoint-xl` (1280) and up | 600px | A1–A5 |
 
-- **Narrow (A7 phone step, A8 code step), 390 × 844.** One column on `--color-canvas`, 24px gutters, `justify-between` with 22px above and 32px below. The lockup (§3 Logo, 20px) sits at the top of the column and the form column hangs 56px beneath it, still capped at 360px. The invite note moves to the bottom of the page in `--color-muted` — 13/19, capped at the gutter width. The story panel's headline, lead and three rows are dropped, not stacked: on a phone the member is arriving from a text, so they already know what Housemate is.
+- **Narrow (A7 phone step, A8 code step), 390 × 844.** One column on `--color-canvas`, 24px gutters, `justify-between` with 22px above and 32px below. The lockup (§3 Logo, 20px) sits at the top of the column and the form column hangs 56px beneath it, still capped at 360px. The story panel's headline, lead, three rows and invite note are all dropped, not stacked: on a phone the member is arriving from a text, so they already know what Housemate is. (The invite note used to move to the bottom of the page here; the boards dropped it on 2026-09-22, D-057.)
 - **Medium (A9), 1024 × 768.** Still two columns. The story panel narrows to 400px with 40px side padding and 40px below, and **keeps all three "How it works" rows** — the rows reflow rather than disappear, so the medium width loses nothing but slack. The form side takes 40px side padding instead of 64px; the form column stays 360px.
 - **Type is identical at every width.** Heading 32/52/−0.022em, helper 15/20/−0.01em, headline 32/52/−0.022em, lead 17/26/−0.01em, row title 14/700, row body 14/400/20, invite note 13/19. Nothing scales down.
+
+### Ops cost view
+
+**Approved 2026-09-23** (D-064) from the Paper boards "Ops · O1–O3 · Costs · Proposed r2" on the page "Ops": O1 a month under budget, O2 over budget with an alert the team never got, O3 an empty month. Built at `/ops/costs`, staff only (anyone else gets a 404). Desktop 1440 only; narrow layouts stay with **Open Q12**.
+
+**Shell.** Staff don't get the member sidebar.
+- **Utility bar:** 64px including its bottom hairline, content aligned to the 1124 column. Left: the lockup (§3 Logo, 20px), a 1 × 16 `--color-line-strong` divider, then "Ops" at 15/20/−0.01em muted, 12px apart. Right: "Staff" 13/19 muted, then a 28px evergreen initials avatar (12/16/700 on-evergreen), 10px apart.
+- **Tab ribbon:** the §4 Tab bar at 48px, with one tab, "Costs", active. It's a ribbon of one on purpose: the errand-visit side of ops (D-027) is the next tab.
+
+**Page, top to bottom, in the 1124 column:**
+- **Toolbar** (§5 Toolbar, 76px): the description "What the pilot is spending" at 17/26 body on the left. On the right a month stepper: 36px chevron buttons (`radius-md`, 20px muted caret) either side of a 136px centred label at 15/20 body, 2px apart. A chevron that has nowhere to go is left as an empty 36px slot, so the label never moves: there's no next month from the current one, and no previous month before the first cost or alert.
+- **Team-not-reached notice**, only when an alert this month never reached the team: `--color-status-action-bg`, `radius-lg`, 14/20 padding, a 20px bell-slash and 14/400/20 text in `--color-status-action-fg`, 12px apart, 16px below.
+- **Figures:** the §4 Count summary track with three plain segments (no selection): Spent in {month} · Left of the $100 budget · Alerts in {month}. Over budget, the middle segment becomes "Over the $100 budget" with a "+$16.76" value, both in `--color-status-action-fg`.
+- **Budget bar:** an 8px `--color-line-strong` track with an evergreen fill, fully rounded, 16px above. Under 13/19 muted captions: the share of the budget on the left ("5% of the $100 pilot budget. Going over is flagged, never blocked."), when the next budget starts on the right. **Over budget** the whole track stands for what was spent: evergreen up to the budget, square-ended, then the overage in `--color-status-action-fg`, with a 2 × 16 `--color-heading` mark at the budget and a "$100" label (13/19 heading) above it. The bar gets 24px above instead of 16px to make room.
+- **Alerts** (48px above): a section label at 13/19/+0.04em muted, set in capitals ("Alerts in September (2)"), with "Times in UTC" on the right. Then a table: a 36px header of 13/19 muted labels over a hairline, and 64px rows with a hairline under each. Columns: a 28px icon slot, the alert (14/400/20 body over a 13/19 muted detail, 2px apart), State 148, Team 128, Raised 128 right-aligned, 12px apart.
+- **By member** (48px above, 64px below): the same label style, then a table with 52px rows: a 28px avatar slot, Member, Texts 108 and Cost 128, right-aligned. The "Not a member" row takes a 20px muted phone in the avatar slot. The Total row sits under a 1px `--color-heading` rule, with every cell in heading, and the row above it drops its hairline. A 13/19 muted note sits 12px below.
+- **Once agent runs cost anything**, Cost splits into Twilio, Claude and Total, 128 each. The section label shares its row with a 408px "Cost" group label, centred over the three with a hairline under it. The Twilio and Claude values are body and Total is heading. "Not a member" has no Claude cost, so it shows a muted "—".
+
+**Rules:**
+- **Rust (`--color-status-action-*`) means "staff should act".** It marks the notice, the overage, a "Needs a look" chip and "Not reached". Nothing else on the page uses it.
+- **Alert state is worked out, not stored.** A stuck text is Resolved once it has a delivery result. A failed job needs a look while it's still parked in its dead-letter queue. Going over budget is Flagged, never open. Anything marked resolved by hand is Resolved.
+- **Chips** (§3 Chips, status chip): Needs a look uses `--color-status-action-*`, Flagged `--color-status-idle-*`, Resolved `--color-status-done-*`.
+- **Order:** alerts the team never got come first, then needs a look, then flagged, then resolved. Newest comes first within each group. Stuck texts found in one sweep share a row ("3 texts had no delivery result for 15 minutes.").
+- **An empty month** shows a single 52px row with hairlines above and below, 12px under the label, in 14/400/20 muted: "No alerts in October yet. When one is raised, the team gets a text and it's listed here." and "No costs in October yet. A text shows up here about a minute after it's sent." When alerts from an earlier month still need a look, an evergreen link to that month sits right of the alerts label ("1 alert from September still needs a look"). It's 13/19, with a 1px underline offset 3px.
+- **Money is shown to the cent**, with tabular figures in the number columns so the decimals line up.
+- **A past month** says "Month ended 30 September" under the bar, and its empty rows drop the "yet" and the second sentence ("No alerts in August.").
+
+**Built differently from the boards, on purpose:**
+- **The detail line of a stuck text says "delivered since"**, not "delivered at 14:47". A text's delivery time isn't stored.
+- **The notes say "texts to and from numbers outside the pilot".** The boards say "from". The team's own alert texts have no member, so they're in that row too, and the O2 note's "They get a reply" didn't hold for them.
+- **The team-not-reached notice has a second reason:** "no team numbers are set", for when there was no one to text. The boards only drew "every text to the team failed".
 
 ---
 

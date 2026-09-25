@@ -31,7 +31,7 @@ The primary user is a homeowner, invited to the pilot, who texts Housemate as th
 
 - **Texting:** each member texts one Housemate number from their own phone, with no sign-in. It's one continuous thread, which the agent sorts into conversations by topic.
 - **Web app:** invite-only sign-in with a texted code, mostly from a desktop browser. Members use it to read transcripts, review records, and make corrections.
-- **Vendors:** the agent books on real vendor websites where it can. Vendor accounts, logins and CAPTCHAs are handed to the member.
+- **Vendors:** the agent books on real vendor websites where it can. CAPTCHAs are handed to the member. Saved vendor logins go into a vault the agent's model can't read, filled into the browser sandbox by worker code (D-062); until that's built, logins are handed to the member too.
 - **Errands:** the weekly team visit handles pickups and dropoffs. The team tracks visits and errand requests in an internal ops view.
 - **Pilot:** up to 10 invited members.
 
@@ -90,7 +90,7 @@ Housemate's agent is Claude, running on the server.
 
 - The agent contacts vendors itself wherever it can, including using computer use to book appointments on vendor websites. This applies to the prototype too, which uses real vendor sites.
 - When it can't, it gives the member everything needed to do it directly: what to ask for, contact details, and direct links.
-- For now, if a vendor site needs an account, a login or a CAPTCHA, the agent hands that step to the member with the link and what to book.
+- For now, if a vendor site needs an account, a login or a CAPTCHA, the agent hands that step to the member with the link and what to book. D-062 adds a credential vault for the login case; it isn't built yet.
 
 ### Conversations
 

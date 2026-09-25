@@ -1,6 +1,6 @@
 import "server-only";
 import { getMemberByUserId, type MemberSummary } from "@housemate/core/db";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { serverDb } from "@/lib/server-context";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -31,5 +31,16 @@ export const currentMember = cache(
 export async function requireMember(): Promise<MemberSummary> {
   const member = await currentMember();
   if (!member) redirect("/sign-in");
+  return member;
+}
+
+/**
+ * The signed-in staff member. Anyone else gets a plain 404, so the ops pages
+ * don't admit they exist. Ops pages read through the server connection, which
+ * bypasses row-level security, so this check is what keeps members out.
+ */
+export async function requireStaff(): Promise<MemberSummary> {
+  const member = await currentMember();
+  if (!member || member.role !== "staff") notFound();
   return member;
 }

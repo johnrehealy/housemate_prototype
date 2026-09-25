@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { isValidTwilioSignature } from "./signature";
+import { isValidTwilioSignature, signTwilioRequest } from "./signature";
 
 const authToken = "test-auth-token";
 const url = "https://housemate.test/api/twilio/inbound";
@@ -49,5 +49,21 @@ describe("isValidTwilioSignature", () => {
     expect(isValidTwilioSignature({ authToken, signature, url, params })).toBe(
       false,
     );
+  });
+
+  it("accepts what signTwilioRequest signs, and nothing changed after", () => {
+    const signature = signTwilioRequest({ authToken, url, params });
+    expect(signature).toBe(sign(authToken, url, params));
+    expect(isValidTwilioSignature({ authToken, signature, url, params })).toBe(
+      true,
+    );
+    expect(
+      isValidTwilioSignature({
+        authToken,
+        signature,
+        url,
+        params: { ...params, To: "+15550000000" },
+      }),
+    ).toBe(false);
   });
 });
