@@ -40,9 +40,10 @@ export default defineConfig({
       use: desktop,
     },
     {
-      // Sign-in's own tests, and the landing page, start signed out.
+      // Sign-in's own tests, the landing page and the legal pages start
+      // signed out.
       name: "signed-out",
-      testMatch: /(sign-in|landing)\.spec\.ts/,
+      testMatch: /(sign-in|landing|legal)\.spec\.ts/,
       use: desktop,
     },
     {

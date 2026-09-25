@@ -4,8 +4,14 @@ import { Wordmark } from "@/components/brand";
 /*
  * The evergreen bar. The boards draw it on every panel so the panels can be
  * read on their own; in the page it is one sticky bar (motion A on board M1).
+ *
+ * `page` is where it sits. On the landing page the waitlist button is timed
+ * against the hero and the close; on any other page (boards L1 and L3) there is
+ * no form on screen to repeat, so it simply shows, and leads back to the hero.
  */
-export function Ribbon() {
+export function Ribbon({ page = "landing" }: { page?: "landing" | "inner" }) {
+  const onLanding = page === "landing";
+
   return (
     <header className="sticky top-0 z-50 flex h-(--spacing-bar) items-center justify-between bg-evergreen px-6 lg:px-30">
       <Link
@@ -31,8 +37,8 @@ export function Ribbon() {
          * page away, which is why it's dropped there altogether.
          */}
         <a
-          href="#waitlist"
-          className="hm-ribbon-late hidden h-9 items-center justify-center rounded-md bg-canvas px-4 text-label font-bold text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:flex sm:w-[150px] sm:px-0"
+          href={onLanding ? "#waitlist" : "/#waitlist"}
+          className={`${onLanding ? "hm-ribbon-late " : ""}hidden h-9 items-center justify-center rounded-md bg-canvas px-4 text-label font-bold text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:flex sm:w-[150px] sm:px-0`}
         >
           Join the waitlist
         </a>
