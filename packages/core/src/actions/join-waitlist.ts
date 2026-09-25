@@ -35,6 +35,13 @@ export const joinWaitlist = defineAction({
       action: "joined",
     });
 
-    return { joined: true as const, signupId: row.id };
+    // The stored address and time, not the input: the waitlist alert copies
+    // exactly what the list holds.
+    return {
+      joined: true as const,
+      signupId: row.id,
+      email: row.email,
+      joinedAt: row.createdAt,
+    };
   },
 });

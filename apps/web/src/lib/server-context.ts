@@ -5,6 +5,10 @@ import {
   type ServerEnv,
 } from "@housemate/core";
 import type { Actor, ActionContext, Source } from "@housemate/core/actions";
+import {
+  createWaitlistAlerts,
+  type WaitlistAlerts,
+} from "@housemate/core/alerts";
 import { createSupabaseAuthAdmin } from "@housemate/core/auth";
 import { createDb, type Db } from "@housemate/core/db";
 
@@ -18,6 +22,7 @@ import { createDb, type Db } from "@housemate/core/db";
 const cache = globalThis as unknown as {
   housemateEnv?: ServerEnv;
   housemateDb?: Db;
+  housemateWaitlistAlerts?: WaitlistAlerts;
 };
 
 function env(): ServerEnv {
@@ -32,6 +37,12 @@ function env(): ServerEnv {
 export function serverDb(): Db {
   cache.housemateDb ??= createDb(env().DATABASE_URL);
   return cache.housemateDb;
+}
+
+/** Tells the team about a new waitlist signup. Off unless configured. */
+export function waitlistAlerts(): WaitlistAlerts {
+  cache.housemateWaitlistAlerts ??= createWaitlistAlerts(env());
+  return cache.housemateWaitlistAlerts;
 }
 
 /** Builds the context for an action: who is acting, and through which channel. */

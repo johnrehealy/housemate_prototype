@@ -58,6 +58,13 @@ row and its `activity_events` entry (checked read-only on production).
   waitlist" follows it, no "alpha" in the close, no full stops on the phrases,
   no sideways scroll. No form was submitted. Its preview failed with
   `BUILD_UTILS_SPAWN_1`, as every preview does (no preview environment).
+- [PR #8](https://github.com/johnrehealy/housemate_prototype/pull/8) (the hero
+  cycles through the five jobs without "a Housemate"; P4 drops "AI") merged as
+  `0cdd11d`. Production deploy `dpl_8tx2woupL6gABEsfPp3mPGcxMaVu` is **READY**.
+  Checked live in headless Chromium at 1440 and 390: five phrases in order,
+  1.62s each above half opacity, no overlap; reduced motion holds on "someone
+  to call the plumber"; P4's new sentence; no sideways scroll. No form was
+  submitted.
 - Production database: schema applied and verified.
 
 The approved plan is `~/.claude/plans/sprightly-puzzling-fairy.md`. The approved
@@ -67,13 +74,28 @@ exists and is still empty; what it is for is undecided.
 
 ## Repo state
 
-Worktree `.worktrees/landing`, on **`site/landing-next-2`**, branched from `main`
-@ `c644362` (PR #7 merged, production READY and checked live). The branch also
-records PR #7 in this file. The only change
-`site/landing-round-4` and `site/landing-next` are merged and can be deleted.
+Worktree `.worktrees/landing`, on **`site/waitlist-alerts`**, branched from
+`main` @ `0cdd11d` (PR #8 merged, production READY and checked live).
+**Uncommitted:** the waitlist alerts (below) and this file's record of PR #8.
+`site/landing-round-4`, `site/landing-next`, `site/landing-next-2` and
+`site/landing-next-3` are merged or empty and can be deleted.
 
-**Shipping** (the user said ship, 2026-09-24) — two more nits from 2026-09-24,
-going out as a PR the same way as PR #7:
+**Waitlist alerts (2026-09-25), built and verified locally, not committed.**
+Approved plan and results: `tasks/todo-waitlist-alerts.md`. Each new signup
+posts, after the page answers, to an Apps Script in the user's "Housemate
+waitlist" sheet, which adds a row and emails them (`packages/core/src/alerts`,
+`scripts/waitlist-alerts`). Off unless `WAITLIST_ALERT_URL` and
+`WAITLIST_ALERT_SECRET` are both set. HOU-70 is the build; **HOU-69 is the
+user's setup** (script, secret, Vercel variables, backfill), which must happen
+before the merge and ends with a live test from a plus address. The decision
+to record once slice 0 rebases: "Until the ops app has a waitlist page, new
+signups are copied to the owner's Google Sheet and emailed, through an Apps
+Script behind the `WaitlistAlerts` interface." Known gaps: no rate limit on the
+form (Gmail caps alerts at ~100/day); a failed alert isn't retried later; and
+env validation is fail-fast, so a half-set pair (URL without secret) makes the
+waitlist form answer "couldn't save" until fixed — the live test catches it.
+
+What PR #8 shipped (the user's second pair of nits of 2026-09-24):
 
 - The hero's rotation drops "a Housemate" and cycles through the five jobs
   only (`copy.ts`). A screen reader's heading, and reduced motion's still
@@ -216,8 +238,16 @@ unpushed migrations after the waitlist pair (HOU-59).
 
 ## What's next
 
-Merge the nits' PR once its checks pass, then check production read-only.
-Carried over:
+Waitlist alerts: the sheet is done — "Housemate Alpha Waitlist" in
+john@myhousemate.co's Drive (the Drive connector is now signed in as that
+account), filled with both existing signups. Next is HOU-69, the user's setup
+(script, secret, deploy, Vercel variables), then commit, ship on the user's
+word, and read the Vercel logs after their live test. The connector can create
+files but can't write into an existing sheet (`update_file` is title and folder
+only).
+
+One open offer: the rotation's rhythm doesn't match H4's "2s hold, 450ms swap"
+(see above); the user was told and hasn't asked for it. Carried over:
 
 1. The decision "never the same action twice on one screen" goes into
    `docs/decisions.md` once slice 0 has rebased (that file is mirrored and the
