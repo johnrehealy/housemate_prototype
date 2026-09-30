@@ -12,5 +12,9 @@ const dmSerifText = DM_Serif_Text({
 });
 
 export default function SiteLayout({ children }: LayoutProps<"/">) {
-  return <div className={`${dmSerifText.variable} bg-canvas`}>{children}</div>;
+  return (
+    <div className={`hm-site ${dmSerifText.variable} bg-canvas`}>
+      {children}
+    </div>
+  );
 }

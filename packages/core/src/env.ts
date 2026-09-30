@@ -61,6 +61,15 @@ export const serverEnvSchema = z
      * past a preview's Vercel Authentication.
      */
     VERCEL_AUTOMATION_BYPASS_SECRET: optionalString,
+    /**
+     * The Apps Script that emails the owner and adds a row to their Google
+     * Sheet for each new waitlist signup (`scripts/waitlist-alerts`). Set in
+     * production only; unset, the alert is off.
+     */
+    WAITLIST_ALERT_URL: optionalString.pipe(z.url().optional()),
+    WAITLIST_ALERT_SECRET: optionalString.pipe(
+      z.string().min(32, "Must be at least 32 characters").optional(),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.APP_ENV === "production" && env.ACK_REPLY_ENABLED) {
@@ -87,6 +96,33 @@ export const serverEnvSchema = z
           });
         }
       }
+    }
+    const alertKeys = ["WAITLIST_ALERT_URL", "WAITLIST_ALERT_SECRET"] as const;
+    const alertSet = alertKeys.filter((key) => env[key]);
+    if (alertSet.length === 1) {
+      for (const key of alertKeys) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: "custom",
+            message:
+              "Set WAITLIST_ALERT_URL and WAITLIST_ALERT_SECRET together",
+            path: [key],
+          });
+        }
+      }
+    }
+    // The secret travels in the request body, so only a local stub may see it
+    // over plain http.
+    if (
+      env.APP_ENV !== "local" &&
+      env.WAITLIST_ALERT_URL &&
+      !env.WAITLIST_ALERT_URL.startsWith("https://")
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Must be https outside local development",
+        path: ["WAITLIST_ALERT_URL"],
+      });
     }
     if (env.SMS_PROVIDER === "twilio") {
       for (const key of TWILIO_KEYS) {

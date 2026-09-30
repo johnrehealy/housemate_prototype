@@ -4,8 +4,14 @@ import { Wordmark } from "@/components/brand";
 /*
  * The evergreen bar. The boards draw it on every panel so the panels can be
  * read on their own; in the page it is one sticky bar (motion A on board M1).
+ *
+ * `page` is where it sits. On the landing page the waitlist button is timed
+ * against the hero and the close; on any other page (boards L1 and L3) there is
+ * no form on screen to repeat, so it simply shows, and leads back to the hero.
  */
-export function Ribbon() {
+export function Ribbon({ page = "landing" }: { page?: "landing" | "inner" }) {
+  const onLanding = page === "landing";
+
   return (
     <header className="sticky top-0 z-50 flex h-(--spacing-bar) items-center justify-between bg-evergreen px-6 lg:px-30">
       <Link
@@ -15,25 +21,33 @@ export function Ribbon() {
       >
         <Wordmark className="h-5 w-auto text-on-evergreen" label={null} />
       </Link>
+      {/*
+       * "Sign in" is last, so it holds the bar's right edge. The waitlist
+       * button keeps its space while it's hidden, and with "Sign in" first
+       * that empty space sat outside it, leaving it floating a button's width
+       * in from the edge.
+       */}
       <nav aria-label="Site" className="flex items-center gap-2.5">
+        {/*
+         * The hero owns the waitlist, so this is a link to it rather than a
+         * second form. The page never asks for the same thing twice on one
+         * screen, so it shows only between the two evergreen sections that
+         * carry their own ask: once the hero has fully left, and until the
+         * close arrives. At narrow widths the hero is a screen away, not a
+         * page away, which is why it's dropped there altogether.
+         */}
+        <a
+          href={onLanding ? "#waitlist" : "/#waitlist"}
+          className={`${onLanding ? "hm-ribbon-late " : ""}hidden h-9 items-center justify-center rounded-md bg-canvas px-4 text-label font-bold text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:flex sm:w-[150px] sm:px-0`}
+        >
+          Join the waitlist
+        </a>
         <Link
           href="/sign-in"
           className="flex h-9 items-center justify-center rounded-md border border-on-evergreen/42 px-4 text-label text-on-evergreen transition-colors duration-120 ease-out hover:border-on-evergreen focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:w-[150px] sm:px-0"
         >
           Sign in
         </Link>
-        {/*
-         * The hero owns the waitlist, so this is a link to it rather than a
-         * second form. At narrow widths the hero is a screen away, not a page
-         * away, which is why it's dropped there: the boards put one call to
-         * action on screen at a time.
-         */}
-        <a
-          href="#waitlist"
-          className="hm-ribbon-late hidden h-9 items-center justify-center rounded-md bg-canvas px-4 text-label font-bold text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:flex sm:w-[150px] sm:px-0"
-        >
-          Join the waitlist
-        </a>
       </nav>
     </header>
   );

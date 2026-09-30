@@ -81,8 +81,16 @@ async function verifyCode(phone: string, token: string): Promise<SignInState> {
     return { step: "phone", error: "That number isn't set up yet." };
   }
 
+  // A member's first sign-in ends on the welcome step, which asks once about
+  // texts and is what activates them (D-067). Until they finish it they stay
+  // invited, and signing in brings them back to it.
+  if (member.status === "invited" && member.role === "member") {
+    redirect("/welcome");
+  }
+
   try {
-    // Signing in is what activates an invited member.
+    // Activates invited staff, leaves active members as they are, and turns
+    // away anyone removed.
     await activateMember(
       actionContext({
         actor: {

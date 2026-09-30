@@ -28,11 +28,21 @@ const SIGN_IN_PATH = "/sign-in";
  */
 const PUBLIC_ASSET_PREFIXES = ["/_next", "/brand/", "/site/"];
 
+/*
+ * The public site's pages besides the landing page. The privacy policy, terms
+ * and texts page have to open without an account: Twilio's reviewers read
+ * them to approve the texting registration, and anyone deciding whether to
+ * agree to texts has to be able to read them first. /texts is also the public
+ * copy of the welcome step, which a visitor can't otherwise see (D-067).
+ */
+const PUBLIC_PAGES = ["/privacy", "/terms", "/texts", "/contact"];
+
 /** Paths a signed-out visitor may see. */
 function isPublicPath(pathname: string) {
   return (
     pathname === "/" ||
     pathname === SIGN_IN_PATH ||
+    PUBLIC_PAGES.includes(pathname) ||
     PUBLIC_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   );
 }

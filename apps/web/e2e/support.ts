@@ -38,11 +38,24 @@ export const DESTINATIONS = [
  *
  * There is no "Sign in" button on the code step (D-036): the sixth digit
  * submits the form on its own, so filling the field is the whole action.
+ *
+ * On a freshly seeded database the member is still invited, so their first
+ * sign-in ends on the one-time welcome step (D-067), as CI's always does. It's
+ * passed without ticking the box: consent is the member's to give, and the
+ * box must start unticked.
  */
 export async function signIn(page: Page, phone: string = SEED_PHONE) {
   await page.goto("/sign-in");
   await page.getByLabel("Mobile number").fill(phone);
   await page.getByRole("button", { name: "Send code" }).click();
   await page.getByLabel("Six-digit code").fill(TEST_CODE);
-  await expect(page).toHaveURL(/\/chat$/);
+  await expect(page).toHaveURL(/\/(chat|welcome)$/);
+
+  if (new URL(page.url()).pathname === "/welcome") {
+    await expect(
+      page.getByRole("checkbox", { name: /optional/ }),
+    ).not.toBeChecked();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page).toHaveURL(/\/chat$/);
+  }
 }

@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./actions": "./src/actions/index.ts",
+    "./alerts": "./src/alerts/index.ts",
     "./auth": "./src/auth/index.ts",
     "./config": "./src/config.ts",
     "./costs": "./src/costs/index.ts",
@@ -13,6 +14,7 @@
     "./phone": "./src/phone.ts",
     "./queue": "./src/queue/index.ts",
     "./jobs": "./src/jobs/index.ts",
+    "./sms/opt-in": "./src/sms/opt-in.ts",
     "./time": "./src/time/timezone.ts"
   },
   "scripts": {

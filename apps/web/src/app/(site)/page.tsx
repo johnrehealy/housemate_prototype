@@ -3,15 +3,17 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { currentMember } from "@/lib/auth/session";
 import { ApprovalThread } from "./_components/approval-thread";
-import { BrowserThread } from "./_components/browser-thread";
+import { BrowserWindow } from "./_components/browser-window";
 import { Close } from "./_components/close";
 import { PANELS } from "./_components/copy";
 import { DemoFrame } from "./_components/demo-frame";
 import { FamiliarThread } from "./_components/familiar-thread";
+import { FitCopy } from "./_components/fit-copy";
 import { Hero } from "./_components/hero";
 import { Panel } from "./_components/panel";
 import { Ribbon } from "./_components/ribbon";
 import { SavedLogins } from "./_components/saved-logins";
+import { SiteFooter } from "./_components/site-footer";
 import { TeamPhoto } from "./_components/team-photo";
 
 const DESCRIPTION =
@@ -41,7 +43,7 @@ export const metadata: Metadata = {
 const VISUALS: Record<(typeof PANELS)[number]["id"], React.ReactNode> = {
   built: <DemoFrame />,
   familiar: <FamiliarThread />,
-  equipped: <BrowserThread />,
+  equipped: <BrowserWindow />,
   people: <TeamPhoto />,
   control: <ApprovalThread />,
   private: <SavedLogins />,
@@ -78,19 +80,14 @@ export default async function LandingPage() {
       <main>
         <Hero />
         {PANELS.map((panel) => (
-          <Panel
-            key={panel.id}
-            id={panel.id}
-            heading={panel.heading}
-            body={panel.body}
-            ground={panel.ground}
-            layout={panel.layout}
-          >
+          <Panel key={panel.id} {...panel}>
             {VISUALS[panel.id]}
           </Panel>
         ))}
         <Close />
       </main>
+      <SiteFooter />
+      <FitCopy />
     </>
   );
 }

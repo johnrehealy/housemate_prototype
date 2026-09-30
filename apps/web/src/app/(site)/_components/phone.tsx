@@ -3,32 +3,41 @@ import type { ReactNode } from "react";
 import { Mark } from "@/components/brand";
 
 /*
- * The phone rendering shared by P2, P3 and P5, and its parts.
+ * The phone rendering shared by P2 and P5, and its parts.
  *
  * It is a picture of the product, not the product: nothing here is
  * interactive, and the whole phone is aria-hidden. Each panel's heading and
  * body already say what the picture shows, so a screen reader that read the
  * thread as well would hear the same point twice, the second time as a wall of
  * out-of-context sentences.
+ *
+ * Round 4 draws the screen alone, as a hairline and a soft shadow rather than
+ * a bezel, so the eye goes to what is on it and to the one thing each panel
+ * lifts off it.
  */
+
+/*
+ * iOS's colours for a text to a business number, not ours: green for what the
+ * member sent, grey for what came back. No phone lets a business colour the
+ * member's own bubbles, so a branded bubble would read as a mock-up. Being the
+ * platform's, they are not tokens.
+ */
+export const SMS_SENT = "bg-[#34C759] text-[#FFFFFF]";
+const SMS_RECEIVED = "bg-[#E9E9EB] text-[#1C1C1E]";
 
 export function Phone({
   children,
-  screenClassName = "",
+  className = "",
 }: {
   children: ReactNode;
-  screenClassName?: string;
+  className?: string;
 }) {
   return (
     <div
       aria-hidden
-      className="w-[372px] max-w-full shrink-0 rounded-[52px] border border-[#B3ABA5] bg-[#CFC8C3] p-2.5 shadow-[0_20px_44px_rgba(20,52,47,0.12)]"
+      className={`flex h-[700px] w-[372px] max-w-full shrink-0 flex-col rounded-[48px] border border-line-strong bg-canvas shadow-float ${className}`}
     >
-      <div
-        className={`flex h-[680px] flex-col overflow-hidden rounded-[42px] border border-evergreen/10 bg-canvas ${screenClassName}`}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -36,9 +45,9 @@ export function Phone({
 /** The contact header: who the thread is with. */
 export function PhoneContact() {
   return (
-    <div className="flex shrink-0 flex-col items-center gap-2 border-b border-line px-4 pt-7 pb-3">
+    <div className="flex shrink-0 flex-col items-center gap-1.5 border-b border-line px-4 pt-7 pb-3.5">
       <span className="flex size-11 items-center justify-center rounded-full bg-evergreen">
-        <Mark className="h-4 w-auto text-on-evergreen" label={null} />
+        <Mark className="h-3 w-auto text-on-evergreen" label={null} />
       </span>
       <span className="text-xs text-body">Housemate</span>
     </div>
@@ -58,7 +67,7 @@ export function Thread({
 }) {
   return (
     <div
-      className={`hm-thread flex flex-1 flex-col items-stretch justify-start gap-2.5 overflow-hidden px-3.5 pt-4 ${className}`}
+      className={`hm-thread flex flex-1 flex-col items-stretch justify-start gap-1.5 overflow-hidden px-3.5 pt-4 pb-5 ${className}`}
     >
       {children}
     </div>
@@ -66,7 +75,7 @@ export function Thread({
 }
 
 export function Timestamp({ children }: { children: ReactNode }) {
-  return <p className="py-1 text-center text-2xs text-muted">{children}</p>;
+  return <p className="self-center pb-1.5 text-2xs text-muted">{children}</p>;
 }
 
 export function Bubble({
@@ -76,13 +85,13 @@ export function Bubble({
   from: "member" | "housemate";
   children: ReactNode;
 }) {
-  const member = from === "member";
+  // `text-sm` is 700 in this system; a text message isn't bold.
   return (
     <p
-      className={`max-w-[248px] rounded-[18px] px-3.5 py-2.5 text-xs ${
-        member
-          ? "self-end bg-evergreen text-on-evergreen"
-          : "self-start bg-line text-heading"
+      className={`max-w-[250px] rounded-[18px] px-3 py-2 text-sm font-normal ${
+        from === "member"
+          ? `self-end ${SMS_SENT}`
+          : `self-start ${SMS_RECEIVED}`
       }`}
     >
       {children}
@@ -93,12 +102,14 @@ export function Bubble({
 /** The bottom bar. It is drawn, never typed in. */
 export function Composer() {
   return (
-    <div className="flex shrink-0 items-center gap-2 border-t border-line bg-canvas px-3 py-3">
-      <span className="flex h-8 flex-1 items-center rounded-full border border-line-strong px-3 text-xs text-muted">
+    <div className="flex h-16 shrink-0 items-center gap-2 border-t border-evergreen/8 px-3.5 pb-2">
+      <span className="flex h-[34px] flex-1 items-center rounded-full border border-line-strong bg-surface px-[13px] text-sm font-normal text-muted">
         Text Message
       </span>
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-evergreen">
-        <ArrowUp size={16} className="text-on-evergreen" />
+      <span
+        className={`flex size-8 shrink-0 items-center justify-center rounded-full ${SMS_SENT}`}
+      >
+        <ArrowUp size={15} weight="bold" />
       </span>
     </div>
   );
