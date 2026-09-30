@@ -85,8 +85,9 @@ try {
     });
     if (!homeId) throw new Error("Expected the invite to create a home.");
 
-    // The member stays invited on purpose. Signing in is what activates them,
-    // so local development exercises the same path a real member takes.
+    // The member stays invited on purpose. Their first sign-in shows the
+    // welcome step, and finishing it is what activates them (D-067), so local
+    // development exercises the same path a real member takes.
 
     await recordInboundMessage(ctx, {
       providerSid: `SIMSEED${randomUUID().replaceAll("-", "")}`,

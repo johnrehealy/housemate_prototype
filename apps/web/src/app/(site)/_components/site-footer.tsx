@@ -4,15 +4,16 @@ import { CLOSE } from "./copy";
 const LINKS = [
   { page: "privacy", href: "/privacy", label: "Privacy" },
   { page: "terms", href: "/terms", label: "Terms" },
+  { page: "texts", href: "/texts", label: "Texts" },
   { page: "contact", href: "/contact", label: "Contact" },
 ] as const;
 
 type SitePage = (typeof LINKS)[number]["page"];
 
 /**
- * The evergreen footer under every public page (boards L1–L3; L2 for narrow).
+ * The evergreen footer under every public page (boards L1–L4; L2 for narrow).
  *
- * Wide, the copyright holds the left edge and the three links the right. On a
+ * Wide, the copyright and operator hold the left edge and the links the right. On a
  * phone the links come first, where a thumb looks for them, with the copyright
  * under them. The page being read is the one link at full strength.
  */

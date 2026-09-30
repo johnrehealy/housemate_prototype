@@ -110,8 +110,8 @@ export const CLOSE = {
   headingStart: "Every home deserves",
   headingEnd: "a Housemate",
   /*
-   * No privacy, terms or contact link. The boards draw them, but none of those
-   * pages exists and D-061 says there is no link until one does (HOU-50).
+   * The footer's left edge. It names the operator because Twilio's reviewers
+   * look for the business behind the texts on every page (D-065, D-067).
    */
-  copyright: "© 2026 Housemate",
+  copyright: "© 2026 Housemate · Operated by John Healy",
 } as const;

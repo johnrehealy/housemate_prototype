@@ -13,6 +13,8 @@ export type { ActivateMemberInput } from "./activate-member";
 export { inviteMember, inviteMemberInput } from "./invite-member";
 export { joinWaitlist, joinWaitlistInput } from "./join-waitlist";
 export type { InviteMemberInput } from "./invite-member";
+export { optInToTexts, optInToTextsInput } from "./opt-in-to-texts";
+export type { OptInToTextsInput, OptInToTextsResult } from "./opt-in-to-texts";
 export {
   recordInboundMessage,
   recordInboundMessageInput,

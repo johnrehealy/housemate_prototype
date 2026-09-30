@@ -28,7 +28,7 @@ import { SiteFooter } from "../_components/site-footer";
  *
  * Change the dates whenever the text changes. Section 16 promises that.
  */
-const EFFECTIVE = "September 25, 2026";
+const EFFECTIVE = "September 30, 2026";
 
 const DESCRIPTION =
   "The agreement between you and Housemate: what Housemate does for you, the limits you control, texting, payments, and your rights.";
@@ -265,13 +265,18 @@ export default function TermsPage() {
               </GlanceRow>
               <GlanceRow label="What we send">
                 Replies to your requests, reminders you ask for, appointment
-                reminders, follow-ups on bookings and payments, and one-time
-                sign-in codes. We don&rsquo;t send marketing texts.
+                reminders, and follow-ups on bookings and payments. We
+                don&rsquo;t send marketing texts.
               </GlanceRow>
               <GlanceRow label="Who receives them">
                 Only members who have been invited and have agreed to receive
-                texts from Housemate. Agreeing isn&rsquo;t a condition of buying
-                anything.
+                texts from Housemate, which we ask once, the first time they
+                sign in. Agreeing is optional, and isn&rsquo;t a condition of
+                using Housemate or of buying anything.
+              </GlanceRow>
+              <GlanceRow label="Sign-in codes">
+                Sent whenever you ask for one, whether or not you&rsquo;ve
+                agreed to other texts.
               </GlanceRow>
               <GlanceRow label="How often">
                 Message frequency varies with how you use Housemate. We
