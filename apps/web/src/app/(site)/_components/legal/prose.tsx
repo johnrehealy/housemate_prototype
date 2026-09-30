@@ -230,22 +230,26 @@ export function SummaryPoint({
  */
 export function Glance({
   title,
+  level = 3,
   children,
 }: {
   title: string;
+  /** 3 inside a document's section; 2 where the card stands on its own. */
+  level?: 2 | 3;
   children: ReactNode;
 }) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
     <section
       aria-labelledby="at-a-glance"
       className="rounded-xl bg-evergreen px-5 pt-6 pb-2 sm:px-9 sm:pt-9 sm:pb-5 [&_a]:text-on-evergreen [&_a:focus-visible]:outline-on-evergreen"
     >
-      <h3
+      <Heading
         id="at-a-glance"
         className={`pb-4 sm:pb-5 ${CARD_TITLE} text-on-evergreen`}
       >
         {title}
-      </h3>
+      </Heading>
       <dl>{children}</dl>
     </section>
   );

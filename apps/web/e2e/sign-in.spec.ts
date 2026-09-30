@@ -15,6 +15,13 @@ test("sends a signed-out visitor to sign-in", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
 });
 
+test("sends a signed-out visitor from the welcome step to sign-in", async ({
+  page,
+}) => {
+  await page.goto("/welcome");
+  await expect(page).toHaveURL(/\/sign-in$/);
+});
+
 test("answers an uninvited number exactly as an invited one", async ({
   page,
 }) => {

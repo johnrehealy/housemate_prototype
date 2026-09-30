@@ -12,6 +12,7 @@
     "./email": "./src/email.ts",
     "./phone": "./src/phone.ts",
     "./queue": "./src/queue/jobs.ts",
+    "./sms/opt-in": "./src/sms/opt-in.ts",
     "./time": "./src/time/timezone.ts"
   },
   "scripts": {

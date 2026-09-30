@@ -35,7 +35,7 @@ import { SiteFooter } from "../_components/site-footer";
  *
  * Change the dates whenever the text changes. Section 13 promises that.
  */
-const EFFECTIVE = "September 25, 2026";
+const EFFECTIVE = "September 30, 2026";
 
 const DESCRIPTION =
   "What Housemate collects, why, who we share it with, how long we keep it, and the choices you have, including how our text messaging works.";
@@ -191,8 +191,12 @@ export default function PrivacyPage() {
               <GlanceRow label="What it is">
                 Texts about your home, sent only to invited members who have
                 agreed to them: replies to your requests, reminders you asked
-                for, appointment reminders, follow-ups on bookings and payments,
-                and sign-in codes. Never marketing.
+                for, appointment reminders, and follow-ups on bookings and
+                payments. Never marketing.
+              </GlanceRow>
+              <GlanceRow label="Sign-in codes">
+                Sent whenever you ask for one, whether or not you&rsquo;ve
+                agreed to other texts.
               </GlanceRow>
               <GlanceRow label="How often">
                 Message frequency varies with how you use Housemate. No
@@ -215,14 +219,17 @@ export default function PrivacyPage() {
             <Subsection title="2.1 How you agree to receive texts">
               <P>
                 Housemate texts only people who have been invited and have
-                agreed to receive messages from us. When we invite you, we ask
-                whether you want to receive texts from Housemate. Before you
-                agree, we tell you the program&rsquo;s name, what we&rsquo;ll
-                text you about, that message frequency varies, that message and
-                data rates may apply, how to reply STOP and HELP, and where to
-                find this policy and our <A href="/terms">Terms</A>. We record
-                your consent, including the phone number, the date and time, and
-                the wording you agreed to.
+                agreed to receive messages from us. The first time you sign in
+                to myhousemate.co, we ask once whether you want texts from
+                Housemate, with an optional box that starts unticked. You can
+                continue without it and still use Housemate on the web. Before
+                you agree, we tell you the program&rsquo;s name, what
+                we&rsquo;ll text you about, that message frequency varies, that
+                message and data rates may apply, how to reply STOP and HELP,
+                and where to find this policy and our <A href="/terms">Terms</A>
+                . We record your consent, including the phone number, the date
+                and time, and the wording you agreed to. You can see that step,
+                word for word, at <A href="/texts">myhousemate.co/texts</A>.
               </P>
               <Bullets>
                 <Bullet>
@@ -231,8 +238,8 @@ export default function PrivacyPage() {
                 </Bullet>
                 <Bullet>
                   <B>
-                    You don&rsquo;t have to agree to receive texts as a
-                    condition of buying anything.
+                    You don&rsquo;t have to agree to receive texts to use
+                    Housemate, or as a condition of buying anything.
                   </B>
                 </Bullet>
                 <Bullet>
@@ -264,7 +271,9 @@ export default function PrivacyPage() {
                   needs your confirmation or a problem with a booking.
                 </Bullet>
                 <Bullet>
-                  <B>One-time sign-in codes</B> when you sign in to the web app.
+                  <B>One-time sign-in codes</B> whenever you ask for one to sign
+                  in to the web app, whether or not you&rsquo;ve agreed to other
+                  texts.
                 </Bullet>
               </Bullets>
               <P>
