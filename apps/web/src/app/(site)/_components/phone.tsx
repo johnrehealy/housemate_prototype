@@ -17,12 +17,11 @@ import { Mark } from "@/components/brand";
  */
 
 /*
- * iOS's colours for a text to a business number, not ours: green for what the
- * member sent, grey for what came back. No phone lets a business colour the
- * member's own bubbles, so a branded bubble would read as a mock-up. Being the
- * platform's, they are not tokens.
+ * iOS's colours, not ours: blue for what the member sent, grey for what came
+ * back. No phone lets a business colour the member's own bubbles, so a branded
+ * bubble would read as a mock-up. Being the platform's, they are not tokens.
  */
-export const SMS_SENT = "bg-[#34C759] text-[#FFFFFF]";
+export const SMS_SENT = "bg-[#007AFF] text-[#FFFFFF]";
 const SMS_RECEIVED = "bg-[#E9E9EB] text-[#1C1C1E]";
 
 export function Phone({
