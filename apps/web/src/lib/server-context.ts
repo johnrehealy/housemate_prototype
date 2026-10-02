@@ -25,7 +25,8 @@ const cache = globalThis as unknown as {
   housemateWaitlistAlerts?: WaitlistAlerts;
 };
 
-function env(): ServerEnv {
+/** The server's environment, parsed once per process. */
+export function serverEnv(): ServerEnv {
   cache.housemateEnv ??= loadServerEnv();
   return cache.housemateEnv;
 }
@@ -35,13 +36,13 @@ function env(): ServerEnv {
  * trusted server code may use it, and never a Client Component.
  */
 export function serverDb(): Db {
-  cache.housemateDb ??= createDb(env().DATABASE_URL);
+  cache.housemateDb ??= createDb(serverEnv().DATABASE_URL);
   return cache.housemateDb;
 }
 
 /** Tells the team about a new waitlist signup. Off unless configured. */
 export function waitlistAlerts(): WaitlistAlerts {
-  cache.housemateWaitlistAlerts ??= createWaitlistAlerts(env());
+  cache.housemateWaitlistAlerts ??= createWaitlistAlerts(serverEnv());
   return cache.housemateWaitlistAlerts;
 }
 
@@ -50,7 +51,7 @@ export function actionContext(input: {
   actor: Actor;
   source: Source;
 }): ActionContext {
-  const current = env();
+  const current = serverEnv();
   const { SUPABASE_URL: url, SUPABASE_SECRET_KEY: secretKey } = current;
   if (!url || !secretKey) {
     throw new Error(

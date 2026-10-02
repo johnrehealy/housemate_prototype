@@ -1,0 +1,34 @@
+# The staging worker (D-055), deployed by .github/workflows/deploy.yml on every
+# merge to main. Staging texts go through the SMS simulator, so this never
+# reaches Twilio. Secrets are set with `fly secrets set`, never here:
+#   DATABASE_URL, SUPABASE_URL, SUPABASE_SECRET_KEY, TWILIO_AUTH_TOKEN
+app = "housemate-worker-staging"
+# Seattle, the nearest region to the Supabase projects in us-west-2.
+primary_region = "sea"
+kill_signal = "SIGTERM"
+kill_timeout = "30s"
+
+[env]
+  APP_ENV = "staging"
+  SMS_PROVIDER = "simulator"
+  ACK_REPLY_ENABLED = "true"
+  # Only used for Twilio's status callbacks, which a simulator never asks for,
+  # so it is deliberately an address that can't resolve (.invalid, RFC 2606).
+  PUBLIC_BASE_URL = "https://staging.invalid"
+  PORT = "8080"
+
+# No public service: the worker takes jobs off the database's queues and has
+# nothing to serve. The health check runs on the machine's private network.
+[checks]
+  [checks.health]
+    type = "http"
+    port = 8080
+    path = "/health"
+    method = "get"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

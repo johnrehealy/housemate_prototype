@@ -1,6 +1,6 @@
 {
-  "id": "e450d7c7-7adf-4653-a4b1-f2e1fdb4fbf8",
-  "prevId": "d2d86fcf-b39f-4479-a392-fb562e0adcdd",
+  "id": "f9efa892-16f6-4651-bcd0-1053a4a0cd3a",
+  "prevId": "29a7a873-5e5a-4c28-90fa-fd4b701a96b7",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -620,6 +620,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -720,6 +726,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "provider_sid"
+          ]
+        },
+        "messages_idempotency_key_unique": {
+          "name": "messages_idempotency_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotency_key"
           ]
         }
       },
@@ -946,7 +959,9 @@
       "schema": "public",
       "values": [
         "member_over_budget",
-        "worker_error"
+        "pilot_over_budget",
+        "worker_error",
+        "send_stuck"
       ]
     },
     "public.conversation_status": {

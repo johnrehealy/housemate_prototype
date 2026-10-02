@@ -18,6 +18,7 @@
     "db:reset": "supabase db reset",
     "db:seed": "pnpm --filter @housemate/core seed",
     "db:generate": "pnpm --filter @housemate/core db:generate",
+    "sms": "pnpm --filter @housemate/core sms",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

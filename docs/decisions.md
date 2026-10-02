@@ -138,7 +138,7 @@ Entries are listed by number and never renumbered, so a reference like D-013 alw
 - **Status:** Approved · 2026-09-15 (user instruction)
 
 ### D-030 · Cost budget of $100 per member per month, flagged not blocked
-- **Status:** Approved · 2026-09-15 (user instruction)
+- **Status:** Approved · 2026-09-15 (user instruction). Superseded in part by D-063: the $100 is the whole pilot's, not each member's.
 - **Decision:** Track each member's costs (Claude, including computer use, and Twilio) from the start, and estimate from real usage. The initial budget is $100 per member per month. A member going over is flagged to the team; the agent isn't stopped.
 - **Note:** Whether $100 is per member or for the whole pilot is still to be confirmed (HOU-24). Per member is what's built to.
 
@@ -301,3 +301,86 @@ D-043 to D-055 record answers the user gave in the Linear copy of `docs/open-que
   - Type is identical at every width; only the page frame changes. Values are in `docs/design.md` §4 under Sign-in page.
 - **Reason:** D-036's boards only covered 1440 × 900, so the build had no approved narrow behavior. The user chose to design it in Paper rather than improvise it, as D-034 requires.
 - **Note:** This covers the sign-in page only. Every other screen is still 1440-only, so Q12 stays open.
+
+### D-057 · The sign-in page's copy is revised
+- **Status:** Approved · 2026-09-22 (the user edited the copy on the Paper boards, then settled two inconsistencies between boards in chat). Changes D-036's and D-056's copy; layout, type and colour are unchanged.
+- **Decision:**
+  - **Story panel:** headline "Every home needs a Housemate."; lead "Repairs, services, errands and upkeep, all in one place. Tell Housemate what you need and it gets to work."; three new row bodies under the same titles.
+  - **Invite note:** "Housemate is currently invite-only", everywhere the panel appears. A2 carried this; A3–A5 still had the longer note, and the user chose the short one.
+  - **Narrow (below `--breakpoint-lg`), exactly as drawn on A7 and A8:** the code-step helper is "A code is on its way.", and there is no invite note. Wider widths keep "If (number) is on the invite list, a code is on its way."
+- **Reason:** The user rewrote the copy in Paper, as D-034 requires.
+- **Trade-off the user accepted:** on a phone, someone with an uninvited number is told a code is on its way, and nothing on the page explains why it never arrives. It still doesn't reveal who is in the pilot, because every number gets the same sentence.
+
+### D-058 · How the messaging path checks, orders and simulates texts
+- **Status:** Approved · 2026-09-22 (user approval of the Slice 0 step 5 plan)
+- **Decision:**
+  - **The SMS simulator page is dev tooling, not a designed surface.** No member sees `/dev/sms`, so it's built plain from existing tokens with no Paper mockup, as an exception to D-034. It returns a 404 in production and requires sign-in everywhere else.
+  - **`TWILIO_AUTH_TOKEN` is required in every environment.** The Twilio webhooks check every request against it, and the simulator signs with it. Locally it's an obviously fake value.
+  - **A text's delivery status never moves backwards.** Twilio's callbacks can arrive out of order, so `queued` → `sent` → `delivered` / `undelivered` / `failed` only moves forward, and the last three are final.
+- **Reason:** The webhooks must refuse anything Twilio didn't sign, and the simulator has to go through that same check to be a real test of the path (D-009). A late "sent" overwriting "delivered" would show a member a delivered text as pending.
+
+### D-059 · Coding agents can work in a Fly.io Sprite
+- **Status:** Approved · 2026-09-22 (user approval of the dev Sprite plan). Extends D-032, which expected that "a full dev container may follow later".
+- **Decision:**
+  - **One persistent Sprite, `mcp-housemate-dev`,** in the user's Fly.io organization, is a cloud dev environment where Claude Code sessions work on the prototype. Claude creates and runs it through the Sprites MCP in restricted mode, which only allows names starting with `mcp-`.
+  - **Outbound traffic is denied by default.** The allowlist is `scripts/sprite/network-policy.json`: GitHub, npm, Google Fonts, Playwright's downloads, the Ubuntu mirrors, Supabase's images and Anthropic. Twilio, Stripe, remote Supabase, Vercel and every vendor site are denied, so nothing run there can text a real phone or touch a real vendor.
+  - **Only generated data.** The Sprite runs local Supabase and the seed script. No staging or production credentials go on it (invariant 6), and its URL stays private.
+  - **GitHub access is a fine-grained token** for this repo only (Contents and Pull requests, 90 days), which the user enters. Agents there work on their own branches and open PRs; nothing merges without the user.
+  - **Claude Code's own sandbox stays on inside the Sprite,** so a sandboxed command can't read the `gh` token.
+  - **Setup is `scripts/sprite/bootstrap.sh`,** which is safe to rerun. A `base` checkpoint is taken once it passes.
+- **Reason:** Agents can work away from the Mac on a hardware-isolated machine that holds no credential beyond a one-repo token, costs nothing while idle, and can be put back to a known state from a checkpoint.
+- **Note:** Docker in a Sprite is undocumented. If local Supabase can't run there, the plan is revisited rather than worked around (HOU-45). Whether Sprites also host Housemate's per-task browser sandbox is open question 23, and one Sprite per coding task is deferred until this one has been used.
+
+### D-060 · How the worker's automatic replies behave
+- **Status:** Approved · 2026-09-22 (user approval of the Slice 0 step 6 plan). Refines D-050 and D-051.
+- **Decision:**
+  - **An automatic reply is sent at most once.** Each reply carries an idempotency key (`ack:<text>` or `invite-only:<number>`), and a retried job that finds its reply already saved sends nothing, even if that earlier send never heard back from Twilio. A missed reply stays visible as `queued`; a duplicate text can't be taken back.
+  - **A number that isn't invited gets one invite-only reply, ever** (D-050), however often it texts. Every text is still stored.
+  - **The two texts:** the acknowledgment, "Hey {first name} - got it. This is an automatic reply while Housemate is being set up.", on locally and on staging only; and the invite-only reply, "Hi - Housemate is invite-only right now, so I can't help with requests from this number."
+  - **STOP and HELP texts are stored but never queued** (D-051): Twilio has already answered them, and nothing of ours should. START, YES and UNSTOP are ordinary texts, so a member's "Yes" always reaches the agent.
+  - **`/dev/thread` is dev tooling** under D-058's exemption, like `/dev/sms`: plain, signed in, and a 404 in production.
+- **Reason:** A retried job is the normal case once a worker can crash, and a member texted twice for one message loses trust faster than one who waits for a reply that stalled.
+
+### D-061 · A public landing page at myhousemate.co goes live now
+- **Status:** Approved · 2026-09-22 (user approval of the landing page plan, and answers in chat on go-live, audience and proof). Pulls the production half of Slice 0 step 8 forward.
+- **Decision:**
+  - **`/` is a public marketing page.** Signed-out visitors see it; signed-in members go straight to `/chat`, as they do from `/sign-in`. `/` and `/sign-in` are the only public pages.
+  - **New visitors first.** The hero tells the story, and sign-in sits in the bar and at the close. There is no inline phone field.
+  - **The proof is the product as designed.** Illustrations of the designed app areas, with example names and details and labelled as examples. No testimonials, pricing, members, press or claims that don't exist yet, and no privacy or terms link until a policy exists.
+  - **It goes live now.** A production Supabase project (sign-ups off, site URL `https://myhousemate.co`) and a Vercel project deploying `main` from GitHub, with root `apps/web`, serving `myhousemate.co` with `www` redirecting to it. Until Twilio is set up (HOU-5), texting and code sign-in fail closed in production.
+- **Reason:** The prototype needs a front door that explains Housemate to someone who hasn't been invited yet, modelled on muse.ai.
+- **Note:** The page is designed in Paper first (D-034); the boards are waiting on review (HOU-48), and its larger hero type goes into `docs/design.md` only once they're approved. Going live waits on the Vercel connector (HOU-47) and the DNS records (HOU-49).
+
+### D-062 · Members can save vendor logins in a vault the agent can't read
+- **Status:** Approved · 2026-09-22 (the user's answer to the landing page critique: a credential store is really planned). Supersedes the "logins are handed to the member" line in `docs/product.md`, and extends D-025's fill pattern from cards to logins.
+- **Decision:**
+  - **Members can save vendor logins,** and they go into a credential vault that the agent's model never reads.
+  - **The fill happens outside the model,** exactly as D-025's single-use card fill does: worker code injects the secret into the browser sandbox at the moment the form asks for it. The value never enters the agent's context, the transcript, the logs, or a screenshot.
+  - **"Hidden from Housemate" means that,** and only that: hidden from the agent and from everything a person can read back. It is not a phrase about encryption at rest.
+  - **CAPTCHAs are still handed to the member.** A vault doesn't solve a CAPTCHA.
+  - **Until it's built,** the agent hands the login step to the member, as it does today.
+- **Reason:** The landing page claims it, and a claim on a public page has to be something we're actually building. The mechanism already exists for cards under D-025, so logins extend a pattern rather than invent one.
+- **Note:** This isn't in slices 0–7 and needs its own plan and slice (HOU-56). Until then the landing page is describing the designed product, which D-061 allows — but the panel must not imply the vault is working today, and the wording should be checked against that before launch.
+
+### D-063 · How costs are recorded, and when the team is texted
+- **Status:** Approved · 2026-09-22 (the user's answers to the Slice 0 step 7 plan, and its approval). Supersedes D-030's "per member": the rest of D-030 stands. Answers open question 22 (HOU-24).
+- **Decision:**
+  - **The $100 is the whole pilot's monthly budget,** not each member's. Budget months run in UTC. Going over texts the team once a month and never blocks anything. The `member_over_budget` alert kind stays in the schema for when budgets become per member.
+  - **A text costs what Twilio actually charged.** The price is fetched from Twilio's Message resource about a minute after the text is handled, and asked again with the queue's backoff until Twilio has priced it. Twilio's status callback carries no price, so the build plan's "Twilio price from the status callback" couldn't be taken literally. The simulator prices every text at a fixed, fake $0.0079.
+  - **Inbound texts are costed too.** Twilio charges for them, and leaving them out would understate the bill by about a third.
+  - **Three things text the team** (`TEAM_ALERT_PHONES`), each once, ever:
+    - going over budget: "Housemate alert: costs for September are $104.32, over the $100 budget. Nothing is blocked."
+    - a job that failed every retry: "Housemate alert: a job failed every retry and has been parked - inbound_messages, job 42. It won't run again on its own."
+    - a text with no delivery result 15 minutes after it was saved: "Housemate alert: a text from 15 minutes ago still has no delivery result. Message 3f9a2b, to (555) 019-0001. It may not have gone out."
+  - **Team alerts ignore quiet hours.** They go to the team's own phones, and a failure at 3 AM is worth knowing about. Quiet hours still apply to every text a member gets.
+- **Reason:** A budget that flags rather than blocks is only useful if the figure is real, and a stalled job or text is only recoverable if someone hears about it.
+
+### D-064 · The ops cost view
+- **Status:** Approved · 2026-09-23 (the user's answers to the Impeccable critique of the r1 boards: show the month and work the alert state out, keep three figures and fix the sign, and take everything in scope. Then "ok continue" on the r2 boards, HOU-55.)
+- **Decision:**
+  - **`/ops/costs` is staff only.** Anyone else gets a 404. The page reads through the server connection, which bypasses row-level security, so the check is in the page's code.
+  - **It shows one budget month at a time,** with a stepper. It has three figures (spent; left of or over the budget; alerts), a budget bar, the month's alerts, and a by-member table.
+  - **An alert's state is worked out, not stored.** A stuck text is Resolved once it has a delivery result. A failed job needs a look while it's still parked. Going over budget is Flagged. Nothing needs clearing by hand for the page to stay true.
+  - **Alerts the team never got are called out** above the figures and listed first, because the page is the only place they show.
+  - **The design is recorded** in `docs/design.md`, §4 "Ops cost view". It lists the three places the build differs from the boards, and why.
+- **Reason:** The r1 boards scored 19/40 in the Impeccable critique. They were hard to read, and their alert list went stale unless someone cleared it by hand.

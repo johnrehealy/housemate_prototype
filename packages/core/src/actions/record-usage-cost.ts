@@ -1,9 +1,5 @@
-import { and, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { MONTHLY_BUDGET_USD } from "../config";
-import { firstRow } from "../db/rows";
-import { alerts, homes, members, usageCosts } from "../db/schema";
-import { monthKeyInTimezone, startOfMonthInTimezone } from "../time/timezone";
+import { usageCosts } from "../db/schema";
 import { defineAction } from "./define-action";
 
 export const recordUsageCostInput = z.object({
@@ -13,15 +9,20 @@ export const recordUsageCostInput = z.object({
   /** What the cost is for, e.g. "message" plus the provider's ID. */
   refType: z.string().min(1),
   refId: z.string().min(1),
+  /** Null for costs that are nobody's, such as a text from a stranger. */
   memberId: z.uuid().optional(),
   homeId: z.uuid().optional(),
   occurredAt: z.coerce.date().optional(),
 });
 
 /**
- * Records what a member's usage cost. Recording the same cost twice is a
- * no-op. Crossing the monthly budget raises one alert per member per month
- * (D-030); it never stops the agent.
+ * Records what something cost (D-030). Recording the same cost twice is a
+ * no-op: the unique index on (kind, ref_type, ref_id) decides, so a retried
+ * job can't double-count.
+ *
+ * Whether the pilot is over budget is `checkPilotBudget`'s job, because
+ * telling the team means sending a text, which can't happen inside this
+ * transaction.
  */
 export const recordUsageCost = defineAction({
   name: "recordUsageCost",
@@ -29,7 +30,7 @@ export const recordUsageCost = defineAction({
   handler: async ({ input, tx, record, now }) => {
     const occurredAt = input.occurredAt ?? now;
 
-    const inserted = await tx
+    const [row] = await tx
       .insert(usageCosts)
       .values({
         kind: input.kind,
@@ -41,71 +42,22 @@ export const recordUsageCost = defineAction({
         occurredAt,
       })
       .onConflictDoNothing()
-      .returning({ id: usageCosts.id });
+      .returning();
+    if (!row) return { recorded: false as const };
 
-    if (inserted.length === 0) {
-      return { recorded: false, alerted: false, monthToDateUsd: null };
-    }
-    if (!input.memberId) {
-      return { recorded: true, alerted: false, monthToDateUsd: null };
-    }
+    await record({
+      entityType: "usage_cost",
+      entityId: row.id,
+      homeId: row.homeId,
+      action: "recorded",
+      after: {
+        kind: row.kind,
+        amountUsd: row.amountUsd,
+        refType: row.refType,
+        refId: row.refId,
+      },
+    });
 
-    const member = firstRow(
-      await tx
-        .select({ homeId: members.homeId, timezone: homes.timezone })
-        .from(members)
-        .innerJoin(homes, eq(members.homeId, homes.id))
-        .where(eq(members.id, input.memberId))
-        .limit(1),
-    );
-    // Staff have no home, so no budget period to measure against.
-    if (!member)
-      return { recorded: true, alerted: false, monthToDateUsd: null };
-
-    const monthStart = startOfMonthInTimezone(occurredAt, member.timezone);
-    const total = firstRow(
-      await tx
-        .select({ sum: sql<string>`coalesce(sum(${usageCosts.amountUsd}), 0)` })
-        .from(usageCosts)
-        .where(
-          and(
-            eq(usageCosts.memberId, input.memberId),
-            gte(usageCosts.occurredAt, monthStart),
-          ),
-        ),
-    );
-    const monthToDateUsd = Number(total?.sum ?? 0);
-    if (monthToDateUsd < MONTHLY_BUDGET_USD) {
-      return { recorded: true, alerted: false, monthToDateUsd };
-    }
-
-    const monthKey = monthKeyInTimezone(occurredAt, member.timezone);
-    const alert = await tx
-      .insert(alerts)
-      .values({
-        kind: "member_over_budget",
-        memberId: input.memberId,
-        dedupeKey: `member_over_budget:${input.memberId}:${monthKey}`,
-        detail: {
-          monthKey,
-          monthToDateUsd,
-          budgetUsd: MONTHLY_BUDGET_USD,
-        },
-      })
-      .onConflictDoNothing()
-      .returning({ id: alerts.id });
-
-    const [raised] = alert;
-    if (raised) {
-      await record({
-        entityType: "alert",
-        entityId: raised.id,
-        homeId: member.homeId,
-        action: "raised",
-        after: { kind: "member_over_budget", monthKey, monthToDateUsd },
-      });
-    }
-
-    return { recorded: true, alerted: Boolean(raised), monthToDateUsd };
+    return { recorded: true as const, costId: row.id };
   },
 });

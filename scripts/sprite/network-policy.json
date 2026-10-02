@@ -1,0 +1,22 @@
+{
+  "rules": [
+    { "include": "defaults" },
+    { "domain": "github.com", "action": "allow" },
+    { "domain": "*.githubusercontent.com", "action": "allow" },
+    { "domain": "registry.npmjs.org", "action": "allow" },
+    { "domain": "nodejs.org", "action": "allow" },
+    { "domain": "fonts.googleapis.com", "action": "allow" },
+    { "domain": "fonts.gstatic.com", "action": "allow" },
+    { "domain": "cdn.playwright.dev", "action": "allow" },
+    { "domain": "playwright.download.prss.microsoft.com", "action": "allow" },
+    { "domain": "archive.ubuntu.com", "action": "allow" },
+    { "domain": "*.archive.ubuntu.com", "action": "allow" },
+    { "domain": "security.ubuntu.com", "action": "allow" },
+    { "domain": "ports.ubuntu.com", "action": "allow" },
+    { "domain": "public.ecr.aws", "action": "allow" },
+    { "domain": "claude.ai", "action": "allow" },
+    { "domain": "*.claude.ai", "action": "allow" },
+    { "domain": "*.anthropic.com", "action": "allow" },
+    { "domain": "*", "action": "deny" }
+  ]
+}

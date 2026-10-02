@@ -12,14 +12,7 @@ export default async function SignInPage() {
   if (await currentMember()) redirect("/chat");
 
   return (
-    <AuthFrame
-      note={
-        <p className="max-w-[342px] text-xs text-muted lg:hidden">
-          Housemate is invite-only while we try it out with a small group of
-          homes.
-        </p>
-      }
-    >
+    <AuthFrame>
       <SignInForm />
     </AuthFrame>
   );

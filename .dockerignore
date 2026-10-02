@@ -1,0 +1,18 @@
+# The worker image is built from the repo root. Keep it to source and
+# manifests, and keep every environment file out of it.
+**/node_modules
+**/.next
+**/.env*
+**/*.tsbuildinfo
+**/test-results
+**/playwright-report
+**/.impeccable
+**/.claude
+apps/web
+docs
+tasks
+supabase
+scripts
+.git
+.github
+.worktrees

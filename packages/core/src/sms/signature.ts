@@ -20,3 +20,16 @@ export function isValidTwilioSignature({
   if (!signature) return false;
   return twilio.validateRequest(authToken, signature, url, params);
 }
+
+/**
+ * Signs a request the way Twilio does. Only the simulator and tests need this:
+ * it's what lets a simulated text go through the real webhook, signature
+ * check included (D-009).
+ */
+export function signTwilioRequest({
+  authToken,
+  url,
+  params,
+}: Omit<SignedRequest, "signature">): string {
+  return twilio.getExpectedTwilioSignature(authToken, url, params);
+}
