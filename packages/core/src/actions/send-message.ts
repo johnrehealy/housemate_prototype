@@ -54,6 +54,14 @@ const queueOutboundMessage = defineAction({
         "sendMessage: that member was removed.",
       );
     }
+    // A member who gave no number signs in by email and gets no texts (D-074).
+    const toPhone = recipient.phone;
+    if (!toPhone) {
+      throw new ActionError(
+        "invalid_input",
+        "sendMessage: that member has no mobile number.",
+      );
+    }
     if (
       input.kind === "proactive" &&
       isWithinQuietHours(now, recipient.timezone)
@@ -76,7 +84,7 @@ const queueOutboundMessage = defineAction({
           author: "agent",
           outboundKind: input.kind,
           body: input.body,
-          toPhone: recipient.phone,
+          toPhone,
           deliveryStatus: "queued",
           createdAt: now,
         })
@@ -92,7 +100,7 @@ const queueOutboundMessage = defineAction({
       after: { body: message.body, kind: input.kind, toPhone: message.toPhone },
     });
 
-    return { messageId: message.id, to: recipient.phone };
+    return { messageId: message.id, to: toPhone };
   },
 });
 

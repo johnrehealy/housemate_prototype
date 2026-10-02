@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+  E2, the code email (docs/design.md, Emails), as Supabase sends it locally and
+  in CI, where Mailpit catches it. Production sends E2 from
+  scripts/waitlist-alerts/Code.gs through the Send Email hook; this is that
+  layout, with Supabase's {{ .Token }} and {{ .SiteURL }}. Change both together.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text&amp;family=Lato:wght@400;700&amp;display=swap" rel="stylesheet">
+<title>Your Housemate code</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F5F3F1;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F3F1;">
+<tr>
+<td align="center" style="padding:40px 16px 56px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#FFFBF9;border:1px solid #ECE8E5;border-radius:12px;">
+<tr>
+<td align="center" style="padding:40px 48px 0;">
+<img src="{{ .SiteURL }}/brand/housemate-lockup-evergreen.png" width="163" height="20" alt="Housemate" style="display:block;border:0;width:163px;height:20px;color:#14342F;font-family:'DM Serif Text', Georgia, 'Times New Roman', serif;font-size:20px;line-height:20px;">
+</td>
+</tr>
+<tr>
+<td align="center" style="padding:40px 48px 0;font-family:'DM Serif Text', Georgia, 'Times New Roman', serif;font-size:36px;line-height:44px;letter-spacing:-0.01em;color:#14342F;font-weight:400;text-wrap:balance;">Your Housemate code</td>
+</tr>
+<tr>
+<td align="center" style="padding:16px 48px 0;font-family:Lato, Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;color:#49504E;text-wrap:pretty;">Enter it on the Housemate page you came from to confirm it’s you.</td>
+</tr>
+<tr>
+<td align="center" style="padding:32px 48px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="padding:16px 32px;background-color:#F5F3F1;border:1px solid #ECE8E5;border-radius:12px;font-family:Lato, Helvetica, Arial, sans-serif;font-size:36px;line-height:44px;font-weight:700;letter-spacing:0.18em;font-variant-numeric:tabular-nums;color:#2A312F;">{{ .Token }}</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td align="center" style="padding:32px 48px 44px;font-family:Lato, Helvetica, Arial, sans-serif;font-size:14px;line-height:20px;color:#68706E;text-wrap:balance;">It works once and expires in an hour.<br>If you didn’t ask for a code, you can ignore this email.</td>
+</tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+<tr>
+<td align="center" style="padding:24px 4px 0;font-family:Lato, Helvetica, Arial, sans-serif;font-size:12px;line-height:17px;color:#68706E;">You’re getting this because a code was asked for with this email<br>at myhousemate.co. Housemate, operated by John Healy.</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>

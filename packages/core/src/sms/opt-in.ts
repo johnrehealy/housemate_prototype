@@ -1,32 +1,32 @@
 /**
- * What a member agrees to when they first join (D-067), word for word.
+ * What a member agrees to by ticking G3's "Text me about my home" box on Get
+ * started (D-074), word for word.
  *
- * The welcome step after an invited member's first sign-in shows `label`
- * beside an unticked box with `text` under it. It's shown once: finishing the
- * step activates the member, and active members never see it again. The
- * consent record stores the label and text with the version, so what we can
- * prove someone agreed to is exactly what they saw. Changing the wording means
- * a new version: records keep the version they were made under, and a page
- * rendered before the change is refused rather than recorded against wording
- * it didn't show.
+ * The box appears only once a mobile number is typed, below the Terms box,
+ * with `label` beside it and `smallPrint` under it. The consent record stores
+ * both with the version, so what we can prove someone agreed to is exactly
+ * what they saw. Changing the wording means a new version: records keep the
+ * version they were made under, and a page rendered before the change is
+ * refused rather than recorded against wording it didn't show.
  *
- * The box is optional, as Twilio requires (30923, 30931): a member can go on
- * without it. Sign-in codes aren't listed because they come from Twilio
- * Verify, outside this program (D-049), and arrive whether or not the box is
- * ticked.
+ * The box is optional and starts unticked, as Twilio requires (30923, 30931):
+ * someone can join without it, and their number then gets only sign-in codes.
+ * Those codes come from Twilio Verify, outside this program (D-049, D-073), so
+ * they aren't listed here.
  *
  * Twilio's reviewers read this wording in the campaign's message flow, and on
  * the public /texts page, so it names the sender, what's sent, frequency,
- * rates, STOP and HELP, and that consent is optional. The Privacy Policy and
- * Terms links sit right after it.
+ * rates, STOP and HELP, and that texting is optional. The links to how texting
+ * works, the Terms and the Privacy Policy sit under it.
  *
  * Kept free of imports, so pages can read it without pulling in the rest of
  * the package.
  */
 export const SMS_OPT_IN = {
-  version: "2026-09-28",
-  label: "Send me texts about my home (optional)",
-  text: "I agree to receive recurring text messages from Housemate, operated by John Healy, at the mobile number I signed in with: replies to my requests, reminders, appointment updates, and follow-ups on bookings and payments. Message frequency varies. Message and data rates may apply. Reply STOP to opt out at any time, or HELP for help. You can use Housemate without agreeing, and consent is not a condition of any purchase.",
+  version: "2026-10-02",
+  label: "Text me about my home",
+  smallPrint:
+    "By ticking this, you agree to get texts from Housemate, operated by John Healy, about your home: replies, reminders and updates. Msg frequency varies. Msg & data rates may apply. Reply STOP to opt out, HELP for help. Texting is optional.",
 } as const;
 
 /** The one text a member gets after opting in, named in the campaign too. */

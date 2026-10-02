@@ -7,7 +7,8 @@ import { Wordmark } from "@/components/brand";
  *
  * `page` is where it sits. On the landing page the waitlist button is timed
  * against the hero and the close; on any other page (boards L1 and L3) there is
- * no form on screen to repeat, so it simply shows, and leads back to the hero.
+ * no other button on screen to repeat, so it simply shows. Either way it opens
+ * Get started (D-072).
  */
 export function Ribbon({ page = "landing" }: { page?: "landing" | "inner" }) {
   const onLanding = page === "landing";
@@ -29,19 +30,18 @@ export function Ribbon({ page = "landing" }: { page?: "landing" | "inner" }) {
        */}
       <nav aria-label="Site" className="flex items-center gap-2.5">
         {/*
-         * The hero owns the waitlist, so this is a link to it rather than a
-         * second form. The page never asks for the same thing twice on one
-         * screen, so it shows only between the two evergreen sections that
-         * carry their own ask: once the hero has fully left, and until the
-         * close arrives. At narrow widths the hero is a screen away, not a
+         * The page never asks for the same thing twice on one screen, so on
+         * the landing page this shows only between the two evergreen sections
+         * that carry their own ask: once the hero has fully left, and until
+         * the close arrives. At narrow widths the hero is a screen away, not a
          * page away, which is why it's dropped there altogether.
          */}
-        <a
-          href={onLanding ? "#waitlist" : "/#waitlist"}
+        <Link
+          href="/get-started"
           className={`${onLanding ? "hm-ribbon-late " : ""}hidden h-9 items-center justify-center rounded-md bg-canvas px-4 text-label font-bold text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:flex sm:w-[150px] sm:px-0`}
         >
           Join the waitlist
-        </a>
+        </Link>
         <Link
           href="/sign-in"
           className="flex h-9 items-center justify-center rounded-md border border-on-evergreen/42 px-4 text-label text-on-evergreen transition-colors duration-120 ease-out hover:border-on-evergreen focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:w-[150px] sm:px-0"

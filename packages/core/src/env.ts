@@ -58,6 +58,28 @@ export const serverEnvSchema = z
     WAITLIST_ALERT_SECRET: optionalString.pipe(
       z.string().min(32, "Must be at least 32 characters").optional(),
     ),
+    /**
+     * Get started's address search (D-068): Google Places, generated
+     * addresses for local runs and tests, or off, when the address is typed.
+     */
+    ADDRESS_LOOKUP: z.enum(["google", "fake", "off"]).default("off"),
+    /** Server-only. For Places API (New) and the Maps Static API. */
+    GOOGLE_MAPS_API_KEY: optionalString,
+    /**
+     * Signs Supabase Auth's Send Email hook (D-073), which hands each sign-in
+     * code to `/api/auth/send-email`. Supabase shows it as `v1,whsec_…`. Set
+     * wherever the hook is on; locally the hook is off and Mailpit catches
+     * the codes.
+     */
+    SEND_EMAIL_HOOK_SECRET: optionalString.pipe(
+      z
+        .string()
+        .startsWith(
+          "v1,whsec_",
+          "Must be the secret Supabase shows, v1,whsec_…",
+        )
+        .optional(),
+    ),
   })
   .superRefine((env, ctx) => {
     if (env.APP_ENV === "production" && env.ACK_REPLY_ENABLED) {
@@ -110,6 +132,20 @@ export const serverEnvSchema = z
         code: "custom",
         message: "Must be https outside local development",
         path: ["WAITLIST_ALERT_URL"],
+      });
+    }
+    if (env.ADDRESS_LOOKUP === "google" && !env.GOOGLE_MAPS_API_KEY) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Required when ADDRESS_LOOKUP is google",
+        path: ["GOOGLE_MAPS_API_KEY"],
+      });
+    }
+    if (env.APP_ENV !== "local" && env.ADDRESS_LOOKUP === "fake") {
+      ctx.addIssue({
+        code: "custom",
+        message: "Generated addresses are for local development only",
+        path: ["ADDRESS_LOOKUP"],
       });
     }
     if (env.SMS_PROVIDER === "twilio") {

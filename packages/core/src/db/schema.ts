@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   check,
   index,
   jsonb,
@@ -67,10 +68,20 @@ export const alertKind = pgEnum("alert_kind", [
   "worker_error",
 ]);
 
+/** The pattern every stored email address must match. `toEmail` checks the same. */
+const emailPattern = (column: AnyPgColumn) =>
+  sql`${column} ~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'`;
+
 export const homes = pgTable("homes", {
   id: id(),
   name: text("name").notNull(),
   address: text("address").notNull(),
+  /**
+   * The Google Places ID of the address, when the member picked it from the
+   * search rather than typing it (D-068). Google's terms allow keeping this
+   * indefinitely; the address itself is kept as the home's record anyway.
+   */
+  placeId: text("place_id"),
   /** IANA timezone, e.g. America/New_York. Drives quiet hours and budget months. */
   timezone: text("timezone").notNull(),
   createdAt: createdAt(),
@@ -80,7 +91,7 @@ export const members = pgTable(
   "members",
   {
     id: id(),
-    /** Created at invite time; members sign in with a phone code. */
+    /** The Supabase Auth account they sign in with, by a texted or emailed code (D-073). */
     userId: uuid("user_id")
       .notNull()
       .unique()
@@ -89,7 +100,16 @@ export const members = pgTable(
     homeId: uuid("home_id").references(() => homes.id, {
       onDelete: "restrict",
     }),
-    phone: text("phone").notNull().unique(),
+    /**
+     * Optional since D-074: a member who gave no number signs in by email and
+     * gets no texts.
+     */
+    phone: text("phone").unique(),
+    /**
+     * The address they joined with (D-072). Lowercased. Null for staff added by
+     * script, who may have none.
+     */
+    email: text("email").unique(),
     firstName: text("first_name").notNull(),
     lastName: text("last_name"),
     role: memberRole("role").notNull().default("member"),
@@ -99,6 +119,7 @@ export const members = pgTable(
   },
   (table) => [
     check("members_phone_e164", sql`${table.phone} ~ '^\\+[1-9][0-9]{7,14}$'`),
+    check("members_email", emailPattern(table.email)),
     check(
       "members_home_required",
       sql`${table.role} = 'staff' or ${table.homeId} is not null`,
@@ -257,9 +278,14 @@ export const alerts = pgTable("alerts", {
 }).enableRLS();
 
 /**
- * Addresses collected by the landing page's waitlist (D-061). Nobody here is a
- * member: a signup is a stranger asking to be told when there's room, so the
- * row has no home, no member and nothing else about them.
+ * The waitlist (D-072): everyone who has been through Get started without
+ * getting an account yet. Nobody here is a member, so the row stands alone,
+ * with no home and no member.
+ *
+ * Rows from the landing page's old email bar (D-061) hold only an email; the
+ * details are null until that person goes through Get started. The row is the
+ * one saved copy of what they gave, and it's deleted when their account is
+ * created (open question 27).
  */
 export const waitlistSignups = pgTable(
   "waitlist_signups",
@@ -267,12 +293,108 @@ export const waitlistSignups = pgTable(
     id: id(),
     /** Lowercased and trimmed by the action, so one address is one row. */
     email: text("email").notNull().unique(),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    /** Optional (D-074). Unconfirmed until the code. */
+    phone: text("phone"),
+    addressLine1: text("address_line1"),
+    addressUnit: text("address_unit"),
+    city: text("city"),
+    state: text("state"),
+    zip: text("zip"),
+    /** Set when the address was picked from the search, not typed. */
+    placeId: text("place_id"),
+    timezone: text("timezone"),
+    /** The Terms they agreed to on Get started (`TERMS_VERSION`). */
+    termsVersion: text("terms_version"),
+    /**
+     * Their agreement to texts, from G3's box (D-074): the wording's version
+     * and when they ticked it. It becomes the member's consent record, at this
+     * time, when their account is created. Both null when the box wasn't ticked.
+     */
+    smsConsentVersion: text("sms_consent_version"),
+    smsConsentAt: timestamp("sms_consent_at", { withTimezone: true }),
+    /** On the alpha list: let in by staff (D-072). */
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    approvedBy: uuid("approved_by").references(() => members.id, {
+      onDelete: "restrict",
+    }),
     createdAt: createdAt(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => [
+    check("waitlist_signups_email", emailPattern(table.email)),
     check(
-      "waitlist_signups_email",
-      sql`${table.email} ~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'`,
+      "waitlist_signups_phone_e164",
+      sql`${table.phone} ~ '^\\+[1-9][0-9]{7,14}$'`,
     ),
+    check(
+      "waitlist_signups_sms_consent",
+      sql`(${table.smsConsentAt} is null) = (${table.smsConsentVersion} is null)
+        and (${table.smsConsentAt} is null or ${table.phone} is not null)`,
+    ),
+    check(
+      "waitlist_signups_approved",
+      sql`(${table.approvedAt} is null) = (${table.approvedBy} is null)`,
+    ),
+  ],
+).enableRLS();
+
+/**
+ * How an invite reached its holder (D-072). An emailed link (staff let them
+ * in) proves the address; one handed straight to the page (an alpha-list
+ * visitor on the website) doesn't.
+ */
+export const inviteDelivery = pgEnum("invite_delivery", ["email", "page"]);
+
+/**
+ * Single-use links that let someone off the waitlist set up their account
+ * (D-072). Letting someone in on /ops/waitlist makes one and emails it. An
+ * alpha-list visitor who finishes Get started on the website gets one straight
+ * away, handed to the page.
+ *
+ * Only a hash of the link's token is kept, so this table can't be used to
+ * open anyone's link. A link works once and expires; a newer link for the
+ * same waitlist entry replaces an unused older one.
+ */
+export const invites = pgTable(
+  "invites",
+  {
+    id: id(),
+    /** SHA-256 of the token in the link, hex-encoded. */
+    tokenHash: text("token_hash").notNull().unique(),
+    delivery: inviteDelivery("delivery").notNull(),
+    /** Copied from the waitlist entry, which is deleted once the link is used. */
+    email: text("email").notNull(),
+    waitlistSignupId: uuid("waitlist_signup_id").references(
+      () => waitlistSignups.id,
+      { onDelete: "set null" },
+    ),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    createdAt: createdAt(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /**
+     * When the let-in email carrying it went out, so ops can say "Emailed" or
+     * "Not emailed". Null for a link handed to the page, and for one whose
+     * email didn't go (or mail is off) and was shown to staff to send.
+     */
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    /** The member the link created. */
+    memberId: uuid("member_id").references(() => members.id, {
+      onDelete: "restrict",
+    }),
+  },
+  (table) => [
+    check("invites_email", emailPattern(table.email)),
+    check(
+      "invites_used_with_member",
+      sql`(${table.usedAt} is null) = (${table.memberId} is null)`,
+    ),
+    index("invites_waitlist_signup_id_idx").on(table.waitlistSignupId),
   ],
 ).enableRLS();

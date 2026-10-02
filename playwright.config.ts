@@ -18,16 +18,18 @@ const desktop = {
 /**
  * Browser tests for the web app.
  *
- * They need the local Supabase stack running and seeded:
+ * They need the local Supabase stack running, freshly reset and seeded:
  *   pnpm db:start && pnpm db:reset && pnpm db:seed
+ * Get started uses up the seeded waitlist entry, so a second run needs the
+ * reset again. The web app needs ADDRESS_LOOKUP=fake, as .env.example sets.
  *
- * Sign-in codes come from [auth.sms.test_otp] in supabase/config.toml, so no
- * text is ever sent.
+ * Codes come from [auth.sms.test_otp] in supabase/config.toml, so no text is
+ * ever sent.
  */
 export default defineConfig({
   testDir: "./apps/web/e2e",
   fullyParallel: false,
-  // One worker: these tests share one seeded member.
+  // One worker: these tests share the seeded accounts.
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -40,16 +42,15 @@ export default defineConfig({
       use: desktop,
     },
     {
-      // Sign-in's own tests, the landing page and the legal pages start
-      // signed out.
+      // Sign-in's own tests, Get started, the landing page and the legal
+      // pages start signed out.
       name: "signed-out",
-      testMatch: /(sign-in|landing|legal)\.spec\.ts/,
+      testMatch: /(sign-in|get-started|landing|legal)\.spec\.ts/,
       use: desktop,
     },
     {
-      // Supabase throttles code requests per number, so everything that just
-      // needs a signed-in member reuses one saved session instead of signing
-      // in again.
+      // Everything that just needs a signed-in member reuses one saved
+      // session instead of signing in again.
       name: "signed-in",
       testMatch: /(app-shell|landing-signed-in)\.spec\.ts/,
       dependencies: ["setup"],

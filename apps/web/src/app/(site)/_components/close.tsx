@@ -1,12 +1,12 @@
+import Link from "next/link";
 import { Mark } from "@/components/brand";
 import { CLOSE } from "./copy";
 
 /**
  * The closing panel (board P7).
  *
- * The call to action is a link back to the hero's form rather than a second
- * one. Two forms for one waitlist would mean two places to get the states
- * right, and the page would have to decide which of them "joined" belongs to.
+ * The call to action opens Get started, as the hero's and the bar's do
+ * (D-072).
  */
 export function Close() {
   return (
@@ -26,12 +26,12 @@ export function Close() {
         </span>{" "}
         {CLOSE.headingEnd}
       </h2>
-      <a
-        href="#waitlist"
+      <Link
+        href="/get-started"
         className="hm-rise hm-rise-late flex h-13 w-full max-w-[342px] items-center justify-center rounded-xl bg-canvas px-8 text-base text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] sm:w-auto"
       >
         Join the waitlist
-      </a>
+      </Link>
     </section>
   );
 }

@@ -1,3 +1,5 @@
+import type { AppsScriptResult } from "../apps-script";
+
 /** A new address on the waitlist, as stored. */
 export type WaitlistJoined = {
   signupId: string;
@@ -9,7 +11,7 @@ export type WaitlistJoined = {
  * What became of an alert. `reason` is a short code for the log, and never
  * contains the address.
  */
-export type AlertResult = { ok: true } | { ok: false; reason: string };
+export type AlertResult = AppsScriptResult;
 
 /**
  * Tells the team that someone joined the waitlist: for now an email and a row

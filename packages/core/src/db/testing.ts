@@ -95,6 +95,30 @@ export async function createHome(tx: Tx, name = "Test home") {
   );
 }
 
+/**
+ * Creates a sign-in account directly, the row Supabase Auth would write for a
+ * phone number. Stored without the "+", as Supabase does.
+ */
+/** A sign-in account by number, or by email for a member who gave none. */
+export async function createAuthUser(
+  tx: Tx,
+  login: string | { email: string },
+): Promise<string> {
+  // Supabase Auth keeps numbers without their "+".
+  const phone = typeof login === "string" ? login.slice(1) : null;
+  const email = typeof login === "string" ? null : login.email;
+  const [user] = await tx.execute<{ id: string }>(sql`
+    insert into auth.users (instance_id, id, aud, role, phone, email, created_at, updated_at)
+    values (
+      '00000000-0000-0000-0000-000000000000', gen_random_uuid(),
+      'authenticated', 'authenticated', ${phone}, ${email}, now(), now()
+    )
+    returning id
+  `);
+  if (!user) throw new Error("Expected an auth user");
+  return user.id;
+}
+
 /** Creates an auth user and member row directly, standing in for an invite. */
 export async function createMember(
   tx: Tx,
@@ -103,23 +127,17 @@ export async function createMember(
     phone: string;
     role?: "member" | "staff";
     status?: "invited" | "active" | "removed";
+    email?: string;
   },
 ) {
-  const [user] = await tx.execute<{ id: string }>(sql`
-    insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at)
-    values (
-      '00000000-0000-0000-0000-000000000000', gen_random_uuid(),
-      'authenticated', 'authenticated', ${input.phone.slice(1)}, now(), now()
-    )
-    returning id
-  `);
-  if (!user) throw new Error("Expected an auth user");
+  const userId = await createAuthUser(tx, input.phone);
 
-  return one(
+  const member = one(
     await tx
       .insert(members)
       .values({
-        userId: user.id,
+        userId,
+        email: input.email ?? null,
         homeId: input.homeId,
         phone: input.phone,
         firstName: "Test",
@@ -128,4 +146,6 @@ export async function createMember(
       })
       .returning(),
   );
+  // Always made with a number here, so callers needn't check for none.
+  return { ...member, phone: input.phone };
 }

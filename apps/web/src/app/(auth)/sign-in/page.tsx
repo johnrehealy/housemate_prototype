@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { currentMember } from "@/lib/auth/session";
-import { AuthFrame } from "../auth-frame";
+import { currentMember, homePath } from "@/lib/auth/session";
+import { CenteredFrame } from "../centered-frame";
 import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -9,18 +9,12 @@ export const metadata: Metadata = { title: "Sign in" };
 export default async function SignInPage() {
   // Only move them on if they can actually use the app. Having a session isn't
   // enough, and the proxy deliberately leaves this decision here (see proxy.ts).
-  if (await currentMember()) redirect("/chat");
+  const member = await currentMember();
+  if (member) redirect(homePath(member));
 
   return (
-    <AuthFrame
-      note={
-        <p className="max-w-[342px] text-xs text-muted lg:hidden">
-          Housemate is invite-only while we try it out with a small group of
-          homes.
-        </p>
-      }
-    >
+    <CenteredFrame>
       <SignInForm />
-    </AuthFrame>
+    </CenteredFrame>
   );
 }

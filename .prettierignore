@@ -4,3 +4,5 @@ pnpm-lock.yaml
 **/dist/
 **/coverage/
 supabase/migrations/
+# Email HTML is laid out by hand: mail apps render the whitespace Prettier adds.
+supabase/templates/

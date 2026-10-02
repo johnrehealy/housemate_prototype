@@ -78,39 +78,55 @@ test("the privacy policy says what Twilio's reviewers look for", async ({
   ).toHaveAttribute("href", "/terms");
 });
 
-test("the texts page shows the welcome step with the words members see", async ({
+test("the texts page shows Get started's boxes with the words members see", async ({
   page,
 }) => {
   await page.goto("/texts");
   const specimen = page.getByRole("figure");
   await expect(specimen).toContainText(
-    "What you’ll see the first time you sign in",
+    "What you’ll see when you add a mobile number",
   );
-  // Read from the same constant the welcome step renders, so the public copy
-  // can't drift from what members actually agree to.
+  // Read from the same constant Get started renders, so the public copy can't
+  // drift from what members actually agree to.
   await expect(specimen.getByText(SMS_OPT_IN.label)).toBeVisible();
-  await expect(specimen.getByText(SMS_OPT_IN.text)).toBeVisible();
-  await expect(
-    specimen.getByRole("link", { name: "Privacy Policy" }),
-  ).toHaveAttribute("href", "/privacy");
-  await expect(specimen.getByRole("link", { name: "Terms" })).toHaveAttribute(
+  await expect(specimen.getByText(SMS_OPT_IN.smallPrint)).toBeVisible();
+  await expect(specimen.getByText("Mobile number (optional)")).toBeVisible();
+  const terms = specimen.locator("p", { hasText: "I agree to the Terms" });
+  await expect(terms).toBeVisible();
+  await expect(terms.getByRole("link", { name: /^Terms/ })).toHaveAttribute(
     "href",
     "/terms",
   );
+  await expect(
+    terms.getByRole("link", { name: /^Privacy Policy/ }),
+  ).toHaveAttribute("href", "/privacy");
   // A picture of the step, not a second place to agree.
   await expect(page.getByRole("checkbox")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
+  await expect(specimen.getByRole("button")).toHaveCount(0);
+
+  // The way in (D-072, D-074).
+  for (const step of [
+    "You join the waitlist",
+    "You choose whether to get texts",
+    "We email you when there’s a place",
+    "You confirm it’s you",
+  ]) {
+    await expect(page.getByText(step)).toBeVisible();
+  }
 
   const card = page.getByRole("region", { name: "How Housemate texts" });
   for (const text of [
     "Housemate, operated by John Healy (sole proprietor).",
-    "Only invited members who tick the optional box the first time they sign in.",
-    "Sent whenever you ask for one, whether or not you’ve agreed to other texts.",
+    "Only members who tick “Text me about my home” when they join. Texting is optional.",
+    "Sent to confirm your number when you set up your account, and when you sign in. Without a number, codes come by email. A code doesn’t sign you up for other texts.",
     "Message and data rates may apply.",
     "Reply STOP at any time.",
   ]) {
     await expect(card.getByText(text)).toBeVisible();
   }
+
+  await page.getByRole("link", { name: "Join the waitlist" }).last().click();
+  await expect(page).toHaveURL(/\/get-started$/);
 });
 
 test("the landing page's footer reaches every page", async ({ page }) => {

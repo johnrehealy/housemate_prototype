@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { US_STATES } from "../address/timezone";
 import { toEmail } from "../email";
 
 export const e164Phone = z
@@ -27,3 +28,34 @@ export const emailAddress = z.string().transform((value, ctx) => {
   }
   return email;
 });
+
+/** Blank counts as not given. */
+export const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((value) => value || undefined);
+
+/** A US home address, as Get started collects it (D-072). */
+export const homeAddressInput = z.object({
+  line1: z.string().trim().min(1).max(200),
+  unit: optionalText(50),
+  city: z.string().trim().min(1).max(100),
+  state: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine((code) => US_STATES.some((state) => state.code === code), {
+      message: "Must be a US state or territory code",
+    }),
+  zip: z
+    .string()
+    .trim()
+    .regex(/^\d{5}(-\d{4})?$/, "Must be a ZIP code"),
+  /** Set when the address was picked from the search, not typed. */
+  placeId: z.string().trim().min(1).max(512).optional(),
+});
+
+export type HomeAddressInput = z.input<typeof homeAddressInput>;

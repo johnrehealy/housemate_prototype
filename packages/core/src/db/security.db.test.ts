@@ -7,6 +7,7 @@ import {
   alerts,
   conversations,
   homes,
+  invites,
   members,
   messages,
   usageCosts,
@@ -129,6 +130,7 @@ describe("row-level security", () => {
         conversations,
         messages,
         waitlistSignups,
+        invites,
       ]) {
         await expectDbError(
           tx,
@@ -252,6 +254,51 @@ describe("row-level security", () => {
         await tx.select({ id: waitlistSignups.id }).from(waitlistSignups)
       ).map((row) => row.id);
       expect(ids).toContain(signup.id);
+    });
+  });
+
+  it("keeps invite links staff-only", async () => {
+    await withRollback(db, async (tx) => {
+      const { alice } = await twoHomes(tx);
+      const staff = await createMember(tx, {
+        homeId: null,
+        phone: nextPhone(),
+        role: "staff",
+      });
+      const invite = one(
+        await tx
+          .insert(invites)
+          .values({
+            tokenHash: randomUUID(),
+            delivery: "email",
+            email: `someone-${randomUUID()}@example.com`,
+            createdBy: staff.id,
+            expiresAt: new Date(Date.now() + 60_000),
+          })
+          .returning(),
+      );
+
+      // Even a hash is only for staff: an invite belongs to someone who isn't
+      // a member yet.
+      await tx.transaction(async (sp) => {
+        await actAs(sp, alice.userId);
+        expect(await sp.select().from(invites)).toEqual([]);
+        await expectDbError(
+          sp,
+          (inner) =>
+            inner
+              .update(invites)
+              .set({ usedAt: new Date() })
+              .where(eq(invites.id, invite.id)),
+          /permission denied/,
+        );
+      });
+
+      await actAs(tx, staff.userId);
+      const ids = (await tx.select({ id: invites.id }).from(invites)).map(
+        (row) => row.id,
+      );
+      expect(ids).toContain(invite.id);
     });
   });
 

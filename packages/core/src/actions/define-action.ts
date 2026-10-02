@@ -1,7 +1,12 @@
 import { z } from "zod";
 import type { Tx } from "../db/client";
 import { activityEvents } from "../db/schema";
-import { actorColumns, sourceColumns, type ActionContext } from "./context";
+import {
+  actorColumns,
+  sourceColumns,
+  type ActionContext,
+  type Actor,
+} from "./context";
 import { ActionError } from "./errors";
 
 /**
@@ -15,6 +20,12 @@ export type RecordEvent = (event: {
   homeId?: string | null;
   before?: unknown;
   after?: unknown;
+  /**
+   * Who did it, when it isn't the context's actor. Only for an action that
+   * creates its own actor: someone accepting an invite becomes a member partway
+   * through, and the member did it.
+   */
+  actor?: Actor;
 }) => Promise<void>;
 
 export type ActionHandlerArgs<TInput> = {
@@ -59,7 +70,7 @@ export function defineAction<TSchema extends z.ZodType, TResult>(config: {
           action: event.action,
           before: event.before ?? null,
           after: event.after ?? null,
-          ...actorColumns(ctx.actor),
+          ...actorColumns(event.actor ?? ctx.actor),
           ...sourceColumns(ctx.source),
           createdAt: now,
         });

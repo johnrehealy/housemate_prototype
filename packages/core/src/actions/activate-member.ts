@@ -12,10 +12,9 @@ export const activateMemberInput = z.object({
 export type ActivateMemberInput = z.input<typeof activateMemberInput>;
 
 /**
- * Turns an invited member into an active one. The invite created their
- * account; proving the phone number and finishing the welcome step is what
- * makes them real (D-067). Staff have no welcome step, so signing in activates
- * them.
+ * Turns an invited member into an active one. Members join through Get
+ * started, which makes them active at once (D-068), so today this is for staff
+ * added by script: their first sign-in activates them.
  *
  * This also runs on every sign-in, so an already-active member is left
  * untouched and writes no event. Otherwise the activity log would fill with

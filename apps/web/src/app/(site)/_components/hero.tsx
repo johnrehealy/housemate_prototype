@@ -1,11 +1,12 @@
 import { ArrowDown } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { Mark } from "@/components/brand";
-import { WaitlistForm } from "../waitlist-form";
 import { HERO } from "./copy";
 
 /**
- * The hero (boards H3 → H1 → H2, rotation spec H4; round 4's "H3 ·
- * Evergreen" for the mark, the spacing and "Learn more").
+ * The hero (board H3, whose button now opens Get started, D-072; rotation
+ * spec H4; round 4's "H3 · Evergreen" for the mark, the spacing and "Learn
+ * more").
  *
  * On wide screens the content is centred on the whole first screen, bar
  * included, as the board draws it, rather than on the space under the bar:
@@ -56,17 +57,15 @@ export function Hero() {
         </h1>
 
         {/*
-         * `min-h-13` holds the row at the height of a control, so the flip
-         * from the button to the bar to the thanks happens in place. Without
-         * it the joined state is a 26px line, and everything above it slid up
-         * 13px at the moment the member succeeded.
+         * The waitlist is Get started (D-072): name, home and contact, then a
+         * code for anyone on the alpha list.
          */}
-        <div
-          id="waitlist"
-          className="mt-11 flex min-h-13 w-full max-w-[440px] scroll-mt-(--spacing-bar) items-center justify-center lg:mt-14"
+        <Link
+          href="/get-started"
+          className="mt-11 flex h-13 items-center justify-center rounded-xl bg-canvas px-8 text-base text-evergreen transition-opacity duration-120 ease-out hover:opacity-90 focus-visible:outline-hidden focus-visible:shadow-[0_0_0_2px_var(--color-evergreen),0_0_0_4px_var(--color-canvas)] lg:mt-14"
         >
-          <WaitlistForm />
-        </div>
+          Join the waitlist
+        </Link>
       </div>
 
       {/*

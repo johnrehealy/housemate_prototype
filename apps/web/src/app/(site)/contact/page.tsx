@@ -127,7 +127,7 @@ export default function ContactPage() {
                 be in touch when there&rsquo;s room.
               </p>
               <p className={BODY}>
-                <A href="/#waitlist">Join the waitlist</A>
+                <A href="/get-started">Join the waitlist</A>
               </p>
             </Way>
             <Way title="Vendors, partners and press">
