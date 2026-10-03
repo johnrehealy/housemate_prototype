@@ -29,19 +29,4 @@ test("captures the landing page at both approved widths", async ({ page }) => {
   await page.reload();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.screenshot({ path: `${DIR}/narrow.png`, fullPage: true });
-
-  // H1 and H2 — the email bar and the thanks, the two hero states the button
-  // flips through.
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.reload();
-  await page.getByRole("button", { name: "Join the waitlist" }).click();
-  await expect(page.getByLabel("Email address")).toBeFocused();
-  await page.screenshot({ path: `${DIR}/hero-email.png` });
-
-  await page
-    .getByLabel("Email address")
-    .fill(`capture.${Date.now()}@example.com`);
-  await page.getByRole("button", { name: "Join the waitlist" }).click();
-  await expect(page.getByRole("status")).toBeVisible();
-  await page.screenshot({ path: `${DIR}/hero-thanks.png` });
 });

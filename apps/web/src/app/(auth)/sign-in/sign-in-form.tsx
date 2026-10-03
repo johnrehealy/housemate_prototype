@@ -3,8 +3,22 @@
 // From the phone module, not the package barrel: the barrel reaches the Twilio
 // SDK, which must never end up in a browser bundle.
 import { formatUsPhone } from "@housemate/core/phone";
-import { ArrowLeft, CircleNotch, WarningCircle } from "@phosphor-icons/react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { ArrowLeft, CircleNotch } from "@phosphor-icons/react";
+import Link from "next/link";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  ResendNotice,
+  ResendRow,
+  useResendCountdown,
+} from "@/components/onboarding/resend";
+import { FrameHeading } from "../centered-frame";
+import { FieldMessage } from "../field-message";
 import {
   FIELD,
   FIELD_BUSY,
@@ -14,126 +28,182 @@ import {
   PRIMARY_BUTTON,
   TEXT_BUTTON,
 } from "../form-controls";
-import { submitSignIn } from "./actions";
+import { signIn } from "./actions";
 import { INITIAL_SIGN_IN_STATE, type SignInState } from "./state";
 
 /*
- * The sign-in form (docs/design.md §4 Form controls and Sign-in page, D-036).
- * The control classes are shared with the welcome step, in form-controls.ts.
+ * Sign-in (docs/design.md §4 Sign-in page, boards S1 and S2, D-073): a mobile
+ * number or email, then the code texted or emailed to it. The sixth digit
+ * submits.
  */
 
-const CODE_HINT = "You'll be signed in as soon as all six digits are in.";
+const LABEL = "text-xs text-body";
 
-type StepProps = {
-  state: SignInState;
-  action: (formData: FormData) => void;
-  pending: boolean;
-};
+type CodeState = Extract<SignInState, { step: "code" }>;
 
 export function SignInForm() {
   const [state, action, pending] = useActionState(
-    submitSignIn,
+    signIn,
     INITIAL_SIGN_IN_STATE,
   );
-  const phone = state.step === "code" ? state.phone : undefined;
+  // What the pending request is, so only checking a code says "Checking…".
+  const [working, setWorking] = useState<"code" | "resend" | "restart">();
+  const countdown = useResendCountdown();
+
+  // Each new code restarts the count. Set while rendering, as React suggests
+  // for state that follows a change in other state.
+  const sends = state.step === "code" ? state.sends : 0;
+  const [seenSends, setSeenSends] = useState(sends);
+  if (sends !== seenSends) {
+    setSeenSends(sends);
+    if (sends > 1) countdown.start();
+    else countdown.stop();
+  }
+
+  function dispatch(intent: "resend" | "restart") {
+    setWorking(intent);
+    const formData = new FormData();
+    formData.set("intent", intent);
+    startTransition(() => action(formData));
+  }
 
   return (
-    <div className="flex w-full max-w-[360px] flex-col gap-8 lg:w-[360px]">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-display text-heading">
-          {phone ? "Enter your code" : "Sign in"}
-        </h1>
-        {/*
-         * Described by both fields. The code step mounts with focus already in
-         * the input, so without this a screen-reader member would land on a
-         * field labelled "Six-digit code" having never been told that a code
-         * was sent, or to which number.
-         */}
-        <p id="sign-in-helper" className="text-label text-muted">
-          {phone
-            ? // Never confirms that the number is invited: the same sentence
-              // is shown whether or not it is (D-050).
-              `If ${formatUsPhone(phone)} is on the invite list, a code is on its way.`
-            : "We'll text a code to your mobile number."}
-        </p>
-      </div>
-
-      {phone ? (
-        <CodeStep state={state} action={action} pending={pending} />
-      ) : (
-        <PhoneStep state={state} action={action} pending={pending} />
-      )}
-    </div>
-  );
-}
-
-function PhoneStep({ state, action, pending }: StepProps) {
-  const invalid = Boolean(state.error);
-
-  return (
-    <form action={action} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="phone" className="text-xs text-body">
-          Mobile number
-        </label>
-        <input
-          id="phone"
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="(555) 019-0001"
-          autoFocus
-          aria-invalid={invalid || undefined}
-          aria-describedby={
-            invalid ? "sign-in-helper phone-message" : "sign-in-helper"
-          }
-          className={`${FIELD} ${invalid ? FIELD_ERROR : FIELD_RESTING}`}
+    <>
+      <ResendNotice sent={state.step === "code" && countdown.resendIn > 0} />
+      {state.step === "who" ? (
+        <WhoStep
+          state={state}
+          action={action}
+          pending={pending}
+          onSubmit={() => setWorking(undefined)}
         />
-        {invalid ? (
-          <p
-            id="phone-message"
-            role="alert"
-            className={`${MESSAGE} text-status-blocked-fg`}
-          >
-            <WarningCircle size={20} aria-hidden className="shrink-0" />
-            {state.error}
-          </p>
-        ) : null}
-      </div>
-
-      <button type="submit" disabled={pending} className={PRIMARY_BUTTON}>
-        {pending ? (
-          <>
-            <CircleNotch
-              size={20}
-              aria-hidden
-              className="shrink-0 animate-spin motion-reduce:animate-none"
-            />
-            Sending…
-          </>
-        ) : (
-          "Send code"
-        )}
-      </button>
-    </form>
+      ) : (
+        <CodeStep
+          // A new code starts with empty digits, focused.
+          key={state.sends}
+          state={state}
+          action={action}
+          pending={pending}
+          checking={pending && working === "code"}
+          resendIn={countdown.resendIn}
+          onSubmit={() => setWorking("code")}
+          onResend={() => dispatch("resend")}
+          onDifferent={() => dispatch("restart")}
+        />
+      )}
+    </>
   );
 }
 
-function CodeStep({ state, action, pending }: StepProps) {
+function Working({ label }: { label: string }) {
+  return (
+    <>
+      <CircleNotch
+        size={20}
+        aria-hidden
+        className="shrink-0 animate-spin motion-reduce:animate-none"
+      />
+      {label}
+    </>
+  );
+}
+
+function WhoStep({
+  state,
+  action,
+  pending,
+  onSubmit,
+}: {
+  state: Extract<SignInState, { step: "who" }>;
+  action: (formData: FormData) => void;
+  pending: boolean;
+  onSubmit: () => void;
+}) {
+  const invalid = Boolean(state.error) && !pending;
+  return (
+    <>
+      <FrameHeading title="Sign in" />
+      <form
+        action={action}
+        onSubmit={onSubmit}
+        className="mt-8 flex flex-col gap-4"
+      >
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="identifier" className={LABEL}>
+            Mobile number or email
+          </label>
+          <input
+            // Remounted with each result, so what was typed is kept; React
+            // clears a form's fields after its action runs.
+            key={`identifier-${state.identifier ?? ""}-${state.error ?? ""}`}
+            id="identifier"
+            name="identifier"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            defaultValue={state.identifier}
+            autoFocus
+            readOnly={pending}
+            aria-invalid={invalid || undefined}
+            aria-describedby={invalid ? "identifier-message" : undefined}
+            className={`${FIELD} ${
+              pending ? FIELD_BUSY : invalid ? FIELD_ERROR : FIELD_RESTING
+            }`}
+          />
+          <FieldMessage
+            id="identifier-message"
+            error={invalid ? state.error : undefined}
+          />
+        </div>
+        <button type="submit" disabled={pending} className={PRIMARY_BUTTON}>
+          {pending ? <Working label="Sending…" /> : "Send me a code"}
+        </button>
+      </form>
+      <p className="mt-8 text-xs text-muted">
+        New to Housemate?{" "}
+        <Link
+          href="/get-started"
+          className="rounded-sm text-evergreen underline decoration-1 underline-offset-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-evergreen"
+        >
+          Join the waitlist
+        </Link>
+        .
+      </p>
+    </>
+  );
+}
+
+function CodeStep({
+  state,
+  action,
+  pending,
+  checking,
+  resendIn,
+  onSubmit,
+  onResend,
+  onDifferent,
+}: {
+  state: CodeState;
+  action: (formData: FormData) => void;
+  pending: boolean;
+  checking: boolean;
+  resendIn: number;
+  onSubmit: () => void;
+  onResend: () => void;
+  onDifferent: () => void;
+}) {
   const [digits, setDigits] = useState("");
   const field = useRef<HTMLInputElement>(null);
-  // The digits already sent, so a rejected code doesn't resubmit itself in a
-  // loop once it comes back and the field still holds six of them.
+  // The digits already sent, so a rejected code doesn't resubmit itself.
   const submitted = useRef<string | null>(null);
-  const invalid = Boolean(state.error);
+  const invalid = Boolean(state.error) && !pending;
+  const sms = state.channel === "sms";
 
-  // Submitting from an effect, not from onChange, so the input's DOM value is
-  // the stripped one by the time the form is read. A pasted "123 456" would
-  // otherwise be posted with its space still in.
+  // Submitted from an effect, not onChange, so the form reads the stripped
+  // digits: a pasted "123 456" would otherwise be posted with its space.
   useEffect(() => {
     if (digits.length < 6) {
-      // They've edited, so the same six digits may legitimately be sent again.
       submitted.current = null;
       return;
     }
@@ -150,15 +220,19 @@ function CodeStep({ state, action, pending }: StepProps) {
   }, [state]);
 
   return (
-    <div className="flex flex-col gap-4">
-      {/*
-       * The code form holds only the input. With no submit button in it,
-       * pressing Enter still posts it (HTML's implicit submission), so the
-       * step works with JavaScript off, and "Use a different number" can't be
-       * what Enter reaches for.
-       */}
-      <form action={action} className="flex flex-col gap-1.5">
-        <label htmlFor="code" className="text-xs text-body">
+    <>
+      <FrameHeading
+        title={sms ? "Check your texts" : "Check your email"}
+        // Never says whether there's an account (D-073).
+        helper={
+          sms
+            ? `If ${formatUsPhone(state.to)} has an account, we’ve texted it a code.`
+            : `If ${state.to} has an account, we’ve emailed it a code.`
+        }
+        helperId="code-helper"
+      />
+      <form action={action} onSubmit={onSubmit} className="mt-8 flex flex-col">
+        <label htmlFor="code" className={`${LABEL} mb-1.5`}>
           Six-digit code
         </label>
         <input
@@ -173,64 +247,50 @@ function CodeStep({ state, action, pending }: StepProps) {
           autoComplete="one-time-code"
           maxLength={6}
           autoFocus
-          // readOnly rather than disabled: a disabled input leaves the tab
-          // order and throws away focus mid-flow. The look is the same.
-          // No aria-disabled to go with it — the field is still focusable and
-          // its value is still submitted, so calling it disabled would be
-          // untrue. The "Signing you in…" status line below says what's
-          // happening, and it's in aria-describedby.
           readOnly={pending}
           aria-invalid={invalid || undefined}
-          aria-describedby="sign-in-helper code-message"
+          aria-describedby="code-helper code-message"
           className={`${FIELD} tracking-wide selection:bg-evergreen/12 ${
             pending ? FIELD_BUSY : invalid ? FIELD_ERROR : FIELD_RESTING
           }`}
         />
-        {invalid && !pending ? (
-          <p
-            id="code-message"
-            role="alert"
-            className={`${MESSAGE} text-status-blocked-fg`}
-          >
-            <WarningCircle size={20} aria-hidden className="shrink-0" />
-            {state.error}
-          </p>
-        ) : pending ? (
-          <p id="code-message" role="status" className={`${MESSAGE} text-body`}>
-            <CircleNotch
-              size={20}
-              aria-hidden
-              className="shrink-0 animate-spin text-evergreen motion-reduce:animate-none"
-            />
-            Signing you in…
-          </p>
+        {invalid ? (
+          <div className="mt-1.5">
+            <FieldMessage id="code-message" error={state.error} />
+          </div>
         ) : (
-          // The hint ships with the auto-submit, not as decoration: WCAG 3.2.2
-          // allows a change of context on input only when the member is told
-          // beforehand.
-          //
-          // role="status" here as well as on the working line, even though the
-          // hint never changes: React reuses this <p> across the two, so a role
-          // that only arrives with "Signing you in…" would make the region live
-          // in the same commit as its own text, which NVDA and VoiceOver don't
-          // announce. Live from the first render, the swap is a content change.
+          // Live from the first render, so the swap to "Checking…" is heard.
+          // Empty, it takes no room: the resend row sits 16px under the field.
           <p
             id="code-message"
             role="status"
-            className={`${MESSAGE} text-muted`}
+            className={`${MESSAGE} ${checking ? "mt-1.5" : ""} text-body`}
           >
-            {CODE_HINT}
+            {checking ? (
+              <>
+                <CircleNotch
+                  size={20}
+                  aria-hidden
+                  className="shrink-0 animate-spin text-evergreen motion-reduce:animate-none"
+                />
+                Checking…
+              </>
+            ) : null}
           </p>
         )}
       </form>
-
-      <form action={action}>
-        <input type="hidden" name="restart" value="1" />
-        <button type="submit" disabled={pending} className={TEXT_BUTTON}>
+      <div className="mt-4 flex flex-col gap-1">
+        <ResendRow resendIn={resendIn} busy={pending} onResend={onResend} />
+        <button
+          type="button"
+          onClick={onDifferent}
+          disabled={pending}
+          className={TEXT_BUTTON}
+        >
           <ArrowLeft size={20} aria-hidden className="shrink-0" />
-          Use a different number
+          {sms ? "Use a different number" : "Use a different email"}
         </button>
-      </form>
-    </div>
+      </div>
+    </>
   );
 }

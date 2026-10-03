@@ -35,7 +35,7 @@ import { SiteFooter } from "../_components/site-footer";
  *
  * Change the dates whenever the text changes. Section 13 promises that.
  */
-const EFFECTIVE = "September 30, 2026";
+const EFFECTIVE = "October 2, 2026";
 
 const DESCRIPTION =
   "What Housemate collects, why, who we share it with, how long we keep it, and the choices you have, including how our text messaging works.";
@@ -72,18 +72,18 @@ const { items, section } = outline([
 const PROVIDERS = [
   [
     "Twilio",
-    "Sends and receives text messages; sends sign-in codes",
+    "Sends and receives text messages; sends the one-time codes that confirm your number and sign you in",
     "Phone number, message content and media, delivery status",
   ],
   [
     "Supabase",
     "Database, account sign-in, and private file storage",
-    "All member and home records, messages and media",
+    "All member and home records, messages and media, and waitlist details",
   ],
   [
     "Vercel",
     "Hosts our website and web app",
-    "Technical information such as IP addresses; waitlist emails in transit",
+    "Technical information such as IP addresses; the details you give us, in transit",
   ],
   [
     "Fly.io",
@@ -101,9 +101,14 @@ const PROVIDERS = [
     "Payment details you give Stripe, and payment amounts and outcomes",
   ],
   [
+    "Google (Maps Platform)",
+    "Suggests addresses as you type yours when you set up your account, and draws a map of the one you pick",
+    "What you type in the address field, and the address you pick",
+  ],
+  [
     "Google (Workspace)",
-    "Keeps our waitlist list and notifies our team of new sign-ups",
-    "Waitlist email addresses only",
+    "Sends our emails from john@myhousemate.co: the link to set up your account, and one-time codes if you sign in by email. Also keeps our waitlist list and notifies our team of new sign-ups",
+    "Your email address and first name, and the link or code in each email; for the waitlist list, email addresses only",
   ],
 ] as const;
 
@@ -153,11 +158,12 @@ export default function PrivacyPage() {
                 <B>Website visitors</B> to myhousemate.co.
               </li>
               <li>
-                <B>Waitlist sign-ups</B>, who give us an email address.
+                <B>Waitlist sign-ups</B>, who give us their name, email address
+                and home address, and sometimes a mobile number.
               </li>
               <li>
-                <B>Members</B>, who are invited to Housemate and use it by text
-                and through the web app.
+                <B>Members</B>, who set up an account when there&rsquo;s room
+                and use Housemate by text and through the web app.
               </li>
               <li>
                 <B>
@@ -189,14 +195,15 @@ export default function PrivacyPage() {
                 Housemate, operated by John Healy (sole proprietor).
               </GlanceRow>
               <GlanceRow label="What it is">
-                Texts about your home, sent only to invited members who have
-                agreed to them: replies to your requests, reminders you asked
-                for, appointment reminders, and follow-ups on bookings and
-                payments. Never marketing.
+                Texts about your home, sent only to members who have agreed to
+                them: replies to your requests, reminders you asked for,
+                appointment reminders, and follow-ups on bookings and payments.
+                Never marketing.
               </GlanceRow>
-              <GlanceRow label="Sign-in codes">
-                Sent whenever you ask for one, whether or not you&rsquo;ve
-                agreed to other texts.
+              <GlanceRow label="One-time codes">
+                Sent to confirm your number when you set up your account, and
+                when you sign in. Without a number, codes come by email. A code
+                doesn&rsquo;t sign you up for other texts.
               </GlanceRow>
               <GlanceRow label="How often">
                 Message frequency varies with how you use Housemate. No
@@ -218,18 +225,20 @@ export default function PrivacyPage() {
 
             <Subsection title="2.1 How you agree to receive texts">
               <P>
-                Housemate texts only people who have been invited and have
-                agreed to receive messages from us. The first time you sign in
-                to myhousemate.co, we ask once whether you want texts from
-                Housemate, with an optional box that starts unticked. You can
-                continue without it and still use Housemate on the web. Before
-                you agree, we tell you the program&rsquo;s name, what
-                we&rsquo;ll text you about, that message frequency varies, that
-                message and data rates may apply, how to reply STOP and HELP,
-                and where to find this policy and our <A href="/terms">Terms</A>
-                . We record your consent, including the phone number, the date
-                and time, and the wording you agreed to. You can see that step,
-                word for word, at <A href="/texts">myhousemate.co/texts</A>.
+                Housemate texts only members who have agreed to receive messages
+                from us. When you join and add a mobile number, we ask once
+                whether you want texts from Housemate, with an optional box,
+                &ldquo;Text me about my home&rdquo;, that starts unticked. You
+                can join without ticking it, or without giving a number at all,
+                and still use Housemate on the web. Before you agree, we tell
+                you the program&rsquo;s name, what we&rsquo;ll text you about,
+                that message frequency varies, that message and data rates may
+                apply, how to reply STOP and HELP, and where to find this policy
+                and our <A href="/terms">Terms</A>. We record your consent,
+                including the phone number, the date and time, and the wording
+                you agreed to, and it takes effect when you set up your account.
+                You can see that step, word for word, at{" "}
+                <A href="/texts">myhousemate.co/texts</A>.
               </P>
               <Bullets>
                 <Bullet>
@@ -271,9 +280,10 @@ export default function PrivacyPage() {
                   needs your confirmation or a problem with a booking.
                 </Bullet>
                 <Bullet>
-                  <B>One-time sign-in codes</B> whenever you ask for one to sign
-                  in to the web app, whether or not you&rsquo;ve agreed to other
-                  texts.
+                  <B>One-time codes</B> to confirm your number when you set up
+                  your account, and when you sign in, whether or not
+                  you&rsquo;ve agreed to other texts. If you haven&rsquo;t given
+                  us a number, we email them instead.
                 </Bullet>
               </Bullets>
               <P>
@@ -336,8 +346,8 @@ export default function PrivacyPage() {
               <P>
                 Because texting is how Housemate works, stopping texts means
                 Housemate can no longer act on requests by text. You can still
-                use the web app, though signing in requires a texted code. We
-                keep a record that you opted out so that we honor it.
+                use the web app, signing in with a one-time code. We keep a
+                record that you opted out so that we honor it.
               </P>
             </Subsection>
 
@@ -421,16 +431,30 @@ export default function PrivacyPage() {
             <Subsection title="3.1 Information you give us">
               <Bullets>
                 <Bullet>
-                  <B>Waitlist:</B> your email address. That&rsquo;s all the
-                  waitlist form asks for. We keep it in our database, and a copy
-                  goes to a spreadsheet and an email notification in our
-                  team&rsquo;s Google account so we can follow up.
+                  <B>Waitlist:</B> your name, email address and home address,
+                  the version of our Terms you agreed to, and, if you give them,
+                  your mobile number and whether you agreed to texts. We keep
+                  these in our database so you don&rsquo;t have to enter them
+                  again when there&rsquo;s room. Your email address also goes to
+                  a spreadsheet and an email notification in our team&rsquo;s
+                  Google account so we can follow up.
                 </Bullet>
                 <Bullet>
-                  <B>Account information:</B> your name, mobile phone number,
-                  email address if you give it, and your home&rsquo;s address.
-                  We use the address to schedule services and errands, and to
-                  work out your time zone.
+                  <B>Account information:</B> your name, email address,
+                  home&rsquo;s address and, if you gave one, mobile phone
+                  number, carried over from the waitlist when you set up your
+                  account. You sign in with a one-time code sent to your number
+                  or email; there&rsquo;s no password. We also record the
+                  version of our Terms you agreed to. We use the address to
+                  schedule services and errands, and to work out your time zone.
+                </Bullet>
+                <Bullet>
+                  <B>Address search:</B> while you type your address, what
+                  you&rsquo;ve typed is sent to Google to suggest matching
+                  addresses and draw a map of the one you pick. We keep the
+                  address you pick and Google&rsquo;s identifier for it, and
+                  nothing you typed along the way. You can type your address in
+                  yourself instead.
                 </Bullet>
                 <Bullet>
                   <B>Home information:</B> what you tell us about your home,
@@ -775,9 +799,13 @@ export default function PrivacyPage() {
                 deleted with it.
               </Bullet>
               <Bullet>
-                <B>Waitlist emails:</B> until you&rsquo;re invited, you ask us
-                to remove you, or we close the waitlist, whichever comes first.
-                We delete every copy, including the one in our Google account.
+                <B>Waitlist details:</B> until you set up your account, you ask
+                us to remove you, we close the waitlist, or 12 months after you
+                last updated them, whichever comes first. Once you set up your
+                account, they become your account&rsquo;s and leave the
+                waitlist, and a texts agreement becomes your consent record,
+                kept as described below. Otherwise we delete every copy,
+                including the one in our Google account.
               </Bullet>
               <Bullet>
                 <B>Texts from numbers that aren&rsquo;t invited:</B> up to 90
@@ -914,8 +942,10 @@ export default function PrivacyPage() {
             <Bullets>
               <Bullet>
                 <B>Access control.</B> Each member&rsquo;s records are isolated
-                from every other member&rsquo;s at the database level. Web app
-                sign-in uses a one-time code sent to your phone.
+                from every other member&rsquo;s at the database level. Signing
+                in to the web app takes a one-time code, texted to your mobile
+                number or emailed to you, so there&rsquo;s no password to guess
+                or leak.
               </Bullet>
               <Bullet>
                 <B>Encryption.</B> Information is encrypted in transit between

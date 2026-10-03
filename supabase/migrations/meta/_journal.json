@@ -36,6 +36,27 @@
       "when": 1790120100000,
       "tag": "20260922233500_waitlist_security",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790963716737,
+      "tag": "20261002175516_waitlist_and_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790963816737,
+      "tag": "20261002175600_invites_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790966723630,
+      "tag": "20261002184523_invites_emailed_at",
+      "breakpoints": true
     }
   ]
 }

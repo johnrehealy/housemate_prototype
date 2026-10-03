@@ -1,27 +1,13 @@
-import type { AlertResult, WaitlistAlerts, WaitlistJoined } from "./types";
+import {
+  FINAL_REFUSALS,
+  postToAppsScript,
+  type AppsScriptConfig,
+} from "../apps-script";
+import type { WaitlistAlerts, WaitlistJoined } from "./types";
 
-export type AppsScriptAlertsConfig = {
-  /** The script's web app URL (Deploy → Web app). */
-  url: string;
-  /** The same value as the script's `SECRET` property. */
-  secret: string;
-  /** Tests pass their own; everywhere else it's the global fetch. */
-  fetch?: typeof fetch;
-  timeoutMs?: number;
+export type AppsScriptAlertsConfig = AppsScriptConfig & {
   retryDelayMs?: number;
 };
-
-/*
- * Refusals the script makes on purpose. Sending the same request again can't
- * change them, so they aren't retried: the secret or the deployment is wrong,
- * or the row is saved and only the email failed.
- */
-const FINAL = new Set([
-  "unauthorized",
-  "bad_request",
-  "no_sheet",
-  "email_failed",
-]);
 
 /**
  * Posts each new signup to the Apps Script attached to the owner's Google
@@ -34,67 +20,22 @@ const FINAL = new Set([
 export function createAppsScriptAlerts(
   config: AppsScriptAlertsConfig,
 ): WaitlistAlerts {
-  const send = config.fetch ?? fetch;
-  const timeoutMs = config.timeoutMs ?? 10_000;
   const retryDelayMs = config.retryDelayMs ?? 1_000;
-
-  async function attempt(body: string): Promise<AlertResult> {
-    try {
-      // Apps Script answers a POST with a redirect to the result, which fetch
-      // follows as a GET. That is how its web apps are meant to be called.
-      const response = await send(config.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        redirect: "follow",
-        signal: AbortSignal.timeout(timeoutMs),
-      });
-      if (!response.ok) return { ok: false, reason: `http_${response.status}` };
-
-      // Apps Script always answers 200, so the outcome is in the body. An
-      // error in the script comes back as an HTML page instead of JSON.
-      const reply: unknown = await response.json().catch(() => null);
-      if (isReply(reply)) {
-        return reply.ok
-          ? { ok: true }
-          : { ok: false, reason: reply.error ?? "refused" };
-      }
-      return { ok: false, reason: "unexpected_reply" };
-    } catch (error) {
-      return {
-        ok: false,
-        reason:
-          error instanceof Error && error.name === "TimeoutError"
-            ? "timeout"
-            : "network",
-      };
-    }
-  }
 
   return {
     name: "apps-script",
     async joined(signup: WaitlistJoined) {
-      const body = JSON.stringify({
-        secret: config.secret,
+      const event = {
         event: "waitlist.joined",
         signupId: signup.signupId,
         email: signup.email,
         joinedAt: signup.joinedAt.toISOString(),
-      });
+      };
 
-      const first = await attempt(body);
-      if (first.ok || FINAL.has(first.reason)) return first;
+      const first = await postToAppsScript(config, event);
+      if (first.ok || FINAL_REFUSALS.has(first.reason)) return first;
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
-      return attempt(body);
+      return postToAppsScript(config, event);
     },
   };
-}
-
-function isReply(value: unknown): value is { ok: boolean; error?: string } {
-  if (typeof value !== "object" || value === null) return false;
-  const reply = value as Record<string, unknown>;
-  return (
-    typeof reply.ok === "boolean" &&
-    (reply.error === undefined || typeof reply.error === "string")
-  );
 }

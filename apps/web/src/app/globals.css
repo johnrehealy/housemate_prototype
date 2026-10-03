@@ -25,6 +25,8 @@
   --color-surface: #ffffff;
   --color-line: #ece8e5;
   --color-line-strong: #ddd7d3;
+  /* Resting form controls: 3:1 on canvas and white (D-037, Get started r11). */
+  --color-line-field: #8a918f;
   --color-body: #49504e;
   --color-heading: #2a312f;
   --color-muted: #68706e;
@@ -540,5 +542,59 @@
   }
   .hm-phrase:first-of-type {
     opacity: 1;
+  }
+}
+
+/* ===========================================================================
+ * Get started's step transition — board G10 (D-068).
+ *
+ * Only the step moves. Continue: the step leaves 24px to the left over 140ms
+ * ease-in, fading out; the next arrives from 24px right over 200ms ease-out.
+ * Back runs the same the other way. With reduced motion the step swaps at
+ * once (the component skips the wait too).
+ * =========================================================================== */
+@keyframes hm-step-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--hm-step-dir, 1) * -24px));
+  }
+}
+
+@keyframes hm-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--hm-step-dir, 1) * 24px));
+  }
+}
+
+.hm-step-out {
+  animation: hm-step-out 140ms ease-in forwards;
+}
+
+.hm-step-in {
+  animation: hm-step-in 200ms ease-out;
+}
+
+/* The code boxes' caret, in the box waiting for the next digit. */
+@keyframes hm-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.hm-caret {
+  animation: hm-caret 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-step-out,
+  .hm-step-in,
+  .hm-caret {
+    animation: none;
   }
 }

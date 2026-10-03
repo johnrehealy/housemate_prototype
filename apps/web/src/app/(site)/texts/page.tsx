@@ -1,20 +1,22 @@
+import { SMS_OPT_IN } from "@housemate/core/sms/opt-in";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { TextConsent } from "@/components/text-consent";
+import { TermsRow, TextsBox } from "@/components/onboarding/consent-boxes";
+import { INSET_BOX, INSET_LABEL } from "@/components/onboarding/controls";
 import { Email, Glance, GlanceRow, Masthead } from "../_components/legal/prose";
 import { Ribbon } from "../_components/ribbon";
 import { SiteFooter } from "../_components/site-footer";
 
 /*
  * What Housemate texts, who gets them, and how to agree (boards L4 and L4n in
- * Paper, page "Legal"; D-067).
+ * Paper, page "Legal"; D-067, updated by D-074).
  *
- * Members agree on a welcome step that follows their first sign-in, which
- * nobody else can reach. Twilio accepts an opt-in behind a login only if a
- * public page shows it (30921, 30925), so this page draws that step with the
- * live wording, read from the same `SMS_OPT_IN` the step itself uses. It's
- * information only: there's nothing to submit here.
+ * Members agree on Get started's contact step, with a box that appears once a
+ * mobile number is typed. Twilio wants the opt-in shown publicly (30921,
+ * 30925), so this page draws that step with the live wording, read from the
+ * same `SMS_OPT_IN` Get started uses. It's information only: there's nothing
+ * to submit here.
  */
 
 const DESCRIPTION =
@@ -33,16 +35,20 @@ export const metadata: Metadata = {
 
 const STEPS = [
   {
-    title: "You're invited",
-    body: "Housemate is invite-only while we're in alpha. John Healy invites each homeowner and sends them the link to sign in.",
+    title: "You join the waitlist",
+    body: "Housemate is invite-only while we’re in alpha. Choose Join the waitlist on the home page, add your name, home address and email, and agree to the Terms. A mobile number is optional.",
   },
   {
-    title: "You sign in",
-    body: "Enter your mobile number at myhousemate.co/sign-in, then the one-time code we text you. Sign-in codes are sent whenever you ask for one.",
+    title: "You choose whether to get texts",
+    body: `If you add a mobile number, a separate box appears below the Terms box: “${SMS_OPT_IN.label}”, with what you’re agreeing to written under it (shown below). It starts unticked, and you can join without ticking it. If you tick it, we record your number, the time and the wording you saw.`,
   },
   {
-    title: "The first time, you choose whether to get texts",
-    body: "The first time you sign in, and only then, a welcome page asks whether you want texts, with an optional box that starts unticked and the wording shown below. Tick it and press Continue to agree, or press Continue without it. If you agree, we save your agreement with your number, the time and the wording, and send one text to confirm.",
+    title: "We email you when there’s a place",
+    body: "When a spot opens up, John Healy emails you a link to finish setting up. It’s yours alone, works once, and expires after 14 days.",
+  },
+  {
+    title: "You confirm it’s you",
+    body: "We send a one-time code to your mobile number, or to your email if you didn’t add one. A code never signs you up for other texts. If you agreed to texts, the last step invites you to text your housemate, and our first reply confirms your agreement and how to stop.",
   },
 ] as const;
 
@@ -56,36 +62,32 @@ function Column({ children }: { children: ReactNode }) {
 }
 
 /**
- * The welcome step, drawn. The box and the button are pictures rather than
- * controls, so nobody mistakes this page for the place to agree; the wording
- * and the links are the real ones.
+ * Get started's contact step (G3) once a number is typed, drawn. The boxes are
+ * pictures rather than controls, so nobody mistakes this page for the place
+ * to agree; the wording is the real one.
  */
-function WelcomeSpecimen() {
+function GetStartedSpecimen() {
   return (
     <figure className="flex flex-col gap-3">
       <figcaption className="text-xs tracking-wide text-muted uppercase">
-        What you&rsquo;ll see the first time you sign in
+        What you&rsquo;ll see when you add a mobile number
       </figcaption>
-      <div className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-4 sm:p-6">
-        <div className="flex flex-col gap-1">
-          <p className="text-[24px] leading-8 tracking-display text-heading">
-            Welcome to Housemate
-          </p>
-          <p className="text-label text-muted">
-            You&rsquo;re signed in with (555) 019-0001.
-          </p>
-        </div>
-        <TextConsent
-          box={
-            <span
-              aria-hidden
-              className="block size-5 rounded-sm border border-muted bg-surface"
-            />
-          }
-        />
-        <p className="flex h-10 items-center justify-center rounded-md bg-evergreen text-label text-on-evergreen">
-          Continue
+      <div className="relative rounded-lg border border-line bg-canvas p-4 sm:p-6">
+        <p className="absolute -top-[11px] right-5 flex h-[22px] items-center rounded-full border border-surface bg-status-idle-bg px-2 text-2xs tracking-wide text-status-idle-fg uppercase">
+          Example
         </p>
+        <div className="flex flex-col gap-4">
+          <div className={`${INSET_BOX} border-line-field bg-surface`}>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <p className={`${INSET_LABEL} text-muted`}>
+                Mobile number (optional)
+              </p>
+              <p className="text-lead leading-6 text-heading">(555) 019-0003</p>
+            </div>
+          </div>
+          <TermsRow />
+          <TextsBox />
+        </div>
       </div>
     </figure>
   );
@@ -98,7 +100,7 @@ export default function TextsPage() {
       <main>
         <Masthead
           title="Texts from Housemate"
-          lead="Housemate handles your home's repairs, services and errands by text. You tell it what you need, and it texts back with questions, confirmations and reminders. Here's what we send, who gets it, and how to agree."
+          lead="Housemate handles your home’s repairs, services and errands by text. You tell it what you need, and it texts back with questions, confirmations and reminders. Here’s what we send, who gets it, and how to agree."
           leadWidth={560}
         />
         <div className="flex flex-col gap-14 px-6 pt-10 pb-16 lg:px-30 lg:pt-16 lg:pb-30 xl:flex-row xl:items-start xl:justify-between xl:gap-16">
@@ -133,7 +135,7 @@ export default function TextsPage() {
                   </li>
                 ))}
               </ol>
-              <WelcomeSpecimen />
+              <GetStartedSpecimen />
               <div className="flex flex-col gap-1">
                 <Link
                   href="/sign-in"
@@ -142,7 +144,14 @@ export default function TextsPage() {
                   Go to sign in
                 </Link>
                 <p className="text-label leading-5.5 tracking-normal text-muted">
-                  Not invited yet? Join the waitlist on the home page.
+                  Not a member yet?{" "}
+                  <Link
+                    href="/get-started"
+                    className="rounded-sm text-evergreen underline decoration-1 underline-offset-4 transition-[text-decoration-thickness] duration-120 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-evergreen"
+                  >
+                    Join the waitlist
+                  </Link>
+                  .
                 </p>
               </div>
             </section>
@@ -159,12 +168,13 @@ export default function TextsPage() {
                 marketing.
               </GlanceRow>
               <GlanceRow label="Who gets them">
-                Only invited members who tick the optional box the first time
-                they sign in.
+                Only members who tick &ldquo;{SMS_OPT_IN.label}&rdquo; when they
+                join. Texting is optional.
               </GlanceRow>
-              <GlanceRow label="Sign-in codes">
-                Sent whenever you ask for one, whether or not you&rsquo;ve
-                agreed to other texts.
+              <GlanceRow label="One-time codes">
+                Sent to confirm your number when you set up your account, and
+                when you sign in. Without a number, codes come by email. A code
+                doesn&rsquo;t sign you up for other texts.
               </GlanceRow>
               <GlanceRow label="How often">
                 Message frequency varies with how you use Housemate. No

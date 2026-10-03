@@ -5,11 +5,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./actions": "./src/actions/index.ts",
+    "./address": "./src/address/index.ts",
+    "./address/states": "./src/address/timezone.ts",
     "./alerts": "./src/alerts/index.ts",
     "./auth": "./src/auth/index.ts",
     "./config": "./src/config.ts",
     "./db": "./src/db/index.ts",
     "./email": "./src/email.ts",
+    "./legal": "./src/legal.ts",
+    "./mail": "./src/mail/index.ts",
     "./phone": "./src/phone.ts",
     "./queue": "./src/queue/jobs.ts",
     "./sms/opt-in": "./src/sms/opt-in.ts",
@@ -21,12 +25,14 @@
     "test": "vitest run",
     "test:db": "vitest run --config vitest.db.config.ts",
     "db:generate": "drizzle-kit generate",
-    "seed": "node --import tsx/esm scripts/seed-local.ts"
+    "seed": "node --import tsx/esm scripts/seed-local.ts",
+    "add-staff": "node --import tsx/esm scripts/add-staff.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
     "drizzle-orm": "0.45.2",
     "postgres": "3.4.9",
+    "standardwebhooks": "^1.1.1",
     "twilio": "6.1.1",
     "zod": "^4.6.5"
   },

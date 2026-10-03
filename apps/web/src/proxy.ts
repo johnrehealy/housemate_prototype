@@ -33,9 +33,17 @@ const PUBLIC_ASSET_PREFIXES = ["/_next", "/brand/", "/site/"];
  * and texts page have to open without an account: Twilio's reviewers read
  * them to approve the texting registration, and anyone deciding whether to
  * agree to texts has to be able to read them first. /texts is also the public
- * copy of the welcome step, which a visitor can't otherwise see (D-067).
+ * copy of Get started's texts box, which a visitor only sees once they've
+ * typed a number (D-074).
  */
 const PUBLIC_PAGES = ["/privacy", "/terms", "/texts", "/contact"];
+
+/*
+ * Get started, which is the waitlist and how an account is made (D-072). On a
+ * link, the page itself decides what it opens; a visitor without a valid one
+ * sees the same "expired" page whatever they tried.
+ */
+const PUBLIC_PAGE_PREFIXES = ["/get-started"];
 
 /** Paths a signed-out visitor may see. */
 function isPublicPath(pathname: string) {
@@ -43,6 +51,7 @@ function isPublicPath(pathname: string) {
     pathname === "/" ||
     pathname === SIGN_IN_PATH ||
     PUBLIC_PAGES.includes(pathname) ||
+    PUBLIC_PAGE_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
     PUBLIC_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   );
 }
@@ -105,5 +114,10 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Everything except static assets and image optimization. Auth routes run
   // through here too, so a signed-out visitor can never reach app data.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  //
+  // Supabase's Send Email hook is left out: it's a signed server-to-server
+  // call with no session, and it has five seconds to send a code (D-073).
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/auth/send-email$).*)",
+  ],
 };

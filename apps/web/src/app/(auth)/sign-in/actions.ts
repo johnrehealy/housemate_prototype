@@ -1,96 +1,115 @@
 "use server";
 
-import { toE164 } from "@housemate/core";
+import { readSignInIdentifier } from "@housemate/core";
 import { activateMember } from "@housemate/core/actions";
 import { getMemberByUserId } from "@housemate/core/db";
 import { redirect } from "next/navigation";
+import { homePath } from "@/lib/auth/session";
 import { actionContext, serverDb } from "@/lib/server-context";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { INITIAL_SIGN_IN_STATE, type SignInState } from "./state";
+import {
+  createSupabaseCodeClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
+import { WRONG_CODE, type SignInState } from "./state";
 
-export async function submitSignIn(
+/**
+ * Signs in with a code (D-073): texted to a mobile number, or emailed. Members
+ * get their account from Get started; sign-in never makes one and never asks
+ * anything else.
+ *
+ * A number or email with no account goes to the same code step as a real one,
+ * and nothing is sent, so the page can't be used to find members.
+ */
+export async function signIn(
   previous: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
-  if (formData.get("restart") !== null) return INITIAL_SIGN_IN_STATE;
+  const intent = formData.get("intent");
 
-  const code = String(formData.get("code") ?? "").trim();
-  if (previous.step === "code" && previous.phone) {
-    if (!code) {
-      return { ...previous, error: "Enter the code we texted you." };
+  if (previous.step === "code") {
+    if (intent === "restart") {
+      return { step: "who", identifier: previous.identifier };
     }
-    return verifyCode(previous.phone, code);
+    if (intent === "resend") {
+      const error = await requestCode(previous.channel, previous.to);
+      return error
+        ? { ...previous, error }
+        : { ...previous, error: undefined, sends: previous.sends + 1 };
+    }
+    return checkCode(previous, String(formData.get("code") ?? ""));
   }
 
-  return requestCode(String(formData.get("phone") ?? ""));
-}
-
-async function requestCode(input: string): Promise<SignInState> {
-  const phone = toE164(input);
-  if (!phone) {
-    return { step: "phone", error: "Enter a 10-digit mobile number." };
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    phone,
-    // Inviting is what creates an account. Signing in never makes one.
-    options: { shouldCreateUser: false },
-  });
-
-  // "Signups not allowed" just means the number isn't invited, which the
-  // member must not be told apart from success.
-  if (error && error.code !== "otp_disabled") {
-    // Everyone sees the same message, so record the real reason for the team.
-    // The code and status are enough to debug it; the number isn't.
-    console.error("sign-in: could not send a code", {
-      code: error.code,
-      status: error.status,
-    });
+  const identifier = String(formData.get("identifier") ?? "").trim();
+  const who = readSignInIdentifier(identifier);
+  if (!who) {
     return {
-      step: "phone",
-      error: "We couldn't send a code just now. Try again in a moment.",
+      step: "who",
+      identifier,
+      error: "Enter your mobile number or email.",
     };
   }
-
-  // No notice: the code step's helper already says a code is on its way, and
-  // it says the same thing whether or not the number is invited, so this page
-  // can't be used to find out who is in the pilot.
-  return { step: "code", phone };
+  const channel = who.kind === "email" ? "email" : "sms";
+  const to = who.kind === "email" ? who.email : who.phone;
+  const error = await requestCode(channel, to);
+  if (error) return { step: "who", identifier, error };
+  return { step: "code", identifier, channel, to, sends: 1 };
 }
 
-async function verifyCode(phone: string, token: string): Promise<SignInState> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.verifyOtp({
-    phone,
-    token,
-    type: "sms",
-  });
+/** Asks Supabase for a code. A message to show, or undefined once it's sent. */
+async function requestCode(
+  channel: "sms" | "email",
+  to: string,
+): Promise<string | undefined> {
+  const { error } = await createSupabaseCodeClient().auth.signInWithOtp(
+    // Signing in never makes an account.
+    channel === "sms"
+      ? { phone: to, options: { shouldCreateUser: false } }
+      : { email: to, options: { shouldCreateUser: false } },
+  );
 
-  if (error || !data.user) {
-    return {
-      step: "code",
-      phone,
-      error: "That code didn't work. Check it and try again.",
-    };
-  }
+  // A number or email with no account is refused as "otp_disabled", and has
+  // to look exactly like success.
+  if (!error || error.code === "otp_disabled") return undefined;
+  console.error("sign-in: could not send a code", {
+    channel,
+    code: error.code,
+    status: error.status,
+  });
+  return "We couldn’t send a code just now. Try again in a moment.";
+}
+
+async function checkCode(
+  state: Extract<SignInState, { step: "code" }>,
+  input: string,
+): Promise<SignInState> {
+  const token = input.replace(/\D/g, "");
+  const wrong = { ...state, error: WRONG_CODE };
+  if (token.length !== 6) return wrong;
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.verifyOtp(
+    state.channel === "sms"
+      ? { phone: state.to, token, type: "sms" }
+      : { email: state.to, token, type: "email" },
+  );
+  if (error || !data.user) return wrong;
 
   const member = await getMemberByUserId(serverDb(), data.user.id);
   if (!member) {
-    await supabase.auth.signOut();
-    return { step: "phone", error: "That number isn't set up yet." };
-  }
-
-  // A member's first sign-in ends on the welcome step, which asks once about
-  // texts and is what activates them (D-067). Until they finish it they stay
-  // invited, and signing in brings them back to it.
-  if (member.status === "invited" && member.role === "member") {
-    redirect("/welcome");
+    // A Get started that stopped before the code was confirmed. They've just
+    // proven the number or email, so saying so gives nothing away.
+    await supabase.auth.signOut({ scope: "local" });
+    return {
+      step: "who",
+      identifier: state.identifier,
+      error:
+        "There’s no account for that yet. Finish setting up from the Get started link we emailed you.",
+    };
   }
 
   try {
-    // Activates invited staff, leaves active members as they are, and turns
-    // away anyone removed.
+    // Activates staff on their first sign-in, leaves active members as they
+    // are, and turns away anyone removed.
     await activateMember(
       actionContext({
         actor: {
@@ -102,12 +121,13 @@ async function verifyCode(phone: string, token: string): Promise<SignInState> {
       { memberId: member.id },
     );
   } catch {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     return {
-      step: "phone",
-      error: "That number can't sign in. Get in touch and we'll sort it out.",
+      step: "who",
+      identifier: state.identifier,
+      error: "This account can’t sign in. Get in touch and we’ll sort it out.",
     };
   }
 
-  redirect("/chat");
+  redirect(homePath(member));
 }

@@ -1,3 +1,4 @@
+import { formatLegalDate, TERMS_VERSION } from "@housemate/core/legal";
 import type { Metadata } from "next";
 import {
   A,
@@ -28,7 +29,9 @@ import { SiteFooter } from "../_components/site-footer";
  *
  * Change the dates whenever the text changes. Section 16 promises that.
  */
-const EFFECTIVE = "September 30, 2026";
+// The Terms' date is the version Get started records against each waitlist
+// entry and account (D-072), so the page reads it from the same place.
+const EFFECTIVE = formatLegalDate(TERMS_VERSION);
 
 const DESCRIPTION =
   "The agreement between you and Housemate: what Housemate does for you, the limits you control, texting, payments, and your rights.";
@@ -117,8 +120,8 @@ export default function TermsPage() {
             <Bullets>
               <Bullet>be at least 18 years old;</Bullet>
               <Bullet>
-                have been invited by us (Housemate is invite-only while in
-                alpha);
+                have joined our waitlist and been offered a place (Housemate is
+                invite-only while in alpha);
               </Bullet>
               <Bullet>
                 live in the United States, and use Housemate for a home in the
@@ -269,14 +272,15 @@ export default function TermsPage() {
                 don&rsquo;t send marketing texts.
               </GlanceRow>
               <GlanceRow label="Who receives them">
-                Only members who have been invited and have agreed to receive
-                texts from Housemate, which we ask once, the first time they
-                sign in. Agreeing is optional, and isn&rsquo;t a condition of
-                using Housemate or of buying anything.
+                Only members who have agreed to receive texts from Housemate,
+                which we ask once, with an optional box when they join and add a
+                mobile number. Agreeing is optional, and isn&rsquo;t a condition
+                of using Housemate or of buying anything.
               </GlanceRow>
-              <GlanceRow label="Sign-in codes">
-                Sent whenever you ask for one, whether or not you&rsquo;ve
-                agreed to other texts.
+              <GlanceRow label="One-time codes">
+                Sent to confirm your number when you set up your account, and
+                when you sign in. Without a number, codes come by email. A code
+                doesn&rsquo;t sign you up for other texts.
               </GlanceRow>
               <GlanceRow label="How often">
                 Message frequency varies with how you use Housemate. We
@@ -307,7 +311,7 @@ export default function TermsPage() {
             </Glance>
             <P>
               Stopping texts means Housemate can no longer act on requests by
-              text, and signing in to the web app needs a texted code.
+              text. You can still sign in to the web app with a one-time code.
             </P>
           </Section>
 
@@ -418,10 +422,11 @@ export default function TermsPage() {
 
           <Section {...section("account")}>
             <P>
-              You sign in to the web app with a one-time code texted to your
-              phone. Keep your phone secure, since anyone with access to it may
-              be able to use your account. Tell us right away at <Email /> if
-              you think someone else has used it.
+              You sign in to the web app with a one-time code, texted to your
+              mobile number or emailed to you. Keep your phone and your email
+              account secure: anyone with access to them may be able to sign in
+              as you. Tell us right away at <Email /> if you think someone else
+              has used your account.
             </P>
           </Section>
 
